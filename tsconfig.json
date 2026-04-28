@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "jsx": "react",
+    "jsx": "react-jsx",
     "target": "es2021",
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "removeComments": false,
     "noImplicitAny": false,
+    "rootDir": "./",
     "outDir": "target/classes/static/app",
     "lib": ["dom", "es2015", "es2016", "es2017", "es2019", "es2020", "es2021"],
     "types": ["webpack-env"],
@@ -20,7 +21,8 @@
     },
     "importHelpers": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/main/webapp/app"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.spec.tsx"]

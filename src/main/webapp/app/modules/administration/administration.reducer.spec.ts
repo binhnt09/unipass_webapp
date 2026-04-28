@@ -13,14 +13,14 @@ import administration, {
 } from './administration.reducer';
 
 describe('Administration reducer tests', () => {
-  function isEmpty(element): boolean {
+  function isEmpty(element: any): boolean {
     if (Array.isArray(element)) {
       return element.length === 0;
     }
     return Object.keys(element).length === 0;
   }
 
-  function testInitialState(state) {
+  function testInitialState(state: any) {
     expect(state).toMatchObject({
       loading: false,
       errorMessage: null,

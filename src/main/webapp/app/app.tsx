@@ -1,5 +1,6 @@
 import 'react-toastify/dist/ReactToastify.css';
 import './app.scss';
+import './styles/index.css';
 import 'app/config/dayjs';
 
 import React, { useEffect } from 'react';
@@ -18,7 +19,7 @@ import Header from 'app/shared/layout/header/header';
 import { getProfile } from 'app/shared/reducers/application-profile';
 import { getSession } from 'app/shared/reducers/authentication';
 
-const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
+const baseHref = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
 
 export const App = () => {
   const dispatch = useAppDispatch();

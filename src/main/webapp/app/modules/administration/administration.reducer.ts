@@ -6,7 +6,7 @@ import { serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 
 const initialState = {
   loading: false,
-  errorMessage: null,
+  errorMessage: null as string | null | undefined,
   logs: {
     loggers: [] as any[],
   },
@@ -18,7 +18,7 @@ const initialState = {
     env: {} as any,
   },
   tracker: {
-    activities: [],
+    activities: [] as any[],
   },
   totalItems: 0,
 };

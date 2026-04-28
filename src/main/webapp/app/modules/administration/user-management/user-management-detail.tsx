@@ -16,7 +16,9 @@ export const UserManagementDetail = () => {
   const dispatch = useAppDispatch();
 
   const { login } = useParams<'login'>();
-
+  if (!login) {
+    throw new Error('Không tìm thấy thẻ login trong file user-management-detail.html');
+  }
   useEffect(() => {
     dispatch(getUser(login));
   }, []);

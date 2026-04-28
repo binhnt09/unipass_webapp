@@ -15,7 +15,9 @@ export const UserManagementDeleteDialog = () => {
 
   const navigate = useNavigate();
   const { login } = useParams<'login'>();
-
+  if (!login) {
+    throw new Error('Không tìm thấy thẻ login trong file user-management-delete.html');
+  }
   useEffect(() => {
     dispatch(getUser(login));
   }, []);

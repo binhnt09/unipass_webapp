@@ -1,99 +1,64 @@
 import './home.scss';
 
 import React from 'react';
-import { Alert, Col, Row } from 'react-bootstrap';
-import { Translate } from 'react-jhipster';
-import { Link } from 'react-router';
-
-import { useAppSelector } from 'app/config/store';
+// import { Alert, Col, Row } from 'react-bootstrap';
+// import { Translate } from 'react-jhipster';
+// import { Link } from 'react-router';
+// import { useAppSelector } from 'app/config/store';
+import { ShoppingBag, Shield, Users } from 'lucide-react';
 
 export const Home = () => {
-  const account = useAppSelector(state => state.authentication.account);
+  // const account = useAppSelector(state => state.authentication.account);
 
   return (
-    <Row>
-      <Col md="3" className="pad">
-        <span className="hipster rounded" />
-      </Col>
-      <Col md="9">
-        <h1 className="display-4">
-          <Translate contentKey="home.title">Welcome, Java Hipster!</Translate>
-        </h1>
-        <p className="lead">
-          <Translate contentKey="home.subtitle">This is your homepage</Translate>
-        </p>
-        {account?.login ? (
-          <div>
-            <Alert variant="success">
-              <Translate contentKey="home.logged.message" interpolate={{ username: account.login }}>
-                You are logged in as user {account.login}.
-              </Translate>
-            </Alert>
+    <div className="bg-gradient-to-br from-[#0A2647] via-[#144272] to-[#0A2647] text-white py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-5xl font-bold mb-4">Chợ trường an toàn của bạn</h1>
+          <p className="text-xl text-white/90 mb-8">
+            Giao dịch an toàn với bạn bè đã xác thực. Mua và bán sách giáo khoa, điện tử và nhiều hơn nữa trong cộng đồng trường đại học của
+            bạn.
+          </p>
+          <button className="px-8 py-4 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium transition-colors shadow-lg inline-flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5" />
+            Bắt đầu bán hàng
+          </button>
+        </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
+          <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+            <div className="w-10 h-10 bg-[#FF6B35] rounded-lg flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">Người dùng đã xác thực</h3>
+              <p className="text-sm text-white/80">Chỉ sinh viên và giảng viên có email .edu đã xác thực</p>
+            </div>
           </div>
-        ) : (
-          <div>
-            <Alert variant="warning">
-              <Translate contentKey="global.messages.info.authenticated.prefix">If you want to </Translate>
 
-              <Link to="/login" className="alert-link">
-                <Translate contentKey="global.messages.info.authenticated.link"> sign in</Translate>
-              </Link>
-              <Translate contentKey="global.messages.info.authenticated.suffix">
-                , you can try the default accounts:
-                <br />- Administrator (login=&quot;admin&quot; and password=&quot;admin&quot;)
-                <br />- User (login=&quot;user&quot; and password=&quot;user&quot;).
-              </Translate>
-            </Alert>
-
-            <Alert variant="warning">
-              <Translate contentKey="global.messages.info.register.noaccount">You do not have an account yet?</Translate>&nbsp;
-              <Link to="/account/register" className="alert-link">
-                <Translate contentKey="global.messages.info.register.link">Register a new account</Translate>
-              </Link>
-            </Alert>
+          <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+            <div className="w-10 h-10 bg-[#FF6B35] rounded-lg flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">Cộng đồng trường học</h3>
+              <p className="text-sm text-white/80">Giao dịch với bạn bè trong trường đại học của bạn</p>
+            </div>
           </div>
-        )}
-        <p>
-          <Translate contentKey="home.question">If you have any questions on JHipster:</Translate>
-        </p>
 
-        <ul>
-          <li>
-            <a href="https://www.jhipster.tech/" target="_blank" rel="noopener noreferrer">
-              <Translate contentKey="home.link.homepage">JHipster homepage</Translate>
-            </a>
-          </li>
-          <li>
-            <a href="https://stackoverflow.com/tags/jhipster/info" target="_blank" rel="noopener noreferrer">
-              <Translate contentKey="home.link.stackoverflow">JHipster on Stack Overflow</Translate>
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/jhipster/generator-jhipster/issues?state=open" target="_blank" rel="noopener noreferrer">
-              <Translate contentKey="home.link.bugtracker">JHipster bug tracker</Translate>
-            </a>
-          </li>
-          <li>
-            <a href="https://gitter.im/jhipster/generator-jhipster" target="_blank" rel="noopener noreferrer">
-              <Translate contentKey="home.link.chat">JHipster public chat room</Translate>
-            </a>
-          </li>
-          <li>
-            <a href="https://twitter.com/jhipster" target="_blank" rel="noopener noreferrer">
-              <Translate contentKey="home.link.follow">follow @jhipster on Twitter</Translate>
-            </a>
-          </li>
-        </ul>
-
-        <p>
-          <Translate contentKey="home.like">If you like JHipster, do not forget to give us a star on</Translate>{' '}
-          <a href="https://github.com/jhipster/generator-jhipster" target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
-          !
-        </p>
-      </Col>
-    </Row>
+          <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+            <div className="w-10 h-10 bg-[#FF6B35] rounded-lg flex items-center justify-center flex-shrink-0">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">Giao dịch dễ dàng</h3>
+              <p className="text-sm text-white/80">Quy trình mua bán đơn giản</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
