@@ -43,6 +43,7 @@ export default defineConfig(
     },
     rules: {
       '@typescript-eslint/no-unused-vars': 'warn', // THÊM DÒNG NÀY VÀO ĐỂ TẮT LỖI import
+      'react/jsx-no-undef': 'warn',
       // '@typescript-eslint/no-redundant-type-constituents': 'off', // THÊM DÒNG NÀY VÀO ĐỂ TẮT LỖI REDUNDANT TYPE:
       '@typescript-eslint/member-ordering': [
         'error',

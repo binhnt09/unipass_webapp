@@ -3,7 +3,7 @@ import { Alert, Button, Col, Form, Modal, ModalBody, ModalFooter, ModalHeader, R
 import { Translate, ValidatedField, translate } from 'react-jhipster';
 import { Link } from 'react-router';
 
-import { type FieldError, useForm } from 'react-hook-form';
+import { type FieldError, useForm, type FieldValues } from 'react-hook-form';
 
 export interface ILoginModalProps {
   showModal: boolean;
@@ -13,7 +13,8 @@ export interface ILoginModalProps {
 }
 
 const LoginModal = (props: ILoginModalProps) => {
-  const login = ({ username, password, rememberMe }) => {
+  const login = (data: FieldValues) => {
+    const { username, password, rememberMe } = data as { username: string; password: string; rememberMe: boolean };
     props.handleLogin(username, password, rememberMe);
   };
 

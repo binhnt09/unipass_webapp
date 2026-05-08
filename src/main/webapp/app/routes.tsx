@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route, useLocation } from 'react-router';
+import { createBrowserRouter, Outlet, useLocation } from 'react-router';
 
 import { sendActivity } from 'app/config/websocket-middleware';
 import EntitiesRoutes from 'app/entities/routes';
@@ -11,64 +11,144 @@ import Home from 'app/modules/home/home';
 import Login from 'app/modules/login/login';
 import Logout from 'app/modules/login/logout';
 import PrivateRoute from 'app/shared/auth/private-route';
-import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
+import ErrorBoundary from 'app/shared/error/error-boundary';
 import PageNotFound from 'app/shared/error/page-not-found';
 import { Authority } from 'app/shared/jhipster/constants';
+import Footer from 'app/shared/layout/footer/footer';
+import Header from 'app/shared/layout/header/header';
+import { useAppSelector, useAppDispatch } from 'app/config/store';
+import { hasAnyAuthority } from 'app/shared/auth/private-route';
+import { getProfile } from 'app/shared/reducers/application-profile';
+import { getSession } from 'app/shared/reducers/authentication';
+
+import PremiumPlansPage from 'app/modules/premiumplanspage/premiumPlansPage';
 
 const loading = <div>loading ...</div>;
 
 const Account = React.lazy(() => import(/* webpackChunkName: "account" */ 'app/modules/account'));
 
 const Admin = React.lazy(() => import(/* webpackChunkName: "administration" */ 'app/modules/administration'));
-const AppRoutes = () => {
+
+const RootLayout = () => {
+  const dispatch = useAppDispatch();
   const pageLocation = useLocation();
+
+  React.useEffect(() => {
+    dispatch(getSession());
+    dispatch(getProfile());
+  }, []);
+
   React.useEffect(() => {
     sendActivity(pageLocation.pathname);
   }, [pageLocation]);
+
+  const currentLocale = useAppSelector(state => state.locale.currentLocale);
+  const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
+  const isAdmin = useAppSelector(state => hasAnyAuthority(state.authentication.account.authorities, [Authority.ADMIN]));
+  const ribbonEnv = useAppSelector(state => state.applicationProfile.ribbonEnv);
+  const isInProduction = useAppSelector(state => state.applicationProfile.inProduction);
+  const isOpenAPIEnabled = useAppSelector(state => state.applicationProfile.isOpenAPIEnabled);
+
+  const paddingTop = '60px';
   return (
-    <div className="view-routes">
-      <Suspense fallback={loading}>
-        <ErrorBoundaryRoutes>
-          <Route index element={<Home />} />
-          <Route path="login" element={<Login />} />
-          <Route path="logout" element={<Logout />} />
-          <Route path="account">
-            <Route
-              path="*"
-              element={
-                <PrivateRoute hasAnyAuthorities={[Authority.ADMIN, Authority.USER]}>
-                  <Account />
-                </PrivateRoute>
-              }
-            />
-            <Route path="register" element={<Register />} />
-            <Route path="activate" element={<Activate />} />
-            <Route path="reset">
-              <Route path="request" element={<PasswordResetInit />} />
-              <Route path="finish" element={<PasswordResetFinish />} />
-            </Route>
-          </Route>
-          <Route
-            path="admin/*"
-            element={
-              <PrivateRoute hasAnyAuthorities={[Authority.ADMIN]}>
-                <Admin />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="*"
-            element={
-              <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
-                <EntitiesRoutes />
-              </PrivateRoute>
-            }
-          />
-          <Route path="*" element={<PageNotFound />} />
-        </ErrorBoundaryRoutes>
-      </Suspense>
+    <div className="app-container" style={{ paddingTop }}>
+      <ErrorBoundary>
+        <Header
+          isAuthenticated={isAuthenticated}
+          isAdmin={isAdmin}
+          currentLocale={currentLocale}
+          ribbonEnv={ribbonEnv}
+          isInProduction={isInProduction}
+          isOpenAPIEnabled={isOpenAPIEnabled}
+        />
+      </ErrorBoundary>
+      <div className="container-fluid view-container" id="app-view-container">
+        <ErrorBoundary>
+          <Suspense fallback={loading}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
+        <Footer />
+      </div>
     </div>
   );
 };
 
-export default AppRoutes;
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: 'login',
+        element: <Login />,
+      },
+      {
+        path: 'logout',
+        element: <Logout />,
+      },
+      {
+        path: 'premium',
+        element: <PremiumPlansPage />,
+      },
+      {
+        path: 'account',
+        children: [
+          {
+            path: '*',
+            element: (
+              <PrivateRoute hasAnyAuthorities={[Authority.ADMIN, Authority.USER]}>
+                <Account />
+              </PrivateRoute>
+            ),
+          },
+          {
+            path: 'register',
+            element: <Register />,
+          },
+          {
+            path: 'activate',
+            element: <Activate />,
+          },
+          {
+            path: 'reset',
+            children: [
+              {
+                path: 'request',
+                element: <PasswordResetInit />,
+              },
+              {
+                path: 'finish',
+                element: <PasswordResetFinish />,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: 'admin/*',
+        element: (
+          <PrivateRoute hasAnyAuthorities={[Authority.ADMIN]}>
+            <Admin />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: '*',
+        element: (
+          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+            <EntitiesRoutes />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: '*',
+        element: <PageNotFound />,
+      },
+    ],
+  },
+]);

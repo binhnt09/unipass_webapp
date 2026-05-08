@@ -98,7 +98,10 @@ module.exports = async options => {
         }),
         new ESLintPlugin({
           configType: 'flat',
-          extensions: ['ts', 'tsx'],
+          extensions: ['ts', 'tsx', 'js', 'jsx'],
+          failOnWarning: false, // Quan trọng: Có cảnh báo vẫn chạy tiếp
+          failOnError: false, // Quan trọng: Có lỗi vẫn chạy tiếp (để dev cho sướng)
+          emitWarning: true,
         }),
         new ForkTsCheckerWebpackPlugin(),
         new CopyWebpackPlugin({

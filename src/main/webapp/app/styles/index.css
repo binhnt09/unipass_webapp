@@ -1,3 +1,16 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* ==========================================================================
+   Hỗ trợ đóng/mở cho React-Bootstrap Dropdown
+   ========================================================================== */
+/* Mặc định ẩn menu */
+.dropdown-menu {
+  display: none;
+}
+
+/* Khi react-bootstrap gắn class 'show' vào, menu sẽ hiện ra */
+.dropdown-menu.show {
+  display: block;
+}

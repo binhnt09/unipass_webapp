@@ -17,7 +17,7 @@ export const initialState = {
   loginError: false, // Errors returned from server side
   showModalLogin: false,
   account: {} as any,
-  errorMessage: null as unknown as string, // Errors returned from server side
+  errorMessage: null as string | null, // Errors returned from server side
   redirectMessage: null as unknown as string,
   sessionHasBeenFetched: false,
   logoutUrl: null as unknown as string,
@@ -122,7 +122,7 @@ export const AuthenticationSlice = createSlice({
     builder
       .addCase(authenticate.rejected, (state, action) => ({
         ...initialState,
-        errorMessage: action.error.message,
+        errorMessage: action.error.message || null,
         showModalLogin: true,
         loginError: true,
       }))
@@ -139,7 +139,7 @@ export const AuthenticationSlice = createSlice({
         isAuthenticated: false,
         sessionHasBeenFetched: true,
         showModalLogin: true,
-        errorMessage: action.error.message,
+        errorMessage: action.error.message || null,
       }))
       .addCase(getAccount.fulfilled, (state, action) => {
         const isAuthenticated = action.payload?.data?.activated;

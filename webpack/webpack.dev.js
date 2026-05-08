@@ -47,6 +47,7 @@ module.exports = async options =>
     },
     devServer: {
       hot: true,
+      liveReload: true,
       static: {
         directory: './target/classes/static/',
       },
