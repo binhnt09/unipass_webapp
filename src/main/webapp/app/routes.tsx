@@ -21,7 +21,22 @@ import { hasAnyAuthority } from 'app/shared/auth/private-route';
 import { getProfile } from 'app/shared/reducers/application-profile';
 import { getSession } from 'app/shared/reducers/authentication';
 
-import PremiumPlansPage from 'app/modules/premiumplanspage/premiumPlansPage';
+import PremiumPlansPage from 'app/modules/premium-plans/premiumPlansPage';
+import { CreateListingPage } from './modules/listing/create-listing/createListingPage';
+import { LoginInfoPage } from './modules/login/LoginInfoPage';
+import { ChatPage } from './modules/chat/chatPage';
+import { SellerDashboardPage } from './modules/seller/dashboard/sellerDashboardPage';
+import { MyOrdersPage } from './modules/order/pages/myOrdersPage';
+import { ShoppingCartPage } from './modules/cart/shoppingCartPage';
+import { NotificationsPage } from './modules/notifications/notificationsPage';
+import { OrderDetailPage } from './modules/order/pages/orderDetailPage';
+import { CheckoutPage } from './modules/checkout/checkoutPage';
+import { PurchaseSuccessPage } from './modules/checkout/purchaseSuccessPage';
+import { PaymentPage } from './modules/checkout/payment/payment-selection';
+import { MoMoQRPage } from './modules/checkout/payment/momo-qr';
+import { VNPayQRPage } from './modules/checkout/payment/vnpay-qr';
+import { BankTransferQRPage } from './modules/checkout/payment/bank-transfer-qr';
+import { ProductDetailPage } from './modules/listing/components/productDetailPage';
 
 const loading = <div>loading ...</div>;
 
@@ -79,22 +94,25 @@ export const router = createBrowserRouter([
     path: '/',
     element: <RootLayout />,
     children: [
-      {
-        index: true,
-        element: <Home />,
-      },
-      {
-        path: 'login',
-        element: <Login />,
-      },
-      {
-        path: 'logout',
-        element: <Logout />,
-      },
-      {
-        path: 'premium',
-        element: <PremiumPlansPage />,
-      },
+      { index: true, element: <Home /> },
+      { path: 'login', element: <Login /> },
+      { path: 'logout', element: <Logout /> },
+      { path: 'premium', element: <PremiumPlansPage /> },
+      { path: 'create-listing', element: <CreateListingPage /> },
+      { path: 'login-info', element: <LoginInfoPage /> },
+      { path: 'messages', element: <ChatPage /> },
+      { path: 'seller-dashboard', element: <SellerDashboardPage /> },
+      { path: 'orders', element: <MyOrdersPage /> },
+      { path: 'cart', element: <ShoppingCartPage /> },
+      { path: 'notifications', element: <NotificationsPage /> },
+      { path: 'order/:id', element: <OrderDetailPage /> },
+      { path: 'product/:id', element: <ProductDetailPage /> },
+      { path: 'checkout', element: <CheckoutPage /> },
+      { path: 'purchase-success', element: <PurchaseSuccessPage /> },
+      { path: 'payment', element: <PaymentPage /> },
+      { path: 'payment/momo', element: <MoMoQRPage /> },
+      { path: 'payment/vnpay', element: <VNPayQRPage /> },
+      { path: 'payment/bank-transfer', element: <BankTransferQRPage /> },
       {
         path: 'account',
         children: [
@@ -106,25 +124,13 @@ export const router = createBrowserRouter([
               </PrivateRoute>
             ),
           },
-          {
-            path: 'register',
-            element: <Register />,
-          },
-          {
-            path: 'activate',
-            element: <Activate />,
-          },
+          { path: 'register', element: <Register /> },
+          { path: 'activate', element: <Activate /> },
           {
             path: 'reset',
             children: [
-              {
-                path: 'request',
-                element: <PasswordResetInit />,
-              },
-              {
-                path: 'finish',
-                element: <PasswordResetFinish />,
-              },
+              { path: 'request', element: <PasswordResetInit /> },
+              { path: 'finish', element: <PasswordResetFinish /> },
             ],
           },
         ],

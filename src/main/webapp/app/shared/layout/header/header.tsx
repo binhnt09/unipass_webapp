@@ -12,6 +12,8 @@ import { AccountMenu, LocaleMenu } from '../menus';
 import { AuthModal } from 'app/modules/login/AuthModal';
 
 import { Brand, Home } from './header-components';
+import { useAuth } from 'app/contexts/AuthContext';
+import { AIChatButton } from 'app/modules/chatboxAI/AIChatButton';
 
 export interface IHeaderProps {
   isAuthenticated: boolean;
@@ -24,6 +26,7 @@ export interface IHeaderProps {
 
 const Header = (props: IHeaderProps) => {
   const dispatch = useAppDispatch();
+  const { isAuthenticated, isSeller } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -78,13 +81,15 @@ const Header = (props: IHeaderProps) => {
             <Navbar.Collapse id="header-tabs" className="w-full md:w-auto">
               <Nav className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3 mt-3 md:mt-0">
                 <Home />
-                <Link
-                  to="/create-listing"
-                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Bán hàng</span>
-                </Link>
+                {isSeller && (
+                  <Link
+                    to="/create-listing"
+                    className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Bán hàng</span>
+                  </Link>
+                )}
                 <Link
                   to="/premium"
                   className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0A2647] transition-colors text-sm font-medium"
@@ -92,7 +97,7 @@ const Header = (props: IHeaderProps) => {
                   <Crown className="w-4 h-4" />
                   <span>Premium</span>
                 </Link>
-                {props.isAuthenticated && (
+                {isAuthenticated && (
                   <Link to="/messages" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Tin nhắn">
                     <MessageCircle className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
@@ -100,7 +105,7 @@ const Header = (props: IHeaderProps) => {
                     </span>
                   </Link>
                 )}
-                {props.isAuthenticated && (
+                {isAuthenticated && (
                   <Link to="/cart" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Giỏ hàng">
                     <ShoppingCart className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
@@ -108,7 +113,7 @@ const Header = (props: IHeaderProps) => {
                     </span>
                   </Link>
                 )}
-                {props.isAuthenticated && (
+                {isAuthenticated && (
                   <Link to="/notifications" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Thông báo">
                     <Bell className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
@@ -117,13 +122,14 @@ const Header = (props: IHeaderProps) => {
                   </Link>
                 )}
                 <LocaleMenu currentLocale={props.currentLocale} onClick={handleLocaleChange} />
-                <AccountMenu isAuthenticated={props.isAuthenticated} onLoginClick={openAuthModal} />
+                <AccountMenu onLoginClick={openAuthModal} />
               </Nav>
             </Navbar.Collapse>
           </div>
         </div>
       </Navbar>
       {showAuthModal && <AuthModal onClose={closeAuthModal} />}
+      <AIChatButton />
     </div>
   );
 };

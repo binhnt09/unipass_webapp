@@ -1,23 +1,20 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { login as loginAction } from 'app/shared/reducers/authentication';
+import { useAuth } from 'app/contexts/AuthContext';
 
 interface AuthModalProps {
   onClose: () => void;
 }
 
 export function AuthModal({ onClose }: AuthModalProps) {
-  const dispatch = useAppDispatch();
-  const loginError = useAppSelector(state => state.authentication.loginError);
-  const loading = useAppSelector(state => state.authentication.loading);
-  const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
-
+  const { login: authLogin, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [emailError, setEmailError] = useState(false);
   const [emailValue, setEmailValue] = useState('');
   const [passwordValue, setPasswordValue] = useState('');
   const [showDemoAccounts, setShowDemoAccounts] = useState(true);
+  const [loginError, setLoginError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Close modal when login successful
   React.useEffect(() => {
@@ -28,15 +25,29 @@ export function AuthModal({ onClose }: AuthModalProps) {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setLoginError(false);
 
-    // Dispatch Redux login action - authentication.ts sẽ handle API call
-    dispatch(loginAction(emailValue, passwordValue, false));
+    const success = authLogin(emailValue, passwordValue);
+    if (success) {
+      onClose();
+    } else {
+      setLoginError(true);
+    }
+    setLoading(false);
   };
 
   const quickLogin = (email: string, password: string) => {
-    setEmailValue(email);
-    setPasswordValue(password);
-    dispatch(loginAction(email, password, false));
+    setLoading(true);
+    setLoginError(false);
+
+    const success = authLogin(email, password);
+    if (success) {
+      onClose();
+    } else {
+      setLoginError(true);
+    }
+    setLoading(false);
   };
 
   return (

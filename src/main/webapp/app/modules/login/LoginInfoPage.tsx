@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { ShoppingBag, LayoutDashboard, User, Lock, Mail, Copy, Check, Shield, CheckCircle, Home } from 'lucide-react';
+import { ShoppingBag, LayoutDashboard, User, Mail, Copy, Check, Shield, CheckCircle, Home } from 'lucide-react';
 import React, { useState } from 'react';
 
 export function LoginInfoPage() {

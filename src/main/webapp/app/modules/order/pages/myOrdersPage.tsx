@@ -1,0 +1,419 @@
+import React, { useState } from 'react';
+import { Search, BadgeCheck, MessageCircle, Eye, Package, Copy, Check, ShoppingBag, Star, RotateCcw, SortAsc } from 'lucide-react';
+import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
+import { Link } from 'react-router';
+import { RatingModal } from '../components/ratingModal';
+
+type OrderStatus = 'all' | 'pending' | 'shipping' | 'completed' | 'cancelled';
+type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc';
+
+interface OrderItem {
+  id: string;
+  productImage: string;
+  productTitle: string;
+  variation?: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  sellerName: string;
+  sellerUniversity: string;
+  status: 'pending' | 'shipping' | 'completed' | 'cancelled';
+  statusText: string;
+  items: OrderItem[];
+  total: number;
+  orderDate: string;
+}
+
+export function MyOrdersPage() {
+  const [activeTab, setActiveTab] = useState<OrderStatus>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [selectedOrderForRating, setSelectedOrderForRating] = useState<Order | null>(null);
+
+  const tabs = [
+    { id: 'all' as OrderStatus, label: 'Tất cả' },
+    { id: 'pending' as OrderStatus, label: 'Chờ xác nhận' },
+    { id: 'shipping' as OrderStatus, label: 'Chờ giao hàng' },
+    { id: 'completed' as OrderStatus, label: 'Hoàn thành' },
+    { id: 'cancelled' as OrderStatus, label: 'Đã hủy' },
+  ];
+
+  // Sample orders
+  const orders: Order[] = [
+    {
+      id: '1',
+      orderNumber: 'UM2024032301',
+      sellerName: 'Nam Nguyễn',
+      sellerUniversity: 'ĐH Bách Khoa HN',
+      status: 'pending',
+      statusText: 'CHỜ XÁC NHẬN',
+      orderDate: '23/03/2024',
+      items: [
+        {
+          id: '1',
+          productImage:
+            'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+          productTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
+          variation: 'Màu bạc',
+          quantity: 1,
+          unitPrice: 12500000,
+        },
+      ],
+      total: 12500000,
+    },
+    {
+      id: '2',
+      orderNumber: 'UM2024032202',
+      sellerName: 'Minh Trần',
+      sellerUniversity: 'ĐH Kinh tế Quốc dân',
+      status: 'completed',
+      statusText: 'ĐÃ GIAO',
+      orderDate: '22/03/2024',
+      items: [
+        {
+          id: '2',
+          productImage:
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aXJlbGVzcyUyMGhlYWRwaG9uZXN8ZW58MXx8fHwxNzczODkwMDY0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+          productTitle: 'Tai nghe Sony WH-1000XM4 - Chống ồn',
+          variation: 'Màu đen',
+          quantity: 1,
+          unitPrice: 4500000,
+        },
+        {
+          id: '3',
+          productImage:
+            'https://images.unsplash.com/photo-1766411503488-f90eef1124bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNrJTIwbGFtcCUyMG1vZGVybnxlbnwxfHx8fDE3NzM4MTc0Njl8MA&ixlib=rb-4.1.0&q=80&w=1080',
+          productTitle: 'Đèn bàn LED thông minh - 3 chế độ ánh sáng',
+          quantity: 2,
+          unitPrice: 450000,
+        },
+      ],
+      total: 5400000,
+    },
+    {
+      id: '3',
+      orderNumber: 'UM2024032103',
+      sellerName: 'Hương Lê',
+      sellerUniversity: 'ĐH Ngoại thương',
+      status: 'shipping',
+      statusText: 'ĐANG GIAO HÀNG',
+      orderDate: '21/03/2024',
+      items: [
+        {
+          id: '4',
+          productImage:
+            'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBiYWNrcGFja3xlbnwxfHx8fDE3NzM4OTAwNjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+          productTitle: 'Balo laptop chống nước - Nhiều ngăn tiện lợi',
+          variation: 'Màu xám',
+          quantity: 1,
+          unitPrice: 850000,
+        },
+      ],
+      total: 850000,
+    },
+  ];
+
+  const copyOrderNumber = (orderNumber: string) => {
+    navigator.clipboard.writeText(orderNumber);
+    setCopiedOrderId(orderNumber);
+    setTimeout(() => setCopiedOrderId(null), 2000);
+  };
+
+  const filteredOrders = orders
+    .filter(order => {
+      const matchesTab = activeTab === 'all' || order.status === activeTab;
+      const matchesSearch =
+        searchQuery === '' ||
+        order.sellerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.items.some(item => item.productTitle.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesTab && matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'date-desc':
+          return b.orderDate.localeCompare(a.orderDate);
+        case 'date-asc':
+          return a.orderDate.localeCompare(b.orderDate);
+        case 'price-desc':
+          return b.total - a.total;
+        case 'price-asc':
+          return a.total - b.total;
+        default:
+          return 0;
+      }
+    });
+
+  const getOrderCount = (status: OrderStatus) => {
+    if (status === 'all') return orders.length;
+    return orders.filter(order => order.status === status).length;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'text-[#FF6B35]';
+      case 'shipping':
+        return 'text-blue-600';
+      case 'completed':
+        return 'text-green-600';
+      case 'cancelled':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <ShoppingBag className="w-8 h-8 text-[#FF6B35]" />
+            <h1 className="text-3xl font-bold text-[#0A2647]">Đơn mua của tôi</h1>
+          </div>
+          <p className="text-gray-600">Quản lý và theo dõi đơn hàng của bạn</p>
+        </div>
+
+        {/* Sticky Tab Navigation */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 sticky top-20 z-10">
+          {/* Tabs */}
+          <div className="border-b border-gray-200">
+            <div className="flex overflow-x-auto scrollbar-hide">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`group flex-shrink-0 px-6 py-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap relative ${
+                    activeTab === tab.id
+                      ? 'border-[#FF6B35] text-[#FF6B35] font-bold'
+                      : 'border-transparent text-gray-600 hover:text-[#0A2647] hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>{tab.label}</span>
+                    {getOrderCount(tab.id) > 0 && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-bold transition-colors ${
+                          activeTab === tab.id ? 'bg-[#FF6B35] text-white' : 'bg-gray-200 text-gray-600 group-hover:bg-gray-300'
+                        }`}
+                      >
+                        {getOrderCount(tab.id)}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Search Bar and Sort */}
+          <div className="p-4 space-y-3">
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Tìm kiếm theo tên Shop, ID đơn hàng hoặc Tên Sản phẩm..."
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-sm"
+                />
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:border-[#FF6B35] hover:text-[#FF6B35] transition-colors text-sm font-medium"
+                >
+                  <SortAsc className="w-5 h-5" />
+                  Sắp xếp
+                </button>
+
+                {showSortDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowSortDropdown(false)} />
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                      {[
+                        { value: 'date-desc' as SortOption, label: 'Ngày đặt: Mới nhất' },
+                        { value: 'date-asc' as SortOption, label: 'Ngày đặt: Cũ nhất' },
+                        { value: 'price-desc' as SortOption, label: 'Giá: Cao đến thấp' },
+                        { value: 'price-asc' as SortOption, label: 'Giá: Thấp đến cao' },
+                      ].map(option => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setSortBy(option.value);
+                            setShowSortDropdown(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                            sortBy === option.value ? 'text-[#FF6B35] font-medium bg-orange-50' : 'text-gray-700'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Order List */}
+        <div className="space-y-4">
+          {filteredOrders.length === 0 ? (
+            /* Empty State */
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+              <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Package className="w-12 h-12 text-gray-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Không tìm thấy đơn hàng</h2>
+              <p className="text-gray-600 mb-6">
+                {searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Bạn chưa có đơn hàng nào trong mục này'}
+              </p>
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium transition-colors shadow-sm"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                Khám phá sản phẩm
+              </Link>
+            </div>
+          ) : (
+            /* Order Cards */
+            filteredOrders.map(order => (
+              <div
+                key={order.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-[#FF6B35]/30 transition-all duration-300 group"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-50 via-white to-gray-50 border-b border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white text-sm font-medium shadow-md">
+                      {order.sellerName.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[#0A2647]">{order.sellerName}</span>
+                        <BadgeCheck className="w-4 h-4 text-[#FF6B35]" />
+                      </div>
+                      <span className="text-xs text-gray-500">{order.sellerUniversity}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`font-bold text-sm mb-1 ${getStatusColor(order.status)}`}>{order.statusText}</div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span>Mã: {order.orderNumber}</span>
+                      <button
+                        onClick={() => copyOrderNumber(order.orderNumber)}
+                        className="hover:text-[#FF6B35] transition-colors"
+                        title="Sao chép mã đơn"
+                      >
+                        {copiedOrderId === order.orderNumber ? (
+                          <Check className="w-3.5 h-3.5 text-green-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Body - Product Items */}
+                <div className="px-6 py-5">
+                  <div className="space-y-4">
+                    {order.items.map(item => (
+                      <div key={item.id} className="flex gap-4">
+                        {/* Product Thumbnail */}
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 ring-1 ring-gray-200 group-hover:ring-[#FF6B35]/50 transition-all">
+                          <ImageWithFallback src={item.productImage} alt={item.productTitle} className="w-full h-full object-cover" />
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0 flex items-center justify-between">
+                          <div className="flex-1 min-w-0 pr-4">
+                            <h3 className="font-medium text-gray-900 mb-1 line-clamp-2 group-hover:text-[#0A2647] transition-colors">
+                              {item.productTitle}
+                            </h3>
+                            {item.variation && <p className="text-sm text-gray-500 mb-1">Phân loại: {item.variation}</p>}
+                            <p className="text-sm text-gray-600">x{item.quantity}</p>
+                          </div>
+
+                          {/* Unit Price */}
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-lg font-bold text-[#0A2647]">{item.unitPrice.toLocaleString('vi-VN')}đ</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 bg-gradient-to-r from-gray-50 via-white to-gray-50 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm text-gray-600 flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Ngày đặt: {order.orderDate}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-700">Thành tiền:</span>
+                      <span className="text-2xl font-bold text-[#FF6B35]">{order.total.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex gap-2">
+                      {order.status === 'completed' && (
+                        <>
+                          <button className="px-4 py-2 border border-gray-300 text-gray-700 hover:border-[#FF6B35] hover:text-[#FF6B35] rounded-lg font-medium text-sm transition-all flex items-center gap-2">
+                            <RotateCcw className="w-4 h-4" />
+                            Mua lại
+                          </button>
+                          <button
+                            onClick={() => setSelectedOrderForRating(order)}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 hover:border-yellow-500 hover:text-yellow-600 rounded-lg font-medium text-sm transition-all flex items-center gap-2"
+                          >
+                            <Star className="w-4 h-4" />
+                            Đánh giá
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex gap-3">
+                      <Link
+                        to={`/messages`}
+                        className="px-5 py-2.5 border-2 border-[#0A2647] text-[#0A2647] hover:bg-[#0A2647] hover:text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Liên hệ
+                      </Link>
+                      <Link
+                        to={`/order/${order.id}`}
+                        className="px-5 py-2.5 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Xem chi tiết
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+      {selectedOrderForRating && <RatingModal order={selectedOrderForRating} onClose={() => setSelectedOrderForRating(null)} />}
+    </div>
+  );
+}

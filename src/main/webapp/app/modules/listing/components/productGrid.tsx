@@ -1,4 +1,4 @@
-import { ProductCard } from './ProductCard';
+import { ProductCard } from './productCard';
 import React from 'react';
 
 const featuredProducts = [
