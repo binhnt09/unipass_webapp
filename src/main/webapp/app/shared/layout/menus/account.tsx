@@ -135,7 +135,7 @@ export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => 
             <div className="border-t border-gray-100 my-1"></div>
 
             <Link
-              to="/settings"
+              to="/account/settings"
               data-cy="settings"
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
             >
@@ -143,7 +143,7 @@ export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => 
               <Translate contentKey="global.menu.account.settings">Settings</Translate>
             </Link>
             <Link
-              to="/password"
+              to="/account/password"
               data-cy="passwordItem"
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
             >

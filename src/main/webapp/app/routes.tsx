@@ -37,6 +37,8 @@ import { MoMoQRPage } from './modules/checkout/payment/momo-qr';
 import { VNPayQRPage } from './modules/checkout/payment/vnpay-qr';
 import { BankTransferQRPage } from './modules/checkout/payment/bank-transfer-qr';
 import { ProductDetailPage } from './modules/listing/components/productDetailPage';
+import SettingsPage from './modules/account/settings/settings';
+import PasswordPage from './modules/account/password/password';
 
 const loading = <div>loading ...</div>;
 
@@ -126,6 +128,22 @@ export const router = createBrowserRouter([
           },
           { path: 'register', element: <Register /> },
           { path: 'activate', element: <Activate /> },
+          {
+            path: 'settings',
+            element: (
+              <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+                <SettingsPage /> {/* Import trực tiếp Settings từ account module */}
+              </PrivateRoute>
+            ),
+          },
+          {
+            path: 'password',
+            element: (
+              <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+                <PasswordPage />
+              </PrivateRoute>
+            ),
+          },
           {
             path: 'reset',
             children: [
