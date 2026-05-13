@@ -118,14 +118,6 @@ export const router = createBrowserRouter([
       {
         path: 'account',
         children: [
-          {
-            path: '*',
-            element: (
-              <PrivateRoute hasAnyAuthorities={[Authority.ADMIN, Authority.USER]}>
-                <Account />
-              </PrivateRoute>
-            ),
-          },
           { path: 'register', element: <Register /> },
           { path: 'activate', element: <Activate /> },
           {
@@ -150,6 +142,14 @@ export const router = createBrowserRouter([
               { path: 'request', element: <PasswordResetInit /> },
               { path: 'finish', element: <PasswordResetFinish /> },
             ],
+          },
+          {
+            path: '*',
+            element: (
+              <PrivateRoute hasAnyAuthorities={[Authority.ADMIN, Authority.USER]}>
+                <Account />
+              </PrivateRoute>
+            ),
           },
         ],
       },

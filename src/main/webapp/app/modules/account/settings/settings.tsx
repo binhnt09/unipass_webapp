@@ -5,6 +5,7 @@ import { Translate, ValidatedField, ValidatedForm, isEmail, translate } from 're
 import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { useAuth } from 'app/contexts/AuthContext';
 import { languages, locales } from 'app/config/translation';
 import { getSession } from 'app/shared/reducers/authentication';
 
@@ -12,8 +13,12 @@ import { reset, saveAccountSettings } from './settings.reducer';
 
 export const SettingsPage = () => {
   const dispatch = useAppDispatch();
+  const { user: authContextUser } = useAuth();
   const account = useAppSelector(state => state.authentication.account);
   const successMessage = useAppSelector(state => state.settings.successMessage);
+
+  // Get username from AuthContext if Redux account is not available
+  const displayUsername = account?.login || authContextUser?.name || 'User';
 
   useEffect(() => {
     dispatch(getSession());
@@ -42,8 +47,8 @@ export const SettingsPage = () => {
       <Row className="justify-content-center">
         <Col md="8">
           <h2 id="settings-title">
-            <Translate contentKey="settings.title" interpolate={{ username: account.login }}>
-              User settings for {account.login}
+            <Translate contentKey="settings.title" interpolate={{ username: displayUsername }}>
+              User settings for {displayUsername}
             </Translate>
           </h2>
           <ValidatedForm id="settings-form" onSubmit={handleValidSubmit} defaultValues={account}>

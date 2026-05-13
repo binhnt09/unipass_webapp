@@ -5,6 +5,7 @@ import { Translate, ValidatedField, ValidatedForm, translate } from 'react-jhips
 import { toast } from 'react-toastify';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { useAuth } from 'app/contexts/AuthContext';
 import PasswordStrengthBar from 'app/shared/layout/password/password-strength-bar';
 import { getSession } from 'app/shared/reducers/authentication';
 
@@ -13,6 +14,7 @@ import { reset, savePassword } from './password.reducer';
 export const PasswordPage = () => {
   const [password, setPassword] = useState('');
   const dispatch = useAppDispatch();
+  const { user: authContextUser } = useAuth();
 
   useEffect(() => {
     dispatch(reset());
@@ -22,7 +24,8 @@ export const PasswordPage = () => {
     };
   }, []);
 
-  const handleValidSubmit = ({ currentPassword, newPassword }) => {
+  const handleValidSubmit = (values: any) => {
+    const { currentPassword, newPassword } = values;
     dispatch(savePassword({ currentPassword, newPassword }));
   };
 
@@ -31,6 +34,9 @@ export const PasswordPage = () => {
   const account = useAppSelector(state => state.authentication.account);
   const successMessage = useAppSelector(state => state.password.successMessage);
   const errorMessage = useAppSelector(state => state.password.errorMessage);
+
+  // Get username from AuthContext if Redux account is not available
+  const displayUsername = account?.login || authContextUser?.name || 'User';
 
   useEffect(() => {
     if (successMessage) {
@@ -46,8 +52,8 @@ export const PasswordPage = () => {
       <Row className="justify-content-center">
         <Col md="8">
           <h2 id="password-title">
-            <Translate contentKey="password.title" interpolate={{ username: account.login }}>
-              Password for {account.login}
+            <Translate contentKey="password.title" interpolate={{ username: displayUsername }}>
+              Password for {displayUsername}
             </Translate>
           </h2>
           <ValidatedForm id="password-form" onSubmit={handleValidSubmit}>

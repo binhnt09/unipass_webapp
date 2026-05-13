@@ -3,6 +3,7 @@ import { Translate } from 'react-jhipster';
 import { Navigate, PathRouteProps, useLocation } from 'react-router';
 
 import { useAppSelector } from 'app/config/store';
+import { useAuth } from 'app/contexts/AuthContext';
 import ErrorBoundary from 'app/shared/error/error-boundary';
 
 interface IOwnProps extends PathRouteProps {
@@ -11,7 +12,11 @@ interface IOwnProps extends PathRouteProps {
 }
 
 const PrivateRoute = ({ children, hasAnyAuthorities = [], ...rest }: IOwnProps) => {
-  const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
+  // Try AuthContext first (for temporary auth), fallback to Redux
+  const { isAuthenticated: contextIsAuthenticated } = useAuth();
+  const isAuthenticatedRedux = useAppSelector(state => state.authentication.isAuthenticated);
+  const isAuthenticated = contextIsAuthenticated || isAuthenticatedRedux;
+
   const sessionHasBeenFetched = useAppSelector(state => state.authentication.sessionHasBeenFetched);
   const account = useAppSelector(state => state.authentication.account);
   const isAuthorized = hasAnyAuthority(account.authorities, hasAnyAuthorities);
@@ -21,11 +26,16 @@ const PrivateRoute = ({ children, hasAnyAuthorities = [], ...rest }: IOwnProps) 
     throw new Error(`A component needs to be specified for private route for path ${rest.path}`);
   }
 
-  if (!sessionHasBeenFetched) {
+  if (!sessionHasBeenFetched && !contextIsAuthenticated) {
     return <div></div>;
   }
 
   if (isAuthenticated) {
+    // If user is from AuthContext, skip authority check (temporary auth)
+    if (contextIsAuthenticated && !isAuthenticatedRedux) {
+      return <ErrorBoundary>{children}</ErrorBoundary>;
+    }
+
     if (isAuthorized) {
       return <ErrorBoundary>{children}</ErrorBoundary>;
     }
