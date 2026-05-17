@@ -7,8 +7,8 @@ const initialState = {
   loading: false,
   registrationSuccess: false,
   registrationFailure: false,
-  errorMessage: null,
-  successMessage: null,
+  errorMessage: null as string | null | undefined,
+  successMessage: null as string | null | undefined,
 };
 
 export type RegisterState = Readonly<typeof initialState>;

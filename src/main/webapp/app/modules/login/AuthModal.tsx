@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from 'app/contexts/AuthContext';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { login as loginRedux } from 'app/shared/reducers/authentication'; // Action login thật
 
 interface AuthModalProps {
   onClose: () => void;
@@ -16,24 +18,29 @@ export function AuthModal({ onClose }: AuthModalProps) {
   const [loginError, setLoginError] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const dispatch = useAppDispatch();
+  const isAuthenticatedRedux = useAppSelector(state => state.authentication.isAuthenticated);
+  const loginErrorRedux = useAppSelector(state => state.authentication.loginError);
+
+  // const account = useAppSelector(state => state.authentication.account);
+
   // Close modal when login successful
   React.useEffect(() => {
-    if (isAuthenticated) {
+    // const roles = account.authorities;
+    if (isAuthenticated || isAuthenticatedRedux) {
       onClose();
     }
-  }, [isAuthenticated, onClose]);
+    if (loginErrorRedux) {
+      setLoading(false);
+    }
+  }, [isAuthenticated, isAuthenticatedRedux, loginErrorRedux, onClose]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setLoginError(false);
 
-    const success = authLogin(emailValue, passwordValue);
-    if (success) {
-      onClose();
-    } else {
-      setLoginError(true);
-    }
+    dispatch(loginRedux(emailValue, passwordValue, true));
     setLoading(false);
   };
 
@@ -172,7 +179,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    type="email"
+                    type="text"
                     value={emailValue}
                     onChange={e => setEmailValue(e.target.value)}
                     placeholder="tencuaban@truongdaihoc.edu.vn"

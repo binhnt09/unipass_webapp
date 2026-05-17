@@ -10,7 +10,7 @@ import { serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 const initialState = {
   loading: false,
   errorMessage: null,
-  successMessage: null,
+  successMessage: null as string | null | undefined,
   updateSuccess: false,
   updateFailure: false,
 };

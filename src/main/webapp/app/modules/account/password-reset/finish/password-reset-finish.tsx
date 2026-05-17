@@ -24,7 +24,14 @@ export const PasswordResetFinishPage = () => {
     [],
   );
 
-  const handleValidSubmit = ({ newPassword }) => dispatch(handlePasswordResetFinish({ key, newPassword }));
+  const handleValidSubmit = (values: any) => {
+    const { newPassword } = values;
+    if (!key) {
+      console.error('Không tìm thấy mã token đặt lại mật khẩu.');
+      return;
+    }
+    dispatch(handlePasswordResetFinish({ key, newPassword }));
+  };
 
   const updatePassword = event => setPassword(event.target.value);
 

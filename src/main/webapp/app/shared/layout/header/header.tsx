@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Nav, Navbar } from 'react-bootstrap';
-import { Storage, Translate } from 'react-jhipster';
+import { Storage } from 'react-jhipster';
 import { NavLink as Link } from 'react-router';
 import { Search, Bell, ShoppingCart, Plus, Crown, MessageCircle, ChevronDown } from 'lucide-react';
 
@@ -8,7 +8,7 @@ import LoadingBar from 'react-redux-loading-bar';
 
 import { useAppDispatch } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
-import { AccountMenu, LocaleMenu } from '../menus';
+import { AccountMenu, LocaleMenu, AdminMenu } from '../menus';
 import { AuthModal } from 'app/modules/login/AuthModal';
 
 import { Brand, Home } from './header-components';
@@ -26,30 +26,33 @@ export interface IHeaderProps {
 
 const Header = (props: IHeaderProps) => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isSeller } = useAuth();
+  const { isAuthenticated: isDemoAuth, isSeller: isDemoSeller } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const isUserLoggedIn = props.isAuthenticated || isDemoAuth;
+  const isUserSeller = isDemoSeller;
 
   const handleLocaleChange = langKey => {
     Storage.session.set('locale', langKey);
     dispatch(setLocale(langKey));
   };
 
-  const renderDevRibbon = () =>
-    !props.isInProduction && (
-      <div className="ribbon dev">
-        <a href="">
-          <Translate contentKey={`global.ribbon.${props.ribbonEnv}`} />
-        </a>
-      </div>
-    );
+  // const renderDevRibbon = () =>
+  //   !props.isInProduction && (
+  //     <div className="ribbon dev">
+  //       <a href="">
+  //         <Translate contentKey={`global.ribbon.${props.ribbonEnv}`} />
+  //       </a>
+  //     </div>
+  //   );
 
   const openAuthModal = () => setShowAuthModal(true);
   const closeAuthModal = () => setShowAuthModal(false);
 
   return (
     <div id="app-header" className="fixed inset-x-0 top-0 z-50">
-      {renderDevRibbon()}
+      {/* {renderDevRibbon()} */}
       <LoadingBar className="loading-bar" />
       <Navbar expand="md" className="relative bg-[#0A2647] text-white shadow-lg" collapseOnSelect>
         <div className="container-fluid px-4 sm:px-6 lg:px-8">
@@ -81,7 +84,7 @@ const Header = (props: IHeaderProps) => {
             <Navbar.Collapse id="header-tabs" className="w-full md:w-auto">
               <Nav className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3 mt-3 md:mt-0">
                 <Home />
-                {isSeller && (
+                {isUserSeller && (
                   <Link
                     to="/create-listing"
                     className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
@@ -90,6 +93,7 @@ const Header = (props: IHeaderProps) => {
                     <span>Bán hàng</span>
                   </Link>
                 )}
+                {props.isAuthenticated && props.isAdmin && <AdminMenu showOpenAPI={props.isOpenAPIEnabled} />}
                 <Link
                   to="/premium"
                   className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0A2647] transition-colors text-sm font-medium"
@@ -97,7 +101,7 @@ const Header = (props: IHeaderProps) => {
                   <Crown className="w-4 h-4" />
                   <span>Premium</span>
                 </Link>
-                {isAuthenticated && (
+                {isUserLoggedIn && (
                   <Link to="/messages" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Tin nhắn">
                     <MessageCircle className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
@@ -105,7 +109,7 @@ const Header = (props: IHeaderProps) => {
                     </span>
                   </Link>
                 )}
-                {isAuthenticated && (
+                {isUserLoggedIn && (
                   <Link to="/cart" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Giỏ hàng">
                     <ShoppingCart className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
@@ -113,7 +117,7 @@ const Header = (props: IHeaderProps) => {
                     </span>
                   </Link>
                 )}
-                {isAuthenticated && (
+                {isUserLoggedIn && (
                   <Link to="/notifications" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Thông báo">
                     <Bell className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">

@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Translate } from 'react-jhipster';
 import { NavLink as Link } from 'react-router';
 import { User, Settings, LogOut, Package, ShoppingBag, Lock, MessageCircle, Crown, ChevronDown } from 'lucide-react';
-
+import { logout as logoutRedux } from 'app/shared/reducers/authentication'; // Action logout thật của JHipster
 // import MenuItem from 'app/shared/layout/menus/menu-item';
 
 // import { NavDropdown } from './menu-components';
 import { useAuth } from 'app/contexts/AuthContext';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { useNavigate } from 'react-router-dom';
 
 // const accountMenuItemsAuthenticated = () => (
 //   <>
@@ -34,8 +36,33 @@ import { useAuth } from 'app/contexts/AuthContext';
 // );
 
 export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => {
-  const { user, logout, isAuthenticated, isSeller } = useAuth();
+  // 1. Lấy trạng thái từ Context (Demo)
+  const { user: demoUser, logout: logoutDemo, isAuthenticated: isDemoAuth, isSeller: isDemoSeller } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // 2. Lấy trạng thái từ Redux (Thật)
+  const isRealAuth = useAppSelector(state => state.authentication.isAuthenticated);
+  const realUser = useAppSelector(state => state.authentication.account);
+
+  // 3. Hợp nhất trạng thái
+  const isAuthenticated = isDemoAuth || isRealAuth;
+  const isSeller = isDemoSeller; // Hoặc logic check role từ realUser nếu cần
+  const currentUser = isDemoAuth ? demoUser : { name: realUser.login, email: realUser.email };
+
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // 1. Xóa dữ liệu Demo (Context)
+    logoutDemo();
+
+    // 2. Xóa dữ liệu Thật (Redux/JHipster)
+    dispatch(logoutRedux());
+
+    // 3. Đưa người dùng về trang chủ và đóng menu
+    setShowUserMenu(false);
+    navigate('/');
+  };
 
   if (!isAuthenticated) {
     return (
@@ -66,7 +93,7 @@ export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => 
           className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium text-white hover:bg-white/10 transition-colors"
         >
           <User size={16} />
-          <span>{user?.name || 'User'}</span>
+          <span>{currentUser?.name || 'User'}</span>
           <ChevronDown size={14} />
         </button>
 
@@ -77,8 +104,8 @@ export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => 
                 <User size={20} className="text-white" />
               </div>
               <div>
-                <div className="font-medium text-gray-900">{user?.name}</div>
-                <div className="text-sm text-gray-500">{user?.email}</div>
+                <div className="font-medium text-gray-900">{currentUser?.name}</div>
+                <div className="text-sm text-gray-500">{currentUser?.email}</div>
                 <div className="text-xs text-[#FF6B35] font-medium mt-2">
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
@@ -152,11 +179,11 @@ export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => 
             </Link>
 
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors w-full text-left"
             >
               <LogOut size={16} />
-              Sign out
+              <Translate contentKey="global.menu.account.logout">Sign out</Translate>
             </button>
           </div>
         </div>

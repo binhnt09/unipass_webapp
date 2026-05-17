@@ -17,8 +17,15 @@ const MenuItem = (props: IMenuItem) => {
   const { to, icon, id, children } = props;
 
   return (
-    <DropdownItem as={Link as any} to={to} id={id} data-cy={props['data-cy']}>
-      <FontAwesomeIcon icon={icon} /> {children}
+    <DropdownItem
+      as={Link as any}
+      to={to}
+      id={id}
+      data-cy={props['data-cy']}
+      className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100 hover:text-slate-900"
+    >
+      <FontAwesomeIcon icon={icon} className="text-slate-500" />
+      <span>{children}</span>
     </DropdownItem>
   );
 };

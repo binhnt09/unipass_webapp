@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { Button, Col, FormText, Row } from 'react-bootstrap';
+﻿import React, { useEffect } from 'react';
 import { Translate, ValidatedField, ValidatedForm, isEmail, translate } from 'react-jhipster';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -10,10 +9,17 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { languages, locales } from 'app/config/translation';
 
 import { createUser, getRoles, getUser, reset, updateUser } from './user-management.reducer';
+import './user-management-update.scss';
+
+const labelClass = 'mb-2 block text-sm font-medium text-slate-700';
+const inputClass =
+  'form-control block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition duration-150 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200';
+const checkboxClass = 'form-control h-4 w-4 rounded border border-slate-300 text-slate-600 focus:ring-slate-500';
+const buttonClass =
+  'inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-slate-300';
 
 export const UserManagementUpdate = () => {
   const dispatch = useAppDispatch();
-
   const navigate = useNavigate();
 
   const { login } = useParams<'login'>();
@@ -29,11 +35,9 @@ export const UserManagementUpdate = () => {
     return () => {
       dispatch(reset());
     };
-  }, [login]);
+  }, [dispatch, isNew, login]);
 
-  const handleClose = () => {
-    navigate('/admin/user-management');
-  };
+  const handleClose = () => navigate('/admin/user-management');
 
   const saveUser = values => {
     if (isNew) {
@@ -50,20 +54,17 @@ export const UserManagementUpdate = () => {
   const authorities = useAppSelector(state => state.userManagement.authorities);
 
   return (
-    <div>
-      <Row className="justify-content-center">
-        <Col md="8">
-          <h1 data-cy="UserManagementCreateUpdateHeading">
-            <Translate contentKey="userManagement.home.createOrEditLabel">Create or edit a User</Translate>
-          </h1>
-        </Col>
-      </Row>
-      <Row className="justify-content-center">
-        <Col md="8">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <ValidatedForm onSubmit={saveUser} defaultValues={user}>
+    <div className="mx-auto max-w-4xl px-4 py-10">
+      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <h1 className="mb-8 text-3xl font-semibold text-slate-900" data-cy="UserManagementCreateUpdateHeading">
+          <Translate contentKey="userManagement.home.createOrEditLabel">Create or edit a User</Translate>
+        </h1>
+
+        {loading ? (
+          <p className="text-slate-600">Loading...</p>
+        ) : (
+          <ValidatedForm onSubmit={saveUser} defaultValues={user}>
+            <div className="space-y-6">
               {user.id && (
                 <ValidatedField
                   type="text"
@@ -73,8 +74,11 @@ export const UserManagementUpdate = () => {
                   readOnly
                   label={translate('global.field.id')}
                   validate={{ required: true }}
+                  inputClass={inputClass}
+                  labelClass={labelClass}
                 />
               )}
+
               <ValidatedField
                 type="text"
                 name="login"
@@ -98,7 +102,10 @@ export const UserManagementUpdate = () => {
                     message: translate('register.messages.validate.login.maxlength'),
                   },
                 }}
+                inputClass={inputClass}
+                labelClass={labelClass}
               />
+
               <ValidatedField
                 type="text"
                 name="firstName"
@@ -110,7 +117,10 @@ export const UserManagementUpdate = () => {
                     message: translate('entity.validation.maxlength', { max: 50 }),
                   },
                 }}
+                inputClass={inputClass}
+                labelClass={labelClass}
               />
+
               <ValidatedField
                 type="text"
                 name="lastName"
@@ -122,8 +132,12 @@ export const UserManagementUpdate = () => {
                     message: translate('entity.validation.maxlength', { max: 50 }),
                   },
                 }}
+                inputClass={inputClass}
+                labelClass={labelClass}
               />
-              <FormText>This field cannot be longer than 50 characters.</FormText>
+
+              <div className="text-sm text-slate-500">This field cannot be longer than 50 characters.</div>
+
               <ValidatedField
                 name="email"
                 data-cy="email"
@@ -145,7 +159,10 @@ export const UserManagementUpdate = () => {
                   },
                   validate: v => isEmail(v) || translate('global.messages.validate.email.invalid'),
                 }}
+                inputClass={inputClass}
+                labelClass={labelClass}
               />
+
               <ValidatedField
                 type="checkbox"
                 name="activated"
@@ -154,38 +171,69 @@ export const UserManagementUpdate = () => {
                 value={true}
                 disabled={!user.id}
                 label={translate('userManagement.activated')}
+                inputClass={checkboxClass}
+                labelClass={labelClass}
               />
-              <ValidatedField type="select" name="langKey" data-cy="langKey" label={translate('userManagement.langKey')}>
+
+              <ValidatedField
+                type="select"
+                name="langKey"
+                data-cy="langKey"
+                label={translate('userManagement.langKey')}
+                inputClass={inputClass}
+                labelClass={labelClass}
+              >
                 {locales.map(locale => (
                   <option value={locale} key={locale}>
                     {languages[locale].name}
                   </option>
                 ))}
               </ValidatedField>
-              <ValidatedField type="select" name="authorities" data-cy="profiles" multiple label={translate('userManagement.profiles')}>
+
+              <ValidatedField
+                type="select"
+                name="authorities"
+                data-cy="profiles"
+                multiple
+                label={translate('userManagement.profiles')}
+                inputClass={inputClass}
+                labelClass={labelClass}
+              >
                 {authorities.map(role => (
                   <option value={role} key={role}>
                     {role}
                   </option>
                 ))}
               </ValidatedField>
-              <Button as={Link as any} to="/admin/user-management" replace variant="info" data-cy="entityCreateCancelButton">
-                <FontAwesomeIcon icon={faArrowLeft} />
-                &nbsp;
-                <span className="d-none d-md-inline">
-                  <Translate contentKey="entity.action.back">Back</Translate>
-                </span>
-              </Button>
-              &nbsp;
-              <Button variant="primary" type="submit" disabled={updating} data-cy="entityCreateSaveButton">
-                <FontAwesomeIcon icon={faSave} />
-                &nbsp;
-                <Translate contentKey="entity.action.save">Save</Translate>
-              </Button>
-            </ValidatedForm>
-          )}
-        </Col>
-      </Row>
+
+              <div className="flex flex-col gap-3 pt-3 sm:flex-row sm:justify-end">
+                <Link
+                  to="/admin/user-management"
+                  replace
+                  className={`${buttonClass} rounded-2xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100`}
+                  data-cy="entityCreateCancelButton"
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} />
+                  <span className="ml-2">
+                    <Translate contentKey="entity.action.back">Back</Translate>
+                  </span>
+                </Link>
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className={`${buttonClass} rounded-2xl bg-slate-900 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}
+                  data-cy="entityCreateSaveButton"
+                >
+                  <FontAwesomeIcon icon={faSave} />
+                  <span className="ml-2">
+                    <Translate contentKey="entity.action.save">Save</Translate>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </ValidatedForm>
+        )}
+      </div>
     </div>
   );
 };

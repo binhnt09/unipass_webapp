@@ -1,0 +1,15 @@
+.settings-form .invalid-feedback {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.settings-form .form-control.is-invalid {
+  border-color: #dc2626;
+  box-shadow: none;
+}
+
+.settings-form .form-control:focus {
+  box-shadow: 0 0 0 0.1875rem rgba(59, 130, 246, 0.25);
+}
