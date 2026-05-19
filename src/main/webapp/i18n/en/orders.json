@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "orders": {
+      "home": {
+        "title": "Orders",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Orders",
+        "createOrEditLabel": "Create or edit a Orders",
+        "notFound": "No Orders found"
+      },
+      "created": "A new Orders is created with identifier {{ param }}",
+      "updated": "A Orders is updated with identifier {{ param }}",
+      "deleted": "A Orders is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Orders {{ id }}?"
+      },
+      "detail": {
+        "title": "Orders"
+      },
+      "id": "ID",
+      "totalAmount": "Total Amount",
+      "platformDiscount": "Platform Discount",
+      "status": "Status",
+      "meetupLocation": "Meetup Location",
+      "createdAt": "Created At",
+      "buyer": "Buyer",
+      "seller": "Seller"
+    }
+  }
+}

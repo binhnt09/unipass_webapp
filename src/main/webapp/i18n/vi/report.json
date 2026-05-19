@@ -1,0 +1,32 @@
+{
+  "unipassWebApp": {
+    "report": {
+      "home": {
+        "title": "Reports",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Report",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Report",
+        "notFound": "No Reports found"
+      },
+      "created": "Một Report mới được tạo với định danh {{ param }}",
+      "updated": "Một Report cập nhật với định danh {{ param }}",
+      "deleted": "Một Report đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Report {{ id }}?"
+      },
+      "detail": {
+        "title": "Report"
+      },
+      "id": "ID",
+      "targetType": "Target Type",
+      "targetId": "Target Id",
+      "reason": "Reason",
+      "status": "Status",
+      "isDeleted": "Is Deleted",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "reporter": "Reporter",
+      "reported": "Reported"
+    }
+  }
+}

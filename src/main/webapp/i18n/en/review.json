@@ -1,0 +1,31 @@
+{
+  "unipassWebApp": {
+    "review": {
+      "home": {
+        "title": "Reviews",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Review",
+        "createOrEditLabel": "Create or edit a Review",
+        "notFound": "No Reviews found"
+      },
+      "created": "A new Review is created with identifier {{ param }}",
+      "updated": "A Review is updated with identifier {{ param }}",
+      "deleted": "A Review is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Review {{ id }}?"
+      },
+      "detail": {
+        "title": "Review"
+      },
+      "id": "ID",
+      "rating": "Rating",
+      "comment": "Comment",
+      "isDeleted": "Is Deleted",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "order": "Order",
+      "reviewer": "Reviewer",
+      "reviewee": "Reviewee"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "chatMessage": {
+      "home": {
+        "title": "Chat Messages",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Chat Message",
+        "createOrEditLabel": "Create or edit a Chat Message",
+        "notFound": "No Chat Messages found"
+      },
+      "created": "A new Chat Message is created with identifier {{ param }}",
+      "updated": "A Chat Message is updated with identifier {{ param }}",
+      "deleted": "A Chat Message is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Chat Message {{ id }}?"
+      },
+      "detail": {
+        "title": "Chat Message"
+      },
+      "id": "ID",
+      "content": "Content",
+      "isRead": "Is Read",
+      "createdAt": "Created At",
+      "room": "Room",
+      "sender": "Sender"
+    }
+  }
+}

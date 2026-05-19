@@ -1,0 +1,29 @@
+{
+  "unipassWebApp": {
+    "userPremium": {
+      "home": {
+        "title": "User Premiums",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một User Premium",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật User Premium",
+        "notFound": "No User Premiums found"
+      },
+      "created": "Một User Premium mới được tạo với định danh {{ param }}",
+      "updated": "Một User Premium cập nhật với định danh {{ param }}",
+      "deleted": "Một User Premium đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa User Premium {{ id }}?"
+      },
+      "detail": {
+        "title": "User Premium"
+      },
+      "id": "ID",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "updatedAt": "Updated At",
+      "premiumPackage": "Premium Package",
+      "user": "User"
+    }
+  }
+}

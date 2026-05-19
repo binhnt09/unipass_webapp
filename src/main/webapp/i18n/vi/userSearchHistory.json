@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "userSearchHistory": {
+      "home": {
+        "title": "User Search Histories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một User Search History",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật User Search History",
+        "notFound": "No User Search Histories found"
+      },
+      "created": "Một User Search History mới được tạo với định danh {{ param }}",
+      "updated": "Một User Search History cập nhật với định danh {{ param }}",
+      "deleted": "Một User Search History đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa User Search History {{ id }}?"
+      },
+      "detail": {
+        "title": "User Search History"
+      },
+      "id": "ID",
+      "keyword": "Keyword",
+      "searchCount": "Search Count",
+      "lastSearchedAt": "Last Searched At",
+      "user": "User"
+    }
+  }
+}

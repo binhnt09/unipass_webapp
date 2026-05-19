@@ -1,0 +1,31 @@
+{
+  "unipassWebApp": {
+    "review": {
+      "home": {
+        "title": "Reviews",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Review",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Review",
+        "notFound": "No Reviews found"
+      },
+      "created": "Một Review mới được tạo với định danh {{ param }}",
+      "updated": "Một Review cập nhật với định danh {{ param }}",
+      "deleted": "Một Review đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Review {{ id }}?"
+      },
+      "detail": {
+        "title": "Review"
+      },
+      "id": "ID",
+      "rating": "Rating",
+      "comment": "Comment",
+      "isDeleted": "Is Deleted",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "order": "Order",
+      "reviewer": "Reviewer",
+      "reviewee": "Reviewee"
+    }
+  }
+}

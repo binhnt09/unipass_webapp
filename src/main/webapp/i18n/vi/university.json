@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "university": {
+      "home": {
+        "title": "Universities",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một University",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật University",
+        "notFound": "No Universities found"
+      },
+      "created": "Một University mới được tạo với định danh {{ param }}",
+      "updated": "Một University cập nhật với định danh {{ param }}",
+      "deleted": "Một University đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa University {{ id }}?"
+      },
+      "detail": {
+        "title": "University"
+      },
+      "id": "ID",
+      "code": "Code",
+      "name": "Name",
+      "logoUrl": "Logo Url",
+      "status": "Status"
+    }
+  }
+}

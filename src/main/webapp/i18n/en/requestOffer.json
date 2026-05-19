@@ -1,0 +1,29 @@
+{
+  "unipassWebApp": {
+    "requestOffer": {
+      "home": {
+        "title": "Request Offers",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Request Offer",
+        "createOrEditLabel": "Create or edit a Request Offer",
+        "notFound": "No Request Offers found"
+      },
+      "created": "A new Request Offer is created with identifier {{ param }}",
+      "updated": "A Request Offer is updated with identifier {{ param }}",
+      "deleted": "A Request Offer is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Request Offer {{ id }}?"
+      },
+      "detail": {
+        "title": "Request Offer"
+      },
+      "id": "ID",
+      "offerPrice": "Offer Price",
+      "message": "Message",
+      "createdAt": "Created At",
+      "request": "Request",
+      "product": "Product",
+      "seller": "Seller"
+    }
+  }
+}

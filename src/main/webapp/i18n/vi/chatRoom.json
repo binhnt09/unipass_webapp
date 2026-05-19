@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "chatRoom": {
+      "home": {
+        "title": "Chat Rooms",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Chat Room",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Chat Room",
+        "notFound": "No Chat Rooms found"
+      },
+      "created": "Một Chat Room mới được tạo với định danh {{ param }}",
+      "updated": "Một Chat Room cập nhật với định danh {{ param }}",
+      "deleted": "Một Chat Room đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Chat Room {{ id }}?"
+      },
+      "detail": {
+        "title": "Chat Room"
+      },
+      "id": "ID",
+      "createdAt": "Created At",
+      "product": "Product",
+      "buyer": "Buyer",
+      "seller": "Seller"
+    }
+  }
+}

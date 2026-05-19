@@ -1,0 +1,29 @@
+{
+  "unipassWebApp": {
+    "requestOffer": {
+      "home": {
+        "title": "Request Offers",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Request Offer",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Request Offer",
+        "notFound": "No Request Offers found"
+      },
+      "created": "Một Request Offer mới được tạo với định danh {{ param }}",
+      "updated": "Một Request Offer cập nhật với định danh {{ param }}",
+      "deleted": "Một Request Offer đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Request Offer {{ id }}?"
+      },
+      "detail": {
+        "title": "Request Offer"
+      },
+      "id": "ID",
+      "offerPrice": "Offer Price",
+      "message": "Message",
+      "createdAt": "Created At",
+      "request": "Request",
+      "product": "Product",
+      "seller": "Seller"
+    }
+  }
+}

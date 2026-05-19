@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "premiumPackage": {
+      "home": {
+        "title": "Premium Packages",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Premium Package",
+        "createOrEditLabel": "Create or edit a Premium Package",
+        "notFound": "No Premium Packages found"
+      },
+      "created": "A new Premium Package is created with identifier {{ param }}",
+      "updated": "A Premium Package is updated with identifier {{ param }}",
+      "deleted": "A Premium Package is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Premium Package {{ id }}?"
+      },
+      "detail": {
+        "title": "Premium Package"
+      },
+      "id": "ID",
+      "name": "Name",
+      "priceCoin": "Price Coin",
+      "durationDays": "Duration Days",
+      "features": "Features",
+      "isDeleted": "Is Deleted",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At"
+    }
+  }
+}

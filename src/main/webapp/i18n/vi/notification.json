@@ -1,0 +1,29 @@
+{
+  "unipassWebApp": {
+    "notification": {
+      "home": {
+        "title": "Notifications",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Notification",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Notification",
+        "notFound": "No Notifications found"
+      },
+      "created": "Một Notification mới được tạo với định danh {{ param }}",
+      "updated": "Một Notification cập nhật với định danh {{ param }}",
+      "deleted": "Một Notification đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Notification {{ id }}?"
+      },
+      "detail": {
+        "title": "Notification"
+      },
+      "id": "ID",
+      "title": "Title",
+      "content": "Content",
+      "type": "Type",
+      "isRead": "Is Read",
+      "createdAt": "Created At",
+      "user": "User"
+    }
+  }
+}

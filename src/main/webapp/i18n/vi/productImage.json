@@ -1,0 +1,26 @@
+{
+  "unipassWebApp": {
+    "productImage": {
+      "home": {
+        "title": "Product Images",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Product Image",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Product Image",
+        "notFound": "No Product Images found"
+      },
+      "created": "Một Product Image mới được tạo với định danh {{ param }}",
+      "updated": "Một Product Image cập nhật với định danh {{ param }}",
+      "deleted": "Một Product Image đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Product Image {{ id }}?"
+      },
+      "detail": {
+        "title": "Product Image"
+      },
+      "id": "ID",
+      "imageUrl": "Image Url",
+      "isPrimary": "Is Primary",
+      "product": "Product"
+    }
+  }
+}

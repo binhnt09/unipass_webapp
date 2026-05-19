@@ -1,0 +1,36 @@
+{
+  "unipassWebApp": {
+    "userProfile": {
+      "home": {
+        "title": "User Profiles",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một User Profile",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật User Profile",
+        "notFound": "No User Profiles found"
+      },
+      "created": "Một User Profile mới được tạo với định danh {{ param }}",
+      "updated": "Một User Profile cập nhật với định danh {{ param }}",
+      "deleted": "Một User Profile đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa User Profile {{ id }}?"
+      },
+      "detail": {
+        "title": "User Profile"
+      },
+      "id": "ID",
+      "phoneNumber": "Phone Number",
+      "studentIdNumber": "Student Id Number",
+      "reputationScore": "Reputation Score",
+      "referralCode": "Referral Code",
+      "fingerprintId": "Fingerprint Id",
+      "currentPremiumLevel": "Current Premium Level",
+      "isStudentVerified": "Is Student Verified",
+      "isDeleted": "Is Deleted",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "user": "User",
+      "campus": "Campus",
+      "referredBy": "Referred By"
+    }
+  }
+}

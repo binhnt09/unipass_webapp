@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "aiChatMessage": {
+      "home": {
+        "title": "Ai Chat Messages",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Ai Chat Message",
+        "createOrEditLabel": "Create or edit a Ai Chat Message",
+        "notFound": "No Ai Chat Messages found"
+      },
+      "created": "A new Ai Chat Message is created with identifier {{ param }}",
+      "updated": "A Ai Chat Message is updated with identifier {{ param }}",
+      "deleted": "A Ai Chat Message is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Ai Chat Message {{ id }}?"
+      },
+      "detail": {
+        "title": "Ai Chat Message"
+      },
+      "id": "ID",
+      "role": "Role",
+      "content": "Content",
+      "tokensUsed": "Tokens Used",
+      "createdAt": "Created At",
+      "session": "Session"
+    }
+  }
+}

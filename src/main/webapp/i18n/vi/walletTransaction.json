@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "walletTransaction": {
+      "home": {
+        "title": "Wallet Transactions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Wallet Transaction",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Wallet Transaction",
+        "notFound": "No Wallet Transactions found"
+      },
+      "created": "Một Wallet Transaction mới được tạo với định danh {{ param }}",
+      "updated": "Một Wallet Transaction cập nhật với định danh {{ param }}",
+      "deleted": "Một Wallet Transaction đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Wallet Transaction {{ id }}?"
+      },
+      "detail": {
+        "title": "Wallet Transaction"
+      },
+      "id": "ID",
+      "amount": "Amount",
+      "transactionType": "Transaction Type",
+      "referenceType": "Reference Type",
+      "referenceId": "Reference Id",
+      "description": "Description",
+      "createdAt": "Created At",
+      "wallet": "Wallet"
+    }
+  }
+}

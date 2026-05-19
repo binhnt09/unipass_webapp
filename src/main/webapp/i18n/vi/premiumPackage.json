@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "premiumPackage": {
+      "home": {
+        "title": "Premium Packages",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Premium Package",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Premium Package",
+        "notFound": "No Premium Packages found"
+      },
+      "created": "Một Premium Package mới được tạo với định danh {{ param }}",
+      "updated": "Một Premium Package cập nhật với định danh {{ param }}",
+      "deleted": "Một Premium Package đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Premium Package {{ id }}?"
+      },
+      "detail": {
+        "title": "Premium Package"
+      },
+      "id": "ID",
+      "name": "Name",
+      "priceCoin": "Price Coin",
+      "durationDays": "Duration Days",
+      "features": "Features",
+      "isDeleted": "Is Deleted",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At"
+    }
+  }
+}

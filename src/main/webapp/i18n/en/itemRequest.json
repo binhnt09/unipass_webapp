@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "itemRequest": {
+      "home": {
+        "title": "Item Requests",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Item Request",
+        "createOrEditLabel": "Create or edit a Item Request",
+        "notFound": "No Item Requests found"
+      },
+      "created": "A new Item Request is created with identifier {{ param }}",
+      "updated": "A Item Request is updated with identifier {{ param }}",
+      "deleted": "A Item Request is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Item Request {{ id }}?"
+      },
+      "detail": {
+        "title": "Item Request"
+      },
+      "id": "ID",
+      "title": "Title",
+      "description": "Description",
+      "expectedPrice": "Expected Price",
+      "status": "Status",
+      "createdAt": "Created At",
+      "category": "Category",
+      "buyer": "Buyer"
+    }
+  }
+}

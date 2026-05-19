@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "orders": {
+      "home": {
+        "title": "Orders",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Orders",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Orders",
+        "notFound": "No Orders found"
+      },
+      "created": "Một Orders mới được tạo với định danh {{ param }}",
+      "updated": "Một Orders cập nhật với định danh {{ param }}",
+      "deleted": "Một Orders đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Orders {{ id }}?"
+      },
+      "detail": {
+        "title": "Orders"
+      },
+      "id": "ID",
+      "totalAmount": "Total Amount",
+      "platformDiscount": "Platform Discount",
+      "status": "Status",
+      "meetupLocation": "Meetup Location",
+      "createdAt": "Created At",
+      "buyer": "Buyer",
+      "seller": "Seller"
+    }
+  }
+}

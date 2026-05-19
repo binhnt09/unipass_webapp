@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "premiumHistory": {
+      "home": {
+        "title": "Premium Histories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Premium History",
+        "createOrEditLabel": "Create or edit a Premium History",
+        "notFound": "No Premium Histories found"
+      },
+      "created": "A new Premium History is created with identifier {{ param }}",
+      "updated": "A Premium History is updated with identifier {{ param }}",
+      "deleted": "A Premium History is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Premium History {{ id }}?"
+      },
+      "detail": {
+        "title": "Premium History"
+      },
+      "id": "ID",
+      "coinSpent": "Coin Spent",
+      "durationDays": "Duration Days",
+      "createdAt": "Created At",
+      "premiumPackage": "Premium Package",
+      "user": "User"
+    }
+  }
+}

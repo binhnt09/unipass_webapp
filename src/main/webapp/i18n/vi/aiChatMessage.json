@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "aiChatMessage": {
+      "home": {
+        "title": "Ai Chat Messages",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Ai Chat Message",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Ai Chat Message",
+        "notFound": "No Ai Chat Messages found"
+      },
+      "created": "Một Ai Chat Message mới được tạo với định danh {{ param }}",
+      "updated": "Một Ai Chat Message cập nhật với định danh {{ param }}",
+      "deleted": "Một Ai Chat Message đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Ai Chat Message {{ id }}?"
+      },
+      "detail": {
+        "title": "Ai Chat Message"
+      },
+      "id": "ID",
+      "role": "Role",
+      "content": "Content",
+      "tokensUsed": "Tokens Used",
+      "createdAt": "Created At",
+      "session": "Session"
+    }
+  }
+}

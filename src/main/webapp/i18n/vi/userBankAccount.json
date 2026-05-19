@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "userBankAccount": {
+      "home": {
+        "title": "User Bank Accounts",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một User Bank Account",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật User Bank Account",
+        "notFound": "No User Bank Accounts found"
+      },
+      "created": "Một User Bank Account mới được tạo với định danh {{ param }}",
+      "updated": "Một User Bank Account cập nhật với định danh {{ param }}",
+      "deleted": "Một User Bank Account đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa User Bank Account {{ id }}?"
+      },
+      "detail": {
+        "title": "User Bank Account"
+      },
+      "id": "ID",
+      "bankName": "Bank Name",
+      "accountNumber": "Account Number",
+      "accountName": "Account Name",
+      "isDefault": "Is Default",
+      "user": "User"
+    }
+  }
+}

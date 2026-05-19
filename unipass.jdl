@@ -1,0 +1,282 @@
+// ============================================================================
+// ENTITIES DEFINITION (Định nghĩa các Thực thể)
+// ============================================================================
+
+entity University {
+  code String required unique maxlength(50)
+  name String required maxlength(255)
+  logoUrl String maxlength(500)
+  status String maxlength(50)
+}
+
+entity Campus {
+  name String required maxlength(255)
+  address TextBlob required
+  latitude BigDecimal
+  longitude BigDecimal
+}
+
+entity UserProfile {
+  phoneNumber String unique maxlength(20)
+  studentIdNumber String maxlength(50)
+  reputationScore Integer
+  referralCode String unique maxlength(20)
+  fingerprintId String maxlength(255)
+  currentPremiumLevel Integer
+  isStudentVerified Boolean
+  isDeleted Boolean
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity Category {
+  name String required maxlength(255)
+  iconUrl String maxlength(500)
+  status String maxlength(50)
+}
+
+entity Product {
+  name String required maxlength(255)
+  description TextBlob
+  price BigDecimal required
+  status String maxlength(50)
+  condition String maxlength(50)
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity ProductImage {
+  imageUrl String required maxlength(500)
+  isPrimary Boolean
+}
+
+entity CartItem {
+  createdAt Instant
+}
+
+entity ItemRequest {
+  title String required maxlength(255)
+  description TextBlob
+  expectedPrice BigDecimal
+  status String maxlength(50)
+  createdAt Instant
+}
+
+entity RequestOffer {
+  offerPrice BigDecimal required
+  message TextBlob
+  createdAt Instant
+}
+
+entity Orders {
+  totalAmount BigDecimal required
+  platformDiscount BigDecimal
+  status String maxlength(50)
+  meetupLocation String maxlength(255)
+  createdAt Instant
+}
+
+entity OrderItem {
+  price BigDecimal required
+}
+
+entity Review {
+  rating Integer required min(1) max(5)
+  comment TextBlob
+  isDeleted Boolean
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity Report {
+  targetType String required maxlength(50)
+  targetId Long required
+  reason TextBlob required
+  status String maxlength(50)
+  isDeleted Boolean
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity UserWallet {
+  balance BigDecimal
+  frozenBalance BigDecimal
+  status String maxlength(50)
+  isDeleted Boolean
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity WalletTransaction {
+  amount BigDecimal required
+  transactionType String required maxlength(50)
+  referenceType String maxlength(50)
+  referenceId Long
+  description TextBlob
+  createdAt Instant
+}
+
+entity UserBankAccount {
+  bankName String required maxlength(100)
+  accountNumber String required maxlength(50)
+  accountName String required maxlength(100)
+  isDefault Boolean
+}
+
+entity PremiumPackage {
+  name String required maxlength(255)
+  priceCoin BigDecimal required
+  durationDays Integer required
+  features TextBlob
+  isDeleted Boolean
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity UserPremium {
+  startDate Instant required
+  endDate Instant required
+  status String maxlength(50)
+  updatedAt Instant
+}
+
+entity SystemPaymentTransaction {
+  paymentMethod String required maxlength(50)
+  paymentChannel String maxlength(50)
+  amountVnd BigDecimal required
+  coinReceived BigDecimal required
+  gatewayReference String required unique maxlength(255)
+  appOrderId String required unique maxlength(100)
+  bankCode String maxlength(50)
+  status String maxlength(50)
+  rawResponse TextBlob
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity PremiumHistory {
+  coinSpent BigDecimal required
+  durationDays Integer required
+  createdAt Instant
+}
+
+entity Invoice {
+  invoiceNumber String required unique maxlength(100)
+  sourceType String required maxlength(50)
+  sourceId Long required
+  amountPaid BigDecimal required
+  currency String maxlength(10)
+  emailSentStatus String maxlength(50)
+  sentAt Instant
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity ChatRoom {
+  createdAt Instant
+}
+
+entity ChatMessage {
+  content TextBlob required
+  isRead Boolean
+  createdAt Instant
+}
+
+entity AiChatSession {
+  contextSummary TextBlob
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity AiChatMessage {
+  role String required maxlength(50)
+  content TextBlob required
+  tokensUsed Integer
+  createdAt Instant
+}
+
+entity UserSearchHistory {
+  keyword String required maxlength(255)
+  searchCount Integer
+  lastSearchedAt Instant
+}
+
+entity Notification {
+  title String required maxlength(255)
+  content TextBlob required
+  type String required maxlength(50)
+  isRead Boolean
+  createdAt Instant
+}
+
+// ============================================================================
+// RELATIONSHIPS CONFIGURATION (Mối quan hệ)
+// ============================================================================
+
+// 1. Mối quan hệ giữa các Entity tự tạo thông thường
+relationship ManyToOne {
+  Campus{university(name)} to University
+  UserProfile{campus(name)} to Campus
+  Category{parent(name)} to Category
+  Product{category(name)} to Category
+  ProductImage{product(name)} to Product
+  CartItem{product(name)} to Product
+  ItemRequest{category(name)} to Category
+  RequestOffer{request(title)} to ItemRequest
+  RequestOffer{product(name)} to Product
+  OrderItem{order} to Orders
+  OrderItem{product(name)} to Product
+  Review{order} to Orders
+  WalletTransaction{wallet} to UserWallet
+
+  // Đã đổi tên biến đại diện từ 'package' thành 'premiumPackage' ở đây
+  UserPremium{premiumPackage(name)} to PremiumPackage
+  PremiumHistory{premiumPackage(name)} to PremiumPackage
+
+  ChatRoom{product(name)} to Product
+  ChatMessage{room} to ChatRoom
+  AiChatMessage{session} to AiChatSession
+}
+
+// 2. Mối quan hệ 1-1 nối sang bảng tích hợp User hệ thống
+relationship OneToOne {
+  UserProfile{user(login) required} to User with builtInEntity
+  UserWallet{user(login) required} to User with builtInEntity
+}
+
+// 3. Mối quan hệ Many-to-One nối sang bảng tích hợp User hệ thống
+relationship ManyToOne {
+  UserProfile{referredBy(login)} to User with builtInEntity
+  Product{seller(login)} to User with builtInEntity
+  CartItem{user(login)} to User with builtInEntity
+  ItemRequest{buyer(login)} to User with builtInEntity
+  RequestOffer{seller(login)} to User with builtInEntity
+  Orders{buyer(login)} to User with builtInEntity
+  Orders{seller(login)} to User with builtInEntity
+  Review{reviewer(login)} to User with builtInEntity
+  Review{reviewee(login)} to User with builtInEntity
+  Report{reporter(login)} to User with builtInEntity
+  Report{reported(login)} to User with builtInEntity
+  UserBankAccount{user(login)} to User with builtInEntity
+  UserPremium{user(login)} to User with builtInEntity
+  SystemPaymentTransaction{user(login)} to User with builtInEntity
+  PremiumHistory{user(login)} to User with builtInEntity
+  Invoice{user(login)} to User with builtInEntity
+  ChatRoom{buyer(login)} to User with builtInEntity
+  ChatRoom{seller(login)} to User with builtInEntity
+  ChatMessage{sender(login)} to User with builtInEntity
+  AiChatSession{user(login)} to User with builtInEntity
+  UserSearchHistory{user(login)} to User with builtInEntity
+  Notification{user(login)} to User with builtInEntity
+}
+
+// ============================================================================
+// GLOBAL ARCHITECTURE OPTIONS (Cấu hình nâng cao)
+// ============================================================================
+
+dto * with mapstruct
+service * with serviceImpl
+filter *
+
+paginate ChatMessage, AiChatMessage, Notification, UserSearchHistory, WalletTransaction with infinite-scroll
+paginate University, Campus, UserProfile, Category, Product, ItemRequest, RequestOffer, Orders, Review, Report, UserBankAccount, PremiumPackage, SystemPaymentTransaction, Invoice with pagination

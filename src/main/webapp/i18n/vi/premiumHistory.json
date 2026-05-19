@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "premiumHistory": {
+      "home": {
+        "title": "Premium Histories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Premium History",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Premium History",
+        "notFound": "No Premium Histories found"
+      },
+      "created": "Một Premium History mới được tạo với định danh {{ param }}",
+      "updated": "Một Premium History cập nhật với định danh {{ param }}",
+      "deleted": "Một Premium History đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Premium History {{ id }}?"
+      },
+      "detail": {
+        "title": "Premium History"
+      },
+      "id": "ID",
+      "coinSpent": "Coin Spent",
+      "durationDays": "Duration Days",
+      "createdAt": "Created At",
+      "premiumPackage": "Premium Package",
+      "user": "User"
+    }
+  }
+}

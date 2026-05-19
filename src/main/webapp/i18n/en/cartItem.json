@@ -1,0 +1,26 @@
+{
+  "unipassWebApp": {
+    "cartItem": {
+      "home": {
+        "title": "Cart Items",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Cart Item",
+        "createOrEditLabel": "Create or edit a Cart Item",
+        "notFound": "No Cart Items found"
+      },
+      "created": "A new Cart Item is created with identifier {{ param }}",
+      "updated": "A Cart Item is updated with identifier {{ param }}",
+      "deleted": "A Cart Item is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Cart Item {{ id }}?"
+      },
+      "detail": {
+        "title": "Cart Item"
+      },
+      "id": "ID",
+      "createdAt": "Created At",
+      "product": "Product",
+      "user": "User"
+    }
+  }
+}

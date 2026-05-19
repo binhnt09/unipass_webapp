@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "userSearchHistory": {
+      "home": {
+        "title": "User Search Histories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new User Search History",
+        "createOrEditLabel": "Create or edit a User Search History",
+        "notFound": "No User Search Histories found"
+      },
+      "created": "A new User Search History is created with identifier {{ param }}",
+      "updated": "A User Search History is updated with identifier {{ param }}",
+      "deleted": "A User Search History is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete User Search History {{ id }}?"
+      },
+      "detail": {
+        "title": "User Search History"
+      },
+      "id": "ID",
+      "keyword": "Keyword",
+      "searchCount": "Search Count",
+      "lastSearchedAt": "Last Searched At",
+      "user": "User"
+    }
+  }
+}

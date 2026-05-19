@@ -1,0 +1,26 @@
+{
+  "unipassWebApp": {
+    "orderItem": {
+      "home": {
+        "title": "Order Items",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Order Item",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Order Item",
+        "notFound": "No Order Items found"
+      },
+      "created": "Một Order Item mới được tạo với định danh {{ param }}",
+      "updated": "Một Order Item cập nhật với định danh {{ param }}",
+      "deleted": "Một Order Item đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Order Item {{ id }}?"
+      },
+      "detail": {
+        "title": "Order Item"
+      },
+      "id": "ID",
+      "price": "Price",
+      "order": "Order",
+      "product": "Product"
+    }
+  }
+}

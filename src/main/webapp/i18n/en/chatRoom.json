@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "chatRoom": {
+      "home": {
+        "title": "Chat Rooms",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Chat Room",
+        "createOrEditLabel": "Create or edit a Chat Room",
+        "notFound": "No Chat Rooms found"
+      },
+      "created": "A new Chat Room is created with identifier {{ param }}",
+      "updated": "A Chat Room is updated with identifier {{ param }}",
+      "deleted": "A Chat Room is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Chat Room {{ id }}?"
+      },
+      "detail": {
+        "title": "Chat Room"
+      },
+      "id": "ID",
+      "createdAt": "Created At",
+      "product": "Product",
+      "buyer": "Buyer",
+      "seller": "Seller"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "userBankAccount": {
+      "home": {
+        "title": "User Bank Accounts",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new User Bank Account",
+        "createOrEditLabel": "Create or edit a User Bank Account",
+        "notFound": "No User Bank Accounts found"
+      },
+      "created": "A new User Bank Account is created with identifier {{ param }}",
+      "updated": "A User Bank Account is updated with identifier {{ param }}",
+      "deleted": "A User Bank Account is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete User Bank Account {{ id }}?"
+      },
+      "detail": {
+        "title": "User Bank Account"
+      },
+      "id": "ID",
+      "bankName": "Bank Name",
+      "accountNumber": "Account Number",
+      "accountName": "Account Name",
+      "isDefault": "Is Default",
+      "user": "User"
+    }
+  }
+}

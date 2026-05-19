@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "category": {
+      "home": {
+        "title": "Categories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Category",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Category",
+        "notFound": "No Categories found"
+      },
+      "created": "Một Category mới được tạo với định danh {{ param }}",
+      "updated": "Một Category cập nhật với định danh {{ param }}",
+      "deleted": "Một Category đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Category {{ id }}?"
+      },
+      "detail": {
+        "title": "Category"
+      },
+      "id": "ID",
+      "name": "Name",
+      "iconUrl": "Icon Url",
+      "status": "Status",
+      "parent": "Parent"
+    }
+  }
+}

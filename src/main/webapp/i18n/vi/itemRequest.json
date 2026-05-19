@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "itemRequest": {
+      "home": {
+        "title": "Item Requests",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Item Request",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Item Request",
+        "notFound": "No Item Requests found"
+      },
+      "created": "Một Item Request mới được tạo với định danh {{ param }}",
+      "updated": "Một Item Request cập nhật với định danh {{ param }}",
+      "deleted": "Một Item Request đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Item Request {{ id }}?"
+      },
+      "detail": {
+        "title": "Item Request"
+      },
+      "id": "ID",
+      "title": "Title",
+      "description": "Description",
+      "expectedPrice": "Expected Price",
+      "status": "Status",
+      "createdAt": "Created At",
+      "category": "Category",
+      "buyer": "Buyer"
+    }
+  }
+}

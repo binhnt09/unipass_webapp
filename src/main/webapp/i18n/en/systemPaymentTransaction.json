@@ -1,0 +1,35 @@
+{
+  "unipassWebApp": {
+    "systemPaymentTransaction": {
+      "home": {
+        "title": "System Payment Transactions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new System Payment Transaction",
+        "createOrEditLabel": "Create or edit a System Payment Transaction",
+        "notFound": "No System Payment Transactions found"
+      },
+      "created": "A new System Payment Transaction is created with identifier {{ param }}",
+      "updated": "A System Payment Transaction is updated with identifier {{ param }}",
+      "deleted": "A System Payment Transaction is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete System Payment Transaction {{ id }}?"
+      },
+      "detail": {
+        "title": "System Payment Transaction"
+      },
+      "id": "ID",
+      "paymentMethod": "Payment Method",
+      "paymentChannel": "Payment Channel",
+      "amountVnd": "Amount Vnd",
+      "coinReceived": "Coin Received",
+      "gatewayReference": "Gateway Reference",
+      "appOrderId": "App Order Id",
+      "bankCode": "Bank Code",
+      "status": "Status",
+      "rawResponse": "Raw Response",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "user": "User"
+    }
+  }
+}
