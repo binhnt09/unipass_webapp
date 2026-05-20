@@ -9,6 +9,8 @@ import { AuthModal } from './AuthModal';
 export const Login = () => {
   // const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
+  const sessionHasBeenFetched = useAppSelector(state => state.authentication.sessionHasBeenFetched);
+  const account = useAppSelector(state => state.authentication.account);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const pageLocation = useLocation();
@@ -25,10 +27,28 @@ export const Login = () => {
     navigate(from, { replace: true });
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
   if (isAuthenticated) {
+    if (!sessionHasBeenFetched) {
+      return null;
+    }
+
+    const authorities = account?.authorities || [];
+    if (authorities.includes('ROLE_ADMIN')) {
+      return <Navigate to="/admin" replace />;
+    }
+    if (authorities.some(auth => /MANAGER/i.test(auth))) {
+      return <Navigate to="/entities" replace />;
+    }
+    if (authorities.some(auth => /SELLER/i.test(auth))) {
+      return <Navigate to="/seller-dashboard" replace />;
+    }
     return <Navigate to={from} replace />;
   }
-  return showModal ? <AuthModal onClose={handleClose} /> : null;
+  return showModal ? <AuthModal onClose={handleClose} onLoginSuccess={closeModal} /> : null;
 };
 
 export default Login;

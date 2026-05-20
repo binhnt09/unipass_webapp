@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { createBrowserRouter, Outlet, useLocation } from 'react-router';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 
 import { sendActivity } from 'app/config/websocket-middleware';
 import EntitiesRoutes from 'app/entities/routes';
@@ -99,6 +99,14 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'login', element: <Login /> },
       { path: 'logout', element: <Logout /> },
+      {
+        path: 'entities',
+        element: (
+          <PrivateRoute>
+            <Navigate to="/product" replace />
+          </PrivateRoute>
+        ),
+      },
       { path: 'premium', element: <PremiumPlansPage /> },
       { path: 'create-listing', element: <CreateListingPage /> },
       { path: 'login-info', element: <LoginInfoPage /> },

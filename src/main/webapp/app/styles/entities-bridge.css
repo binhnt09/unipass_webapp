@@ -1,0 +1,276 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn-primary {
+  background-color: #0b5fff;
+  color: #fff;
+}
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+.btn-outline {
+  background: transparent;
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+.btn-danger {
+  background-color: #ef4444;
+  color: #fff;
+}
+.btn-link {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border: none;
+}
+
+/* Buttons used in logs.tsx: compact pill */
+.btn-compact {
+  padding: 0.35rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+}
+
+/* Form controls styled like Tailwind inputs in logs/settings */
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid #e6edf3;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(2, 6, 23, 0.04);
+  font-size: 0.875rem;
+}
+.form-control::placeholder {
+  color: #94a3b8;
+}
+.form-control:focus {
+  outline: none;
+  border-color: rgba(14, 165, 233, 0.6);
+  box-shadow: 0 0 0 6px rgba(14, 165, 233, 0.06);
+}
+.form-select {
+  /* for selects */
+  padding-right: 2.5rem;
+}
+
+.form-control.is-invalid {
+  border-color: #dc2626 !important;
+}
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.06);
+}
+.invalid-feedback {
+  display: block;
+  color: #dc2626;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* Card / table wrapper to emulate admin panels */
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.04);
+  padding: 0.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+  text-align: left;
+  vertical-align: middle;
+}
+.table thead {
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.table tbody tr.odd,
+.table tbody tr:nth-child(odd) {
+  background-color: #fff;
+}
+.table tbody tr:nth-child(even) {
+  background-color: #fbfdff;
+}
+
+/* Small utilities and groups */
+.btn-group {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+.flex-btn-group-container {
+  display: flex;
+  gap: 0.5rem;
+}
+.justify-content-center {
+  justify-content: center !important;
+  display: flex;
+}
+.text-end {
+  text-align: right;
+}
+
+/* Dropdown items look like menu items in admin */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  color: #0f172a;
+  text-decoration: none;
+  border-radius: 0.75rem;
+}
+.dropdown-item:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-info {
+  background-color: #06b6d4;
+  color: #064e63;
+}
+.badge-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+.badge-danger {
+  background-color: #fee2e2;
+  color: #7f1d1d;
+}
+
+/* Misc helpers used by generated templates */
+.d-none {
+  display: none !important;
+}
+@media (min-width: 768px) {
+  .d-md-inline {
+    display: inline !important;
+  }
+}
+.me-2 {
+  margin-right: 0.5rem !important;
+}
+.text-slate-700 {
+  color: #334155 !important;
+}
+.text-slate-900 {
+  color: #0f172a !important;
+}
+
+/* Pagination (JhiPagination / bootstrap-like) */
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  justify-content: center;
+  align-items: center;
+}
+.pagination .page-item {
+  display: inline-block;
+}
+.pagination .page-link,
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: #fff;
+  color: #0f172a;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.pagination .page-item.disabled .page-link,
+.page-item.disabled .page-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pagination .page-item.active .page-link,
+.page-item.active .page-link {
+  background: #0b5fff;
+  color: #fff;
+  border-color: #0b5fff;
+  box-shadow: 0 8px 24px rgba(11, 95, 255, 0.12);
+}
+.page-link:hover {
+  background: #f8fafc;
+}
+
+/* JhiItemCount / item count display */
+.jhi-item-count,
+.jhi-item-count span {
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+/* Detail view (jh-entity-details) */
+.jh-entity-details {
+  margin-top: 1rem;
+}
+.jh-entity-details dt {
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 0.75rem;
+}
+.jh-entity-details dd {
+  margin-left: 0;
+  margin-bottom: 0.5rem;
+  color: #475569;
+}
+
+/* clickable header cells */
+.hand {
+  cursor: pointer;
+}
+
+/* alerts */
+.alert-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid rgba(249, 115, 22, 0.08);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+}

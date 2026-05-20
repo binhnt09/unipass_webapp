@@ -8,7 +8,7 @@ import LoadingBar from 'react-redux-loading-bar';
 
 import { useAppDispatch } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
-import { AccountMenu, LocaleMenu, AdminMenu } from '../menus';
+import { AccountMenu, LocaleMenu, AdminMenu, EntitiesMenu } from '../menus';
 import { AuthModal } from 'app/modules/login/AuthModal';
 
 import { Brand, Home } from './header-components';
@@ -26,12 +26,14 @@ export interface IHeaderProps {
 
 const Header = (props: IHeaderProps) => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated: isDemoAuth, isSeller: isDemoSeller } = useAuth();
+  const { isAuthenticated: isDemoAuth, isSeller: isDemoSeller, isAdmin: isDemoAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const isUserLoggedIn = props.isAuthenticated || isDemoAuth;
   const isUserSeller = isDemoSeller;
+  const isUserAdmin = isDemoAdmin;
+  const isAdmin = props.isAdmin;
 
   const handleLocaleChange = langKey => {
     Storage.session.set('locale', langKey);
@@ -93,6 +95,17 @@ const Header = (props: IHeaderProps) => {
                     <span>Bán hàng</span>
                   </Link>
                 )}
+                {/* {isUserAdmin ||
+                  (isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-2xl transition-colors text-sm font-medium"
+                    >
+                      <Shield className="w-4 h-4" />
+                      <span>Quản trị</span>
+                    </Link>
+                  ))} */}
+                {props.isAuthenticated && (isAdmin || isUserAdmin) && <EntitiesMenu />}
                 {props.isAuthenticated && props.isAdmin && <AdminMenu showOpenAPI={props.isOpenAPIEnabled} />}
                 <Link
                   to="/premium"
@@ -109,7 +122,7 @@ const Header = (props: IHeaderProps) => {
                     </span>
                   </Link>
                 )}
-                {isUserLoggedIn && (
+                {isUserLoggedIn && !isAdmin && (
                   <Link to="/cart" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Giỏ hàng">
                     <ShoppingCart className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">

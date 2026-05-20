@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { useAuth } from 'app/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login as loginRedux } from 'app/shared/reducers/authentication'; // Action login thật
 
 interface AuthModalProps {
   onClose: () => void;
+  onLoginSuccess?: () => void;
 }
 
-export function AuthModal({ onClose }: AuthModalProps) {
-  const { login: authLogin, isAuthenticated } = useAuth();
+export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
+  const navigate = useNavigate();
+  const { login: authLogin, isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [emailError, setEmailError] = useState(false);
   const [emailValue, setEmailValue] = useState('');
@@ -22,18 +25,53 @@ export function AuthModal({ onClose }: AuthModalProps) {
   const isAuthenticatedRedux = useAppSelector(state => state.authentication.isAuthenticated);
   const loginErrorRedux = useAppSelector(state => state.authentication.loginError);
 
-  // const account = useAppSelector(state => state.authentication.account);
+  const account = useAppSelector(state => state.authentication.account);
 
   // Close modal when login successful
+  // Close modal and redirect when login successful
   React.useEffect(() => {
-    // const roles = account.authorities;
-    if (isAuthenticated || isAuthenticatedRedux) {
-      onClose();
+    // Điều kiện: Đã login Demo HOẶC đã login Thật và có thông tin account
+    if (isAuthenticated || (isAuthenticatedRedux && account)) {
+      let targetPath = '';
+
+      // 1. LUỒNG KIỂM TRA QUYỀN CHO BACKEND THẬT (JHIPSTER)
+      if (isAuthenticatedRedux && account) {
+        const roles = account.authorities || [];
+        if (roles.includes('ROLE_ADMIN')) {
+          targetPath = '/admin/user-management'; // Vào thẳng quản lý user tạm thời như bạn muốn
+        } else {
+          targetPath = '/'; // Các quyền khác (User thường) ở lại trang chủ
+        }
+      }
+
+      // 2. LUỒNG KIỂM TRA QUYỀN CHO DEMO (CONTEXT)
+      else if (isAuthenticated && user) {
+        if (user.role === 'admin') {
+          targetPath = '/admin/user-management'; // Cập nhật luôn cho đồng bộ với bản thật
+        } else if (user.role === 'seller') {
+          targetPath = '/seller-dashboard';
+        } else {
+          targetPath = '/';
+        }
+      }
+
+      // 执行 chuyển hướng (nếu có đường dẫn dịch chuyển)
+      if (targetPath) {
+        navigate(targetPath);
+      }
+
+      // Sau khi điều hướng xong mới tiến hành đóng modal
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        onClose();
+      }
     }
+
     if (loginErrorRedux) {
       setLoading(false);
     }
-  }, [isAuthenticated, isAuthenticatedRedux, loginErrorRedux, onClose]);
+  }, [isAuthenticated, isAuthenticatedRedux, account, loginErrorRedux, onClose, onLoginSuccess, navigate, user]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +88,11 @@ export function AuthModal({ onClose }: AuthModalProps) {
 
     const success = authLogin(email, password);
     if (success) {
-      onClose();
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        onClose();
+      }
     } else {
       setLoginError(true);
     }
@@ -161,6 +203,29 @@ export function AuthModal({ onClose }: AuthModalProps) {
                       <div className="flex items-center gap-1 text-xs text-gray-600">
                         <CheckCircle className="w-3 h-3 text-green-600" />
                         <span>Quản lý sản phẩm + tất cả tính năng</span>
+                      </div>
+                    </div>
+
+                    {/* Admin Account */}
+                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm">⚙️ Quản trị viên</p>
+                          <p className="text-xs text-gray-600 mt-1">admin@fpt.edu.vn</p>
+                          <p className="text-xs text-gray-500">Mật khẩu: admin123</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => quickLogin('admin@fpt.edu.vn', 'admin123')}
+                          disabled={loading}
+                          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white text-xs rounded-md transition-colors disabled:cursor-not-allowed"
+                        >
+                          {loading ? '...' : 'Đăng nhập'}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <CheckCircle className="w-3 h-3 text-green-600" />
+                        <span>Quản lý hệ thống, trang Admin</span>
                       </div>
                     </div>
                   </div>
