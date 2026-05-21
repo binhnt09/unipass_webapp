@@ -9,18 +9,21 @@ import Health from './health/health';
 import Logs from './logs/logs';
 import Metrics from './metrics/metrics';
 import Tracker from './tracker/tracker';
-import UserManagement from './user-management';
+// import AdminLayout from './admin-layout';
+// import UserManagement from './user-management';
 
 const AdministrationRoutes = () => (
   <div>
     <ErrorBoundaryRoutes>
-      <Route path="user-management/*" element={<UserManagement />} />
+      {/* <Route element={<AdminLayout />}> */}
+      {/* <Route path="user-management/*" element={<UserManagement />} /> */}
       <Route path="tracker" element={<Tracker />} />
       <Route path="health" element={<Health />} />
       <Route path="metrics" element={<Metrics />} />
       <Route path="configuration" element={<Configuration />} />
       <Route path="logs" element={<Logs />} />
       <Route path="docs" element={<Docs />} />
+      {/* </Route> */}
     </ErrorBoundaryRoutes>
   </div>
 );

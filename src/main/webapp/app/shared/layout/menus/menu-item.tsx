@@ -22,7 +22,7 @@ const MenuItem = (props: IMenuItem) => {
       to={to}
       id={id}
       data-cy={props['data-cy']}
-      className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100 hover:text-slate-900"
+      className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-gray-200 transition-colors hover:bg-slate-100 hover:text-slate-900"
     >
       <FontAwesomeIcon icon={icon} className="text-slate-500" />
       <span>{children}</span>

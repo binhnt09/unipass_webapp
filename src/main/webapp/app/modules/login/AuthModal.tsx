@@ -1,31 +1,137 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
+import { translate } from 'react-jhipster';
 import { useAuth } from 'app/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login as loginRedux } from 'app/shared/reducers/authentication'; // Action login thật
+import { handleRegister, reset as resetRegister } from 'app/modules/account/register/register.reducer';
+import PasswordStrengthBar from 'app/shared/layout/password/password-strength-bar';
 
 interface AuthModalProps {
   onClose: () => void;
   onLoginSuccess?: () => void;
+  defaultTab?: 'login' | 'register';
 }
 
-export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
+export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: AuthModalProps) {
   const navigate = useNavigate();
   const { login: authLogin, isAuthenticated, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>(defaultTab);
   const [emailError, setEmailError] = useState(false);
   const [emailValue, setEmailValue] = useState('');
   const [passwordValue, setPasswordValue] = useState('');
   const [showDemoAccounts, setShowDemoAccounts] = useState(true);
-  const [loginError, setLoginError] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerLoading, setRegisterLoading] = useState(false);
+
+  const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
 
   const dispatch = useAppDispatch();
   const isAuthenticatedRedux = useAppSelector(state => state.authentication.isAuthenticated);
   const loginErrorRedux = useAppSelector(state => state.authentication.loginError);
+  const loginErrorMessageFromServer = useAppSelector(state => state.authentication.errorMessage);
+  const currentLocale = useAppSelector(state => state.locale.currentLocale);
+  const { successMessage, registrationFailure, errorMessage } = useAppSelector(state => state.register);
 
   const account = useAppSelector(state => state.authentication.account);
+
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+  // const passwordPattern = /^.*$/;
+  const isPasswordValid = (password: string) => passwordPattern.test(password);
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetRegister());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    setLoginErrorMessage(null);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (successMessage) {
+      toast.success(translate(successMessage));
+      setRegisterName('');
+      setRegisterEmail('');
+      setRegisterPassword('');
+      setRegisterConfirmPassword('');
+      setRegisterError(null);
+      setRegisterLoading(false);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (registrationFailure) {
+      setRegisterError(errorMessage || 'Đăng ký thất bại. Vui lòng thử lại.');
+      setRegisterLoading(false);
+    }
+  }, [registrationFailure, errorMessage]);
+
+  useEffect(() => {
+    if (loginErrorRedux) {
+      setLoading(false);
+      if (loginErrorMessageFromServer?.includes('was not found')) {
+        setLoginErrorMessage('Tài khoản chưa tồn tại. Vui lòng đăng ký trước.');
+      } else if (loginErrorMessageFromServer?.includes('not activated')) {
+        setLoginErrorMessage('Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email xác nhận.');
+      } else {
+        setLoginErrorMessage('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
+      }
+    }
+  }, [loginErrorRedux, loginErrorMessageFromServer]);
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerName.trim()) {
+      setRegisterError('Vui lòng nhập đầy đủ họ và tên.');
+      return;
+    }
+    if (!registerEmail) {
+      setRegisterError('Vui lòng nhập email.');
+      return;
+    }
+    if (emailError) {
+      setRegisterError('Email phải là .edu hoặc .edu.vn.');
+      return;
+    }
+    if (!registerPassword) {
+      setRegisterError('Vui lòng nhập mật khẩu.');
+      return;
+    }
+    if (!isPasswordValid(registerPassword)) {
+      setRegisterError('Mật khẩu phải tối thiểu 6 ký tự và gồm chữ hoa, chữ thường, số và ký tự đặc biệt.');
+      return;
+    }
+    if (registerPassword !== registerConfirmPassword) {
+      setRegisterError('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+    setRegisterError(null);
+    setRegisterLoading(true);
+    try {
+      await dispatch(
+        handleRegister({
+          login: registerEmail,
+          email: registerEmail,
+          password: registerPassword,
+          langKey: currentLocale,
+        }),
+      ).unwrap();
+    } catch {
+      // Error will be handled by redux slice
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
 
   // Close modal when login successful
   // Close modal and redirect when login successful
@@ -76,15 +182,30 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setLoginError(false);
+    setLoginErrorMessage(null);
+
+    if (!emailValue.trim()) {
+      setLoginErrorMessage('Vui lòng nhập email hoặc tên đăng nhập.');
+      setLoading(false);
+      return;
+    }
+    if (!passwordValue) {
+      setLoginErrorMessage('Vui lòng nhập mật khẩu.');
+      setLoading(false);
+      return;
+    }
+    if (!isPasswordValid(passwordValue)) {
+      setLoginErrorMessage('Mật khẩu phải tối thiểu 6 ký tự và gồm chữ hoa, chữ thường, số và ký tự đặc biệt.');
+      setLoading(false);
+      return;
+    }
 
     dispatch(loginRedux(emailValue, passwordValue, true));
-    setLoading(false);
   };
 
   const quickLogin = (email: string, password: string) => {
     setLoading(true);
-    setLoginError(false);
+    setLoginErrorMessage(null);
 
     const success = authLogin(email, password);
     if (success) {
@@ -94,7 +215,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         onClose();
       }
     } else {
-      setLoginError(true);
+      setLoginErrorMessage('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
     }
     setLoading(false);
   };
@@ -103,7 +224,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-[#0A2647] text-white p-6 relative sticky top-0 z-10">
+        <div className="bg-[#0A2647] text-white p-6 sticky top-0 z-10">
           <button onClick={onClose} className="absolute top-4 right-4 p-1 hover:bg-white/10 rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -232,10 +353,10 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                 </div>
               )}
 
-              {loginError && (
+              {(loginErrorMessage || loginErrorRedux) && (
                 <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-700">Email hoặc mật khẩu không đúng. Vui lòng thử lại.</p>
+                  <p className="text-sm text-red-700">{loginErrorMessage || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.'}</p>
                 </div>
               )}
 
@@ -267,6 +388,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                     required
                   />
                 </div>
+                <p className="mt-2 text-xs text-gray-500">Mật khẩu tối thiểu 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
               </div>
 
               <div className="flex items-center justify-between text-sm">
@@ -293,15 +415,25 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
               </div>
             </form>
           ) : (
-            <div className="space-y-4">
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              {registerError && (
+                <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{registerError}</p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm text-gray-700 mb-2">Họ và tên</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
+                    value={registerName}
+                    onChange={e => setRegisterName(e.target.value)}
                     placeholder="Nguyễn Văn A"
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    required
                   />
                 </div>
               </div>
@@ -314,9 +446,9 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                   />
                   <input
                     type="email"
-                    value={emailValue}
+                    value={registerEmail}
                     onChange={e => {
-                      setEmailValue(e.target.value);
+                      setRegisterEmail(e.target.value);
                       setEmailError(!e.target.value.endsWith('.edu') && !e.target.value.endsWith('.edu.vn'));
                     }}
                     placeholder="tencuaban@truongdaihoc.edu.vn"
@@ -325,6 +457,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                         ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50/50'
                         : 'border-gray-300 focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent'
                     }`}
+                    required
                   />
                   {emailError && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />}
                 </div>
@@ -332,7 +465,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                   <div className="mt-2 flex items-start gap-2 text-sm text-red-600">
                     <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <span>
-                      <strong>Email không hợp lệ:</strong> Bạn phải sử dụng email trường đại học .edu hoặc .edu.vn đã xác thực để đăng ký.
+                      Email phải có đuôi <strong>.edu</strong> hoặc <strong>.edu.vn</strong>.
                     </span>
                   </div>
                 )}
@@ -344,8 +477,28 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="password"
+                    value={registerPassword}
+                    onChange={e => setRegisterPassword(e.target.value)}
                     placeholder="Tạo mật khẩu"
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    required
+                  />
+                </div>
+                <PasswordStrengthBar password={registerPassword} />
+                <p className="mt-2 text-xs text-gray-500">Mật khẩu tối thiểu 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-2">Xác nhận mật khẩu</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="password"
+                    value={registerConfirmPassword}
+                    onChange={e => setRegisterConfirmPassword(e.target.value)}
+                    placeholder="Nhập lại mật khẩu"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    required
                   />
                 </div>
               </div>
@@ -363,14 +516,18 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
                 </div>
               </div>
 
-              <button className="w-full py-3 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium transition-colors shadow-md">
-                Tạo tài khoản
+              <button
+                type="submit"
+                disabled={registerLoading}
+                className="w-full py-3 bg-[#FF6B35] hover:bg-[#FF5722] disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors shadow-md disabled:cursor-not-allowed"
+              >
+                {registerLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
               </button>
 
               <p className="text-xs text-gray-500 text-center">
                 Bằng việc đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi
               </p>
-            </div>
+            </form>
           )}
         </div>
       </div>

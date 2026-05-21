@@ -1,0 +1,160 @@
+// /* Base link styles */
+// nav[data-current-path] a {
+//   display: flex;
+//   align-items: center;
+//   gap: 0.75rem;
+//   padding: 0.75rem 1rem;
+//   font-size: 0.875rem;
+//   font-weight: 500;
+//   color: #cbd5e1;
+//   border-radius: 0.625rem;
+//   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+//   margin-bottom: 0.5rem;
+//   white-space: nowrap;
+//   position: relative;
+//   overflow: hidden;
+// }
+
+// /* Hover effect */
+// nav[data-current-path] a:hover {
+//   background-color: rgba(255, 107, 53, 0.1);
+//   color: #f1f5f9;
+//   padding-left: 1.25rem;
+// }
+
+// /* Icon styling */
+// nav[data-current-path] a svg,
+// nav[data-current-path] a .fa,
+// nav[data-current-path] a [class*='fa-'] {
+//   min-width: 18px;
+//   width: 18px;
+//   height: 18px;
+//   color: #94a3b8 !important;
+//   transition: color 0.25s;
+// }
+
+// nav[data-current-path] a:hover svg,
+// nav[data-current-path] a:hover .fa,
+// nav[data-current-path] a:hover [class*='fa-'] {
+//   color: #ff6b35 !important;
+// }
+
+// /* Active state - Dynamic based on current path */
+// nav[data-current-path='/university'] a[href*='/university'],
+// nav[data-current-path^='/university/'] a[href*='/university'],
+// nav[data-current-path='/campus'] a[href*='/campus'],
+// nav[data-current-path^='/campus/'] a[href*='/campus'],
+// nav[data-current-path='/user-profile'] a[href*='/user-profile'],
+// nav[data-current-path^='/user-profile/'] a[href*='/user-profile'],
+// nav[data-current-path='/category'] a[href*='/category'],
+// nav[data-current-path^='/category/'] a[href*='/category'],
+// nav[data-current-path='/product'] a[href*='/product'],
+// nav[data-current-path^='/product/'] a[href*='/product'],
+// nav[data-current-path='/product-image'] a[href*='/product-image'],
+// nav[data-current-path^='/product-image/'] a[href*='/product-image'],
+// nav[data-current-path='/cart-item'] a[href*='/cart-item'],
+// nav[data-current-path^='/cart-item/'] a[href*='/cart-item'],
+// nav[data-current-path='/item-request'] a[href*='/item-request'],
+// nav[data-current-path^='/item-request/'] a[href*='/item-request'],
+// nav[data-current-path='/request-offer'] a[href*='/request-offer'],
+// nav[data-current-path^='/request-offer/'] a[href*='/request-offer'],
+// nav[data-current-path='/orders'] a[href*='/orders'],
+// nav[data-current-path^='/orders/'] a[href*='/orders'],
+// nav[data-current-path='/order-item'] a[href*='/order-item'],
+// nav[data-current-path^='/order-item/'] a[href*='/order-item'],
+// nav[data-current-path='/review'] a[href*='/review'],
+// nav[data-current-path^='/review/'] a[href*='/review'],
+// nav[data-current-path='/report'] a[href*='/report'],
+// nav[data-current-path^='/report/'] a[href*='/report'],
+// nav[data-current-path='/user-wallet'] a[href*='/user-wallet'],
+// nav[data-current-path^='/user-wallet/'] a[href*='/user-wallet'],
+// nav[data-current-path='/wallet-transaction'] a[href*='/wallet-transaction'],
+// nav[data-current-path^='/wallet-transaction/'] a[href*='/wallet-transaction'],
+// nav[data-current-path='/user-bank-account'] a[href*='/user-bank-account'],
+// nav[data-current-path^='/user-bank-account/'] a[href*='/user-bank-account'],
+// nav[data-current-path='/premium-package'] a[href*='/premium-package'],
+// nav[data-current-path^='/premium-package/'] a[href*='/premium-package'],
+// nav[data-current-path='/user-premium'] a[href*='/user-premium'],
+// nav[data-current-path^='/user-premium/'] a[href*='/user-premium'],
+// nav[data-current-path='/system-payment-transaction'] a[href*='/system-payment-transaction'],
+// nav[data-current-path^='/system-payment-transaction/'] a[href*='/system-payment-transaction'],
+// nav[data-current-path='/premium-history'] a[href*='/premium-history'],
+// nav[data-current-path^='/premium-history/'] a[href*='/premium-history'],
+// nav[data-current-path='/invoice'] a[href*='/invoice'],
+// nav[data-current-path^='/invoice/'] a[href*='/invoice'],
+// nav[data-current-path='/chat-room'] a[href*='/chat-room'],
+// nav[data-current-path^='/chat-room/'] a[href*='/chat-room'],
+// nav[data-current-path='/chat-message'] a[href*='/chat-message'],
+// nav[data-current-path^='/chat-message/'] a[href*='/chat-message'],
+// nav[data-current-path='/ai-chat-session'] a[href*='/ai-chat-session'],
+// nav[data-current-path^='/ai-chat-session/'] a[href*='/ai-chat-session'],
+// nav[data-current-path='/ai-chat-message'] a[href*='/ai-chat-message'],
+// nav[data-current-path^='/ai-chat-message/'] a[href*='/ai-chat-message'],
+// nav[data-current-path='/user-search-history'] a[href*='/user-search-history'],
+// nav[data-current-path^='/user-search-history/'] a[href*='/user-search-history'],
+// nav[data-current-path='/notification'] a[href*='/notification'],
+// nav[data-current-path^='/notification/'] a[href*='/notification'] {
+//   background: linear-gradient(135deg, #ff6b35 0%, #ff5722 100%);
+//   color: #ffffff !important;
+//   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+//   padding-left: 1.25rem;
+// }
+
+// nav[data-current-path='/university'] a[href*='/university'] svg,
+// nav[data-current-path='/campus'] a[href*='/campus'] svg,
+// nav[data-current-path='/user-profile'] a[href*='/user-profile'] svg,
+// nav[data-current-path='/category'] a[href*='/category'] svg,
+// nav[data-current-path='/product'] a[href*='/product'] svg,
+// nav[data-current-path='/product-image'] a[href*='/product-image'] svg,
+// nav[data-current-path='/cart-item'] a[href*='/cart-item'] svg,
+// nav[data-current-path='/item-request'] a[href*='/item-request'] svg,
+// nav[data-current-path='/request-offer'] a[href*='/request-offer'] svg,
+// nav[data-current-path='/orders'] a[href*='/orders'] svg,
+// nav[data-current-path='/order-item'] a[href*='/order-item'] svg,
+// nav[data-current-path='/review'] a[href*='/review'] svg,
+// nav[data-current-path='/report'] a[href*='/report'] svg,
+// nav[data-current-path='/user-wallet'] a[href*='/user-wallet'] svg,
+// nav[data-current-path='/wallet-transaction'] a[href*='/wallet-transaction'] svg,
+// nav[data-current-path='/user-bank-account'] a[href*='/user-bank-account'] svg,
+// nav[data-current-path='/premium-package'] a[href*='/premium-package'] svg,
+// nav[data-current-path='/user-premium'] a[href*='/user-premium'] svg,
+// nav[data-current-path='/system-payment-transaction'] a[href*='/system-payment-transaction'] svg,
+// nav[data-current-path='/premium-history'] a[href*='/premium-history'] svg,
+// nav[data-current-path='/invoice'] a[href*='/invoice'] svg,
+// nav[data-current-path='/chat-room'] a[href*='/chat-room'] svg,
+// nav[data-current-path='/chat-message'] a[href*='/chat-message'] svg,
+// nav[data-current-path='/ai-chat-session'] a[href*='/ai-chat-session'] svg,
+// nav[data-current-path='/ai-chat-message'] a[href*='/ai-chat-message'] svg,
+// nav[data-current-path='/user-search-history'] a[href*='/user-search-history'] svg,
+// nav[data-current-path='/notification'] a[href*='/notification'] svg,
+// nav[data-current-path^='/university/'] a[href*='/university'] svg,
+// nav[data-current-path^='/product/'] a[href*='/product'] svg,
+// nav[data-current-path^='/category/'] a[href*='/category'] svg {
+//   color: #ffffff !important;
+// }
+
+// /* Collapsed state */
+// .sidebar-collapsed a {
+//   padding: 0.75rem 0.5rem !important;
+//   justify-content: center;
+// }
+// .sidebar-collapsed a span,
+// .sidebar-collapsed a font,
+// .sidebar-collapsed a .translate {
+//   display: none !important;
+// }
+
+// /* Scrollbar styling */
+// nav::-webkit-scrollbar {
+//   width: 6px;
+// }
+// nav::-webkit-scrollbar-track {
+//   background: rgba(255, 255, 255, 0.05);
+// }
+// nav::-webkit-scrollbar-thumb {
+//   background: rgba(255, 107, 53, 0.3);
+//   border-radius: 3px;
+// }
+// nav::-webkit-scrollbar-thumb:hover {
+//   background: rgba(255, 107, 53, 0.5);
+// }

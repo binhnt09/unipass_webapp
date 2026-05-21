@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 
 import { sendActivity } from 'app/config/websocket-middleware';
-import EntitiesRoutes from 'app/entities/routes';
+// import EntitiesRoutes from 'app/entities/routes';
 import Activate from 'app/modules/account/activate/activate';
 import PasswordResetFinish from 'app/modules/account/password-reset/finish/password-reset-finish';
 import PasswordResetInit from 'app/modules/account/password-reset/init/password-reset-init';
@@ -39,6 +39,35 @@ import { BankTransferQRPage } from './modules/checkout/payment/bank-transfer-qr'
 import { ProductDetailPage } from './modules/listing/components/productDetailPage';
 import SettingsPage from './modules/account/settings/settings';
 import PasswordPage from './modules/account/password/password';
+import University from './entities/university/university';
+import Campus from './entities/campus/campus';
+import EntitiesLayout from './entities/layout/entities-layout';
+import UserProfile from './entities/user-profile/user-profile';
+import Category from './entities/category/category';
+import Product from './entities/product/product';
+import ProductImage from './entities/product-image/product-image';
+import CartItem from './entities/cart-item/cart-item';
+import ItemRequest from './entities/item-request/item-request';
+import RequestOffer from './entities/request-offer/request-offer';
+import Orders from './entities/orders/orders';
+import OrderItem from './entities/order-item/order-item';
+import Review from './entities/review/review';
+import Report from './entities/report/report';
+import UserWallet from './entities/user-wallet/user-wallet';
+import WalletTransaction from './entities/wallet-transaction/wallet-transaction';
+import UserBankAccount from './entities/user-bank-account/user-bank-account';
+import PremiumPackage from './entities/premium-package/premium-package';
+import SystemPaymentTransaction from './entities/system-payment-transaction/system-payment-transaction';
+import UserPremium from './entities/user-premium/user-premium';
+import PremiumHistory from './entities/premium-history/premium-history';
+import Invoice from './entities/invoice/invoice';
+import ChatRoom from './entities/chat-room/chat-room';
+import ChatMessage from './entities/chat-message/chat-message';
+import AiChatSession from './entities/ai-chat-session/ai-chat-session';
+import AiChatMessage from './entities/ai-chat-message/ai-chat-message';
+import UserSearchHistory from './entities/user-search-history/user-search-history';
+import Notification from './entities/notification/notification';
+import UserManagement from './modules/administration/user-management/user-management';
 
 const loading = <div>loading ...</div>;
 
@@ -99,30 +128,85 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'login', element: <Login /> },
       { path: 'logout', element: <Logout /> },
+      { path: 'product/:id', element: <ProductDetailPage /> },
+      { path: 'premium', element: <PremiumPlansPage /> },
       {
         path: 'entities',
         element: (
-          <PrivateRoute>
-            <Navigate to="/product" replace />
+          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+            <Navigate to="/university" replace />
           </PrivateRoute>
         ),
       },
-      { path: 'premium', element: <PremiumPlansPage /> },
-      { path: 'create-listing', element: <CreateListingPage /> },
-      { path: 'login-info', element: <LoginInfoPage /> },
-      { path: 'messages', element: <ChatPage /> },
-      { path: 'seller-dashboard', element: <SellerDashboardPage /> },
-      { path: 'orders', element: <MyOrdersPage /> },
-      { path: 'cart', element: <ShoppingCartPage /> },
-      { path: 'notifications', element: <NotificationsPage /> },
-      { path: 'order/:id', element: <OrderDetailPage /> },
-      { path: 'product/:id', element: <ProductDetailPage /> },
-      { path: 'checkout', element: <CheckoutPage /> },
-      { path: 'purchase-success', element: <PurchaseSuccessPage /> },
-      { path: 'payment', element: <PaymentPage /> },
-      { path: 'payment/momo', element: <MoMoQRPage /> },
-      { path: 'payment/vnpay', element: <VNPayQRPage /> },
-      { path: 'payment/bank-transfer', element: <BankTransferQRPage /> },
+      {
+        element: (
+          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+            <Outlet />
+          </PrivateRoute>
+        ),
+        children: [
+          { path: 'cart', element: <ShoppingCartPage /> },
+          { path: 'checkout', element: <CheckoutPage /> },
+          { path: 'purchase-success', element: <PurchaseSuccessPage /> },
+          { path: 'messages', element: <ChatPage /> },
+          { path: 'notifications', element: <NotificationsPage /> },
+          { path: 'orders', element: <MyOrdersPage /> },
+          { path: 'order/:id', element: <OrderDetailPage /> },
+          { path: 'login-info', element: <LoginInfoPage /> },
+          { path: 'payment', element: <PaymentPage /> },
+          { path: 'payment/momo', element: <MoMoQRPage /> },
+          { path: 'payment/vnpay', element: <VNPayQRPage /> },
+          { path: 'payment/bank-transfer', element: <BankTransferQRPage /> },
+        ],
+      },
+      {
+        element: (
+          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+            <Outlet />
+          </PrivateRoute>
+        ),
+        children: [
+          { path: 'create-listing', element: <CreateListingPage /> },
+          { path: 'seller-dashboard', element: <SellerDashboardPage /> },
+        ],
+      },
+      {
+        element: (
+          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+            <EntitiesLayout />
+          </PrivateRoute>
+        ),
+        children: [
+          { path: 'user-management/*', element: <UserManagement /> },
+          { path: 'university/*', element: <University /> },
+          { path: 'campus/*', element: <Campus /> },
+          { path: 'user-profile/*', element: <UserProfile /> },
+          { path: 'category/*', element: <Category /> },
+          { path: 'product/*', element: <Product /> },
+          { path: 'product-image/*', element: <ProductImage /> },
+          { path: 'cart-item/*', element: <CartItem /> },
+          { path: 'item-request/*', element: <ItemRequest /> },
+          { path: 'request-offer/*', element: <RequestOffer /> },
+          { path: 'orders/*', element: <Orders /> },
+          { path: 'order-item/*', element: <OrderItem /> },
+          { path: 'review/*', element: <Review /> },
+          { path: 'report/*', element: <Report /> },
+          { path: 'user-wallet/*', element: <UserWallet /> },
+          { path: 'wallet-transaction/*', element: <WalletTransaction /> },
+          { path: 'user-bank-account/*', element: <UserBankAccount /> },
+          { path: 'premium-package/*', element: <PremiumPackage /> },
+          { path: 'user-premium/*', element: <UserPremium /> },
+          { path: 'system-payment-transaction/*', element: <SystemPaymentTransaction /> },
+          { path: 'premium-history/*', element: <PremiumHistory /> },
+          { path: 'invoice/*', element: <Invoice /> },
+          { path: 'chat-room/*', element: <ChatRoom /> },
+          { path: 'chat-message/*', element: <ChatMessage /> },
+          { path: 'ai-chat-session/*', element: <AiChatSession /> },
+          { path: 'ai-chat-message/*', element: <AiChatMessage /> },
+          { path: 'user-search-history/*', element: <UserSearchHistory /> },
+          { path: 'notification/*', element: <Notification /> },
+        ],
+      },
       {
         path: 'account',
         children: [
@@ -166,14 +250,6 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute hasAnyAuthorities={[Authority.ADMIN]}>
             <Admin />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: '*',
-        element: (
-          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
-            <EntitiesRoutes />
           </PrivateRoute>
         ),
       },

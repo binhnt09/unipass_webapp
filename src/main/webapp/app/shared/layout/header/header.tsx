@@ -29,6 +29,7 @@ const Header = (props: IHeaderProps) => {
   const { isAuthenticated: isDemoAuth, isSeller: isDemoSeller, isAdmin: isDemoAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalDefaultTab, setAuthModalDefaultTab] = useState<'login' | 'register'>('login');
 
   const isUserLoggedIn = props.isAuthenticated || isDemoAuth;
   const isUserSeller = isDemoSeller;
@@ -49,7 +50,14 @@ const Header = (props: IHeaderProps) => {
   //     </div>
   //   );
 
-  const openAuthModal = () => setShowAuthModal(true);
+  const openAuthModal = () => {
+    setAuthModalDefaultTab('login');
+    setShowAuthModal(true);
+  };
+  const openRegisterModal = () => {
+    setAuthModalDefaultTab('register');
+    setShowAuthModal(true);
+  };
   const closeAuthModal = () => setShowAuthModal(false);
 
   return (
@@ -139,13 +147,13 @@ const Header = (props: IHeaderProps) => {
                   </Link>
                 )}
                 <LocaleMenu currentLocale={props.currentLocale} onClick={handleLocaleChange} />
-                <AccountMenu onLoginClick={openAuthModal} />
+                <AccountMenu onLoginClick={openAuthModal} onRegisterClick={openRegisterModal} />
               </Nav>
             </Navbar.Collapse>
           </div>
         </div>
       </Navbar>
-      {showAuthModal && <AuthModal onClose={closeAuthModal} />}
+      {showAuthModal && <AuthModal onClose={closeAuthModal} defaultTab={authModalDefaultTab} />}
       <AIChatButton />
     </div>
   );

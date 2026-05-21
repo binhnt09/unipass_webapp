@@ -1,7 +1,7 @@
 import { Storage } from 'react-jhipster';
 
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 
 import { AppThunk } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
@@ -63,10 +63,14 @@ export const login: (username: string, password: string, rememberMe?: boolean) =
     const bearerToken = response?.headers?.authorization;
     if (bearerToken?.startsWith('Bearer ')) {
       const jwt = bearerToken.slice(7, bearerToken.length);
-      if (rememberMe) {
-        Storage.local.set(AUTH_TOKEN_KEY, jwt);
-      } else {
-        Storage.session.set(AUTH_TOKEN_KEY, jwt);
+      // if (rememberMe) {
+      //   Storage.local.set(AUTH_TOKEN_KEY, jwt);
+      // } else {
+      //   Storage.session.set(AUTH_TOKEN_KEY, jwt);
+      // }
+      Storage.session.set(AUTH_TOKEN_KEY, jwt);
+      if (Storage.local.get(AUTH_TOKEN_KEY)) {
+        Storage.local.remove(AUTH_TOKEN_KEY);
       }
     }
     dispatch(getSession());
@@ -120,12 +124,19 @@ export const AuthenticationSlice = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(authenticate.rejected, (state, action) => ({
-        ...initialState,
-        errorMessage: action.error.message || null,
-        showModalLogin: true,
-        loginError: true,
-      }))
+      .addCase(authenticate.rejected, (state, action) => {
+        let message = action.error.message || null;
+        const axiosError = action.error as AxiosError<{ detail?: string; message?: string }>;
+        if (axiosError?.response?.data) {
+          message = axiosError.response.data.detail || axiosError.response.data.message || message;
+        }
+        return {
+          ...initialState,
+          errorMessage: message,
+          showModalLogin: true,
+          loginError: true,
+        };
+      })
       .addCase(authenticate.fulfilled, state => ({
         ...state,
         loading: false,

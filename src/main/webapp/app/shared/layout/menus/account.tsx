@@ -35,7 +35,15 @@ import { useNavigate } from 'react-router-dom';
 //   </>
 // );
 
-export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => {
+export const AccountMenu = ({
+  onLoginClick,
+  onRegisterClick,
+  isAuthenticated: propIsAuthenticated,
+}: {
+  onLoginClick?: () => void;
+  onRegisterClick?: () => void;
+  isAuthenticated?: boolean;
+}) => {
   // 1. Lấy trạng thái từ Context (Demo)
   const { user: demoUser, logout: logoutDemo, isAuthenticated: isDemoAuth, isSeller: isDemoSeller } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -45,7 +53,7 @@ export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => 
   const realUser = useAppSelector(state => state.authentication.account);
 
   // 3. Hợp nhất trạng thái
-  const isAuthenticated = isDemoAuth || isRealAuth;
+  const isAuthenticated = propIsAuthenticated || isDemoAuth || isRealAuth;
   const isSeller = isDemoSeller; // Hoặc logic check role từ realUser nếu cần
   const currentUser = isDemoAuth ? demoUser : { name: realUser.login, email: realUser.email };
 
@@ -74,12 +82,19 @@ export const AccountMenu = ({ onLoginClick }: { onLoginClick?: () => void }) => 
         >
           <Translate contentKey="global.menu.account.login">Sign in</Translate>
         </button>
-        <Link
+        <button
+          type="button"
+          onClick={onRegisterClick ?? onLoginClick}
+          className="px-5 py-2 rounded-2xl text-sm font-medium bg-[#FF6B35] text-[#0A2647] hover:bg-[#FF5722] transition-colors"
+        >
+          <Translate contentKey="global.menu.account.register">Register</Translate>
+        </button>
+        {/* <Link
           to="/account/register"
           className="px-5 py-2 rounded-2xl text-sm font-medium bg-[#FF6B35] text-[#0A2647] hover:bg-[#FF5722] transition-colors"
         >
           <Translate contentKey="global.menu.account.register">Register</Translate>
-        </Link>
+        </Link> */}
       </div>
     );
   }
