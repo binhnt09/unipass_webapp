@@ -9,6 +9,7 @@ const initialState = {
   registrationFailure: false,
   errorMessage: null as string | null | undefined,
   successMessage: null as string | null | undefined,
+  universities: [] as any[],
 };
 
 export type RegisterState = Readonly<typeof initialState>;
@@ -17,9 +18,22 @@ export type RegisterState = Readonly<typeof initialState>;
 
 export const handleRegister = createAsyncThunk(
   'register/create_account',
-  async (data: { login: string; email: string; password: string; langKey?: string }) => axios.post<any>('api/register', data),
+  async (data: {
+    login: string;
+    email: string;
+    password: string;
+    langKey?: string;
+    firstName: string;
+    lastName: string;
+    studentIdNumber: string;
+    universityId: number;
+  }) => axios.post<any>('api/register', data),
   { serializeError: serializeAxiosError },
 );
+
+export const fetchUniversities = createAsyncThunk('register/fetch_universities', async () => axios.get<any[]>('api/universities'), {
+  serializeError: serializeAxiosError,
+});
 
 export const RegisterSlice = createSlice({
   name: 'register',
@@ -43,7 +57,10 @@ export const RegisterSlice = createSlice({
         ...initialState,
         registrationSuccess: true,
         successMessage: 'register.messages.success',
-      }));
+      }))
+      .addCase(fetchUniversities.fulfilled, (state, action) => {
+        state.universities = action.payload.data;
+      });
   },
 });
 

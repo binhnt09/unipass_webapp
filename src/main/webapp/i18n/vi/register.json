@@ -18,6 +18,24 @@
         "fail": "<strong>Đăng ký thất bại!</strong> Vui lòng thử lại sau.",
         "userexists": "<strong>Tên tài khoản này đã được sử dụng!</strong> Bạn vui lòng chọn tên tài khoản khác.",
         "emailexists": "<strong>Email này đã được sử dụng!</strong> Bạn vui lòng nhập email khác."
+      },
+      "missing": {
+        "missingFirstName": "Vui lòng nhập tên.",
+        "missingLastName": "Vui lòng nhập họ.",
+        "missingUniversity": "Vui lòng chọn trường học.",
+        "missingStudentId": "Vui lòng nhập mã sinh viên.",
+        "invalidStudentId": "Mã sinh viên không đúng định dạng FPT (VD: HE180121).",
+        "missingEmail": "Vui lòng nhập email.",
+        "invalidEmailSuffix": "Email phải có đuôi .edu hoặc .edu.vn.",
+        "k18_expected_email": "Sinh viên K18 trở xuống bắt buộc dùng Email FPT chính chủ: {@fpt.edu.vn}",
+        "k18_expected_email_1": "Hệ thống yêu cầu bạn nhập đúng Email @fpt.edu.vn chính chủ của mã sinh viên này",
+        "k19_forbidden_fpt": "Sinh viên K19 trở lên không được phép sử dụng email @fpt.edu.vn!",
+        "k19_forbidden_fpt_1": "Khóa K19 có thể tự do sử dụng Email cá nhân để đăng ký/Email khác (Không sử dụng đuôi @fpt.edu.vn)",
+        "disposable_email": "Email không được chứa domain rác hoặc tạm thời.",
+        "missingPassword": "Vui lòng nhập mật khẩu.",
+        "invalidPassword": "Mật khẩu phải tối thiểu 6 ký tự và gồm chữ hoa, chữ thường, số và ký tự đặc biệt.",
+        "passwords_mismatch": "Mật khẩu xác nhận không khớp.",
+        "terms_required": "Bạn cần đồng ý Điều khoản dịch vụ trước khi tiếp tục."
       }
     }
   }
