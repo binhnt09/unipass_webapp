@@ -167,6 +167,7 @@ export const router = createBrowserRouter([
         ),
         children: [
           { path: 'create-listing', element: <CreateListingPage /> },
+          { path: 'listings/edit/:id', element: <CreateListingPage /> },
           { path: 'seller-dashboard', element: <SellerDashboardPage /> },
         ],
       },
