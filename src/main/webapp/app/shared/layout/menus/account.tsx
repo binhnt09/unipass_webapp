@@ -89,12 +89,12 @@ export const AccountMenu = ({
         >
           <Translate contentKey="global.menu.account.register">Register</Translate>
         </button>
-        {/* <Link
+        <Link
           to="/account/register"
           className="px-5 py-2 rounded-2xl text-sm font-medium bg-[#FF6B35] text-[#0A2647] hover:bg-[#FF5722] transition-colors"
         >
           <Translate contentKey="global.menu.account.register">Register</Translate>
-        </Link> */}
+        </Link>
       </div>
     );
   }

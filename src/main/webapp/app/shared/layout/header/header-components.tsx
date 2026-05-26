@@ -17,7 +17,7 @@ export const Brand = () => (
     <BrandIcon />
     <div className="flex flex-col leading-tight">
       <span className="text-xl font-bold">Unipass</span>
-      <span className="text-xs text-white/70">{VERSION.toLowerCase().startsWith('v') ? VERSION : `v${VERSION}`}</span>
+      <span className="text-xs text-white/70">Maketplace</span>
     </div>
   </NavbarBrand>
 );

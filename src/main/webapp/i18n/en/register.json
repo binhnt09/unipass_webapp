@@ -18,6 +18,24 @@
         "fail": "<strong>Registration failed!</strong> Please try again later.",
         "userexists": "<strong>Login name already registered!</strong> Please choose another one.",
         "emailexists": "<strong>Email is already in use!</strong> Please choose another one."
+      },
+      "missing": {
+        "missingFirstName": "Please enter your first name.",
+        "missingLastName": "Please enter your last name.",
+        "missingUniversity": "Please select your university.",
+        "missingStudentId": "Please enter your student ID.",
+        "invalidStudentId": "Student ID format is invalid (e.g. HE180121).",
+        "missingEmail": "Please enter your email address.",
+        "invalidEmailSuffix": "Email must end with .edu or .edu.vn.",
+        "k18_expected_email": "Students K18 or earlier must use FPT email: {@fpt.edu.vn}",
+        "k18_expected_email_1": "The system requires you to enter the correct email address @fpt.edu.vn belonging to this student ID.",
+        "k19_forbidden_fpt": "Students K19 or later are not allowed to use @fpt.edu.vn email.",
+        "k19_forbidden_fpt_1": "Students in the K19 cohort are free to use their personal email address to register/other email addresses (but not those ending in @fpt.edu.vn).",
+        "disposable_email": "Email must not be a disposable or temporary domain.",
+        "missingPassword": "Please enter a password.",
+        "invalidPassword": "Password must be at least 6 characters and include upper, lower, number and special character.",
+        "passwords_mismatch": "Password confirmation does not match.",
+        "terms_required": "You must agree to the terms of service before continuing."
       }
     }
   }

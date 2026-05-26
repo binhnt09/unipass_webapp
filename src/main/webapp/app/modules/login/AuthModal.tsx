@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
-import { translate } from 'react-jhipster';
+import { Translate, translate, ValidatedField } from 'react-jhipster';
+import { useForm } from 'react-hook-form';
 import { useAuth } from 'app/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { login as loginRedux } from 'app/shared/reducers/authentication'; // Action login thật
 import { handleRegister, reset as resetRegister } from 'app/modules/account/register/register.reducer';
+import { getEntities as getUniversityEntities } from 'app/entities/university/university.reducer';
 import PasswordStrengthBar from 'app/shared/layout/password/password-strength-bar';
 
 interface AuthModalProps {
@@ -25,12 +27,16 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
   const [showDemoAccounts, setShowDemoAccounts] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const [registerName, setRegisterName] = useState('');
+  const [registerFirstName, setRegisterFirstName] = useState('');
+  const [registerLastName, setRegisterLastName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
+  const [registerStudentId, setRegisterStudentId] = useState('');
+  const [registerUniversityId, setRegisterUniversityId] = useState<number | ''>('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerTermsAccepted, setRegisterTermsAccepted] = useState(false);
 
   const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
 
@@ -39,15 +45,51 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
   const loginErrorRedux = useAppSelector(state => state.authentication.loginError);
   const loginErrorMessageFromServer = useAppSelector(state => state.authentication.errorMessage);
   const currentLocale = useAppSelector(state => state.locale.currentLocale);
+  const universities = useAppSelector(state => state.university.entities);
   const { successMessage, registrationFailure, errorMessage } = useAppSelector(state => state.register);
 
   const account = useAppSelector(state => state.authentication.account);
 
-  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
-  // const passwordPattern = /^.*$/;
+  const {
+    register: formRegister,
+    handleSubmit,
+    formState: { errors, touchedFields, dirtyFields },
+    getValues,
+  } = useForm<any>({ mode: 'onBlur' });
+  const formErrors = errors as Record<string, any>;
+
+  const emailCustomValidate = (v: any) => {
+    const rawSid = (getValues && getValues('studentIdNumber')) || registerStudentId || '';
+    const normalizedStudentId = (rawSid || '').toString().trim().toUpperCase();
+    if (!normalizedStudentId) return true;
+    const batchMatch = normalizedStudentId.match(/^[A-Z]{2}(\d{2})/);
+    if (!batchMatch) return true;
+    const batch = parseInt(batchMatch[1], 10);
+    const normalizedEmail = (v || '').toString().trim().toLowerCase();
+    if (batch <= 18) {
+      const expectedSuffix = `${normalizedStudentId.toLowerCase()}@fpt.edu.vn`;
+      if (!normalizedEmail.endsWith(expectedSuffix)) {
+        return translate('register.messages.missing.k18_expected_email', { expected: expectedSuffix });
+      }
+      return true;
+    }
+    if (normalizedEmail.endsWith('@fpt.edu.vn')) {
+      return translate('register.messages.missing.k19_forbidden_fpt');
+    }
+    const trashDomains = ['10minutemail', 'tempmail', 'mailinator', 'dispostable'];
+    if (trashDomains.some(domain => normalizedEmail.includes(domain))) {
+      return translate('register.messages.missing.disposable_email');
+    }
+    return true;
+  };
+
+  // const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+  const passwordPattern = /^.*$/;
   const isPasswordValid = (password: string) => passwordPattern.test(password);
 
   useEffect(() => {
+    dispatch(getUniversityEntities({ page: 0, size: 100, sort: 'id,asc' }));
+    // dispatch(fetchUniversities());
     return () => {
       dispatch(resetRegister());
     };
@@ -60,10 +102,15 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
   useEffect(() => {
     if (successMessage) {
       toast.success(translate(successMessage));
-      setRegisterName('');
+      setRegisterFirstName('');
+      setRegisterLastName('');
       setRegisterEmail('');
+      setRegisterStudentId('');
+      setRegisterUniversityId('');
       setRegisterPassword('');
       setRegisterConfirmPassword('');
+      setRegisterTermsAccepted(false);
+      setEmailError(false);
       setRegisterError(null);
       setRegisterLoading(false);
     }
@@ -71,7 +118,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
 
   useEffect(() => {
     if (registrationFailure) {
-      setRegisterError(errorMessage || 'Đăng ký thất bại. Vui lòng thử lại.');
+      setRegisterError(errorMessage || translate('register.messages.error.fail'));
       setRegisterLoading(false);
     }
   }, [registrationFailure, errorMessage]);
@@ -89,41 +136,123 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
     }
   }, [loginErrorRedux, loginErrorMessageFromServer]);
 
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!registerName.trim()) {
-      setRegisterError('Vui lòng nhập đầy đủ họ và tên.');
+  const renderEmailHelperText = () => {
+    if (!registerStudentId || registerStudentId.length < 5) return null;
+
+    const match = registerStudentId.match(/^[A-Z]{2}(\d{2})/i);
+    if (match) {
+      const batch = parseInt(match[1], 10);
+      if (batch <= 18) {
+        return (
+          <div className="mt-2 text-sm text-blue-600 font-medium">
+            <Translate contentKey="register.messages.missing.k18_expected_email_1">
+              Hệ thống yêu cầu bạn nhập đúng Email @fpt.edu.vn chính chủ của mã sinh viên này
+            </Translate>
+          </div>
+        );
+      }
+      return (
+        <div className="mt-2 text-sm text-emerald-600 font-medium">
+          <Translate contentKey="register.messages.missing.k19_forbidden_fpt_1">
+            Khóa K19 có thể tự do sử dụng Email cá nhân để đăng ký/Email khác (Không sử dụng đuôi @fpt.edu.vn)
+          </Translate>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const handleRegisterSubmit = async () => {
+    const normalizedStudentId = registerStudentId.trim().toUpperCase();
+    const normalizedEmail = registerEmail.trim().toLowerCase(); // Khai báo dùng chung cho chuẩn
+
+    if (!registerFirstName.trim()) {
+      setRegisterError(translate('register.messages.missing.missingFirstName'));
+      return;
+    }
+    if (!registerLastName.trim()) {
+      setRegisterError(translate('register.messages.missing.missingLastName'));
+      return;
+    }
+    if (!registerUniversityId) {
+      setRegisterError(translate('register.messages.missing.missingUniversity'));
+      return;
+    }
+    if (!normalizedStudentId.trim()) {
+      setRegisterError(translate('register.messages.missing.missingStudentId'));
+      return;
+    }
+    if (!/^[A-Z]{2}\d{5,6}$/.test(normalizedStudentId)) {
+      setRegisterError(translate('register.messages.missing.invalidStudentId'));
       return;
     }
     if (!registerEmail) {
-      setRegisterError('Vui lòng nhập email.');
+      setRegisterError(translate('register.messages.missing.missingEmail'));
       return;
     }
     if (emailError) {
-      setRegisterError('Email phải là .edu hoặc .edu.vn.');
+      setRegisterError(translate('register.messages.missing.invalidEmailSuffix'));
       return;
     }
+
+    // ==================== ĐOẠN KIỂM TRA MÃ SINH VIÊN & EMAIL THÊM MỚI ====================
+    const batchMatch = normalizedStudentId.match(/^[A-Z]{2}(\d{2})/);
+    if (batchMatch) {
+      const batch = parseInt(batchMatch[1], 10);
+
+      if (batch <= 18) {
+        // K18 trở xuống: Email bắt buộc phải là <masinhvien>@fpt.edu.vn
+        const expectedSuffix = `${normalizedStudentId.toLowerCase()}@fpt.edu.vn`;
+        if (!normalizedEmail.endsWith(expectedSuffix)) {
+          setRegisterError(translate('register.messages.missing.k18_expected_email', { expected: expectedSuffix }));
+          return;
+        }
+      } else {
+        // K19 trở lên: Nghiêm cấm dùng đuôi @fpt.edu.vn
+        if (normalizedEmail.endsWith('@fpt.edu.vn')) {
+          setRegisterError(translate('register.messages.missing.k19_forbidden_fpt'));
+          return;
+        }
+        // Tiện tay chặn luôn email rác ở Frontend
+        const trashDomains = ['10minutemail', 'tempmail', 'mailinator', 'dispostable'];
+        if (trashDomains.some(domain => normalizedEmail.includes(domain))) {
+          setRegisterError(translate('register.messages.missing.disposable_email'));
+          return;
+        }
+      }
+    }
+    // ===================================================================================
+
     if (!registerPassword) {
-      setRegisterError('Vui lòng nhập mật khẩu.');
+      setRegisterError(translate('register.messages.missing.missingPassword'));
       return;
     }
     if (!isPasswordValid(registerPassword)) {
-      setRegisterError('Mật khẩu phải tối thiểu 6 ký tự và gồm chữ hoa, chữ thường, số và ký tự đặc biệt.');
+      setRegisterError(translate('register.messages.missing.invalidPassword'));
       return;
     }
     if (registerPassword !== registerConfirmPassword) {
-      setRegisterError('Mật khẩu xác nhận không khớp.');
+      setRegisterError(translate('register.messages.missing.passwords_mismatch'));
       return;
     }
+    if (!registerTermsAccepted) {
+      setRegisterError(translate('register.messages.missing.terms_required'));
+      return;
+    }
+
     setRegisterError(null);
     setRegisterLoading(true);
     try {
       await dispatch(
         handleRegister({
-          login: registerEmail,
-          email: registerEmail,
+          login: registerEmail.trim().toLowerCase(),
+          email: registerEmail.trim().toLowerCase(),
           password: registerPassword,
           langKey: currentLocale,
+          firstName: registerFirstName,
+          lastName: registerLastName,
+          studentIdNumber: normalizedStudentId,
+          universityId: Number(registerUniversityId),
         }),
       ).unwrap();
     } catch {
@@ -144,7 +273,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
       if (isAuthenticatedRedux && account) {
         const roles = account.authorities || [];
         if (roles.includes('ROLE_ADMIN')) {
-          targetPath = '/admin/user-management'; // Vào thẳng quản lý user tạm thời như bạn muốn
+          targetPath = '/admin/health'; // Vào thẳng quản lý user tạm thời như bạn muốn
         } else {
           targetPath = '/'; // Các quyền khác (User thường) ở lại trang chủ
         }
@@ -153,7 +282,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
       // 2. LUỒNG KIỂM TRA QUYỀN CHO DEMO (CONTEXT)
       else if (isAuthenticated && user) {
         if (user.role === 'admin') {
-          targetPath = '/admin/user-management'; // Cập nhật luôn cho đồng bộ với bản thật
+          targetPath = '/admin/health'; // Cập nhật luôn cho đồng bộ với bản thật
         } else if (user.role === 'seller') {
           targetPath = '/seller-dashboard';
         } else {
@@ -222,7 +351,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-[#0A2647] text-white p-6 sticky top-0 z-10">
           <button onClick={onClose} className="absolute top-4 right-4 p-1 hover:bg-white/10 rounded-lg transition-colors">
@@ -415,49 +544,167 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
               </div>
             </form>
           ) : (
-            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+            // register form
+            <form onSubmit={handleSubmit(async () => await handleRegisterSubmit())} className="space-y-4">
               {registerError && (
                 <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-red-700">{registerError}</p>
                 </div>
               )}
-
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">Họ và tên</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={registerName}
-                    onChange={e => setRegisterName(e.target.value)}
-                    placeholder="Nguyễn Văn A"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
-                    required
-                  />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-2">{translate('settings.form.firstname')}</label>
+                  <div className="relative flex flex-col justify-center">
+                    <User className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
+                    <ValidatedField
+                      name="firstName"
+                      type="text"
+                      placeholder={translate('settings.form.firstname.placeholder')}
+                      validate={{
+                        required: { value: true, message: translate('settings.messages.validate.firstname.required') },
+                        minLength: { value: 1, message: translate('settings.messages.validate.firstname.minlength') },
+                        maxLength: { value: 50, message: translate('settings.messages.validate.firstname.maxlength') },
+                      }}
+                      data-cy="firstName"
+                      register={formRegister}
+                      error={formErrors.firstName}
+                      isTouched={touchedFields.firstName}
+                      isDirty={dirtyFields.firstName}
+                      value={registerFirstName}
+                      onChange={e => setRegisterFirstName(e.target.value)}
+                      className="w-full pl-8"
+                      inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-2">{translate('settings.form.lastname')}</label>
+                  <div className="relative flex flex-col justify-center">
+                    <User className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
+                    <ValidatedField
+                      name="lastName"
+                      type="text"
+                      placeholder={translate('settings.form.lastname.placeholder')}
+                      validate={{
+                        required: { value: true, message: translate('settings.messages.validate.lastname.required') },
+                        minLength: { value: 1, message: translate('settings.messages.validate.lastname.minlength') },
+                        maxLength: { value: 50, message: translate('settings.messages.validate.lastname.maxlength') },
+                      }}
+                      data-cy="lastName"
+                      register={formRegister}
+                      error={formErrors.lastName}
+                      isTouched={touchedFields.lastName}
+                      isDirty={dirtyFields.lastName}
+                      value={registerLastName}
+                      onChange={e => setRegisterLastName(e.target.value)}
+                      className="w-full pl-8"
+                      inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    />
+                  </div>
                 </div>
               </div>
-
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-2">Mã sinh viên</label>
+                  <div className="relative flex flex-col justify-center">
+                    <User className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
+                    <ValidatedField
+                      name="studentIdNumber"
+                      type="text"
+                      placeholder="HE180121"
+                      validate={{
+                        required: { value: true, message: 'Mã sinh viên là bắt buộc' },
+                        pattern: {
+                          value: /^[A-Z]{2}\d{5,6}$/,
+                          message: 'Mã sinh viên không đúng định dạng FPT (VD: HE18012)',
+                        },
+                      }}
+                      data-cy="studentIdNumber"
+                      register={formRegister}
+                      error={formErrors.studentIdNumber}
+                      isTouched={touchedFields.studentIdNumber}
+                      isDirty={dirtyFields.studentIdNumber}
+                      value={registerStudentId}
+                      onChange={e => setRegisterStudentId(e.target.value.toUpperCase())}
+                      className="w-full pl-8"
+                      inputClass="uppercase w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                      maxLength={8}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-2">Trường đại học</label>
+                  <div className="relative flex flex-col justify-center">
+                    <ValidatedField
+                      name="universityId"
+                      type="select"
+                      validate={{
+                        required: { value: true, message: translate('register.messages.missing.missingUniversity') },
+                      }}
+                      register={formRegister}
+                      error={formErrors.universityId}
+                      isTouched={touchedFields.universityId}
+                      isDirty={dirtyFields.universityId}
+                      value={registerUniversityId}
+                      onChange={e => setRegisterUniversityId(e.target.value ? Number(e.target.value) : '')}
+                      inputClass="w-full appearance-none pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-lg shadow-none focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-gray-700"
+                    >
+                      <option value="" className="text-gray-400 bg-white py-2">
+                        Chọn trường
+                      </option>
+                      {universities.map(university => (
+                        <option
+                          key={university.id}
+                          value={university.id}
+                          className="text-gray-700 bg-white py-2 font-medium checked:bg-orange-50"
+                        >
+                          {university.name || university.universityName || university.fullName || `Trường ${university.id}`}
+                        </option>
+                      ))}
+                    </ValidatedField>
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      className="absolute right-3 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10"
+                    >
+                      <path d="M6 8l4 4 4-4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label className="block text-sm text-gray-700 mb-2">Email trường đại học (.edu)</label>
                 <div className="relative">
                   <GraduationCap
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${emailError ? 'text-red-400' : 'text-gray-400'}`}
+                    className={`absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 ${emailError ? 'text-red-400' : 'text-gray-400'}`}
                   />
-                  <input
+                  <ValidatedField
+                    name="email"
                     type="email"
+                    placeholder="tencuaban@truongdaihoc.edu.vn"
+                    validate={{
+                      required: { value: true, message: translate('register.messages.missing.missingEmail') },
+                      pattern: { value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, message: translate('register.messages.missing.invalidEmailSuffix') },
+                      validate: emailCustomValidate,
+                    }}
+                    register={formRegister}
+                    error={formErrors.email}
+                    isTouched={touchedFields.email}
+                    isDirty={dirtyFields.email}
                     value={registerEmail}
                     onChange={e => {
-                      setRegisterEmail(e.target.value);
-                      setEmailError(!e.target.value.endsWith('.edu') && !e.target.value.endsWith('.edu.vn'));
+                      const value = e.target.value;
+                      setRegisterEmail(value);
+                      setEmailError(!value.endsWith('.edu') && !value.endsWith('.edu.vn'));
                     }}
-                    placeholder="tencuaban@truongdaihoc.edu.vn"
-                    className={`w-full pl-10 pr-10 py-3 border-2 rounded-lg focus:outline-none transition-colors ${
+                    className="w-full pl-8"
+                    inputClass={`w-full pl-10 pr-10 py-3 border-2 rounded-lg focus:outline-none transition-colors ${
                       emailError
                         ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50/50'
                         : 'border-gray-300 focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent'
                     }`}
-                    required
                   />
                   {emailError && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />}
                 </div>
@@ -469,40 +716,55 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                     </span>
                   </div>
                 )}
+                {renderEmailHelperText()}
               </div>
-
               <div>
                 <label className="block text-sm text-gray-700 mb-2">Mật khẩu</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
+                  <Lock className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <ValidatedField
+                    name="password"
                     type="password"
+                    placeholder="Tạo mật khẩu"
+                    validate={{
+                      required: { value: true, message: translate('register.messages.missing.missingPassword') },
+                      minLength: { value: 6, message: translate('register.messages.missing.invalidPassword') },
+                    }}
+                    register={formRegister}
+                    error={formErrors.password}
+                    isTouched={touchedFields.password}
+                    isDirty={dirtyFields.password}
                     value={registerPassword}
                     onChange={e => setRegisterPassword(e.target.value)}
-                    placeholder="Tạo mật khẩu"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
-                    required
+                    className="w-full pl-8"
+                    inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
                 </div>
                 <PasswordStrengthBar password={registerPassword} />
                 <p className="mt-2 text-xs text-gray-500">Mật khẩu tối thiểu 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
               </div>
-
               <div>
                 <label className="block text-sm text-gray-700 mb-2">Xác nhận mật khẩu</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
+                  <Lock className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <ValidatedField
+                    name="confirmPassword"
                     type="password"
+                    placeholder="Nhập lại mật khẩu"
+                    validate={{
+                      required: { value: true, message: translate('register.messages.missing.passwords_mismatch') },
+                    }}
+                    register={formRegister}
+                    error={formErrors.confirmPassword}
+                    isTouched={touchedFields.confirmPassword}
+                    isDirty={dirtyFields.confirmPassword}
                     value={registerConfirmPassword}
                     onChange={e => setRegisterConfirmPassword(e.target.value)}
-                    placeholder="Nhập lại mật khẩu"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
-                    required
+                    className="w-full pl-8"
+                    inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
                 </div>
               </div>
-
               <div className="bg-gradient-to-r from-blue-50 to-orange-50 p-4 rounded-lg border border-[#FF6B35]/20">
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-[#FF6B35] mt-0.5 flex-shrink-0" />
@@ -515,7 +777,6 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                   </div>
                 </div>
               </div>
-
               <button
                 type="submit"
                 disabled={registerLoading}
@@ -523,10 +784,19 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
               >
                 {registerLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
               </button>
-
-              <p className="text-xs text-gray-500 text-center">
-                Bằng việc đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi
-              </p>
+              <div className="flex items-start gap-3">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={registerTermsAccepted}
+                    onChange={e => setRegisterTermsAccepted(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
+                  />
+                  <span>
+                    Tôi đồng ý với <strong>Điều khoản dịch vụ</strong> và <strong>Chính sách bảo mật</strong> của Unipass.
+                  </span>
+                </label>
+              </div>
             </form>
           )}
         </div>
