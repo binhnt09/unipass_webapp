@@ -5,11 +5,11 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 
 const initialState = {
-  currentLocale: '',
-  sourcePrefixes: [],
+  currentLocale: 'vi',
+  sourcePrefixes: [] as string[],
   lastChange: TranslatorContext.context.lastChange,
   loadedKeys: [],
-  loadedLocales: [],
+  loadedLocales: [] as string[],
 };
 
 export type LocaleState = Readonly<typeof initialState>;
