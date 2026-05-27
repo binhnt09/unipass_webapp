@@ -1,11 +1,31 @@
-﻿import React from 'react';
+import React from 'react';
 import { useState } from 'react';
 import { SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { ICategory } from 'app/shared/model/category.model';
 
-export function FiltersSidebar() {
-  const [priceRange, setPriceRange] = useState([0, 500]);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+interface FiltersSidebarProps {
+  categories: ICategory[];
+  selectedCategoryId: number | null;
+  onCategoryChange: (id: number | null) => void;
+  condition: string | null;
+  onConditionChange: (cond: string | null) => void;
+  minPrice: number;
+  maxPrice: number;
+  onPriceChange: (min: number, max: number) => void;
+  onClearFilters: () => void;
+}
+
+export function FiltersSidebar({
+  categories,
+  selectedCategoryId,
+  onCategoryChange,
+  condition,
+  onConditionChange,
+  minPrice,
+  maxPrice,
+  onPriceChange,
+  onClearFilters,
+}: FiltersSidebarProps) {
   const [expandedSections, setExpandedSections] = useState({
     price: true,
     condition: true,
@@ -13,29 +33,27 @@ export function FiltersSidebar() {
   });
 
   const conditions = [
-    { id: 'brand-new', label: 'Brand New' },
-    { id: 'like-new', label: 'Like New' },
-    { id: 'excellent', label: 'Excellent' },
-    { id: 'good', label: 'Good' },
-    { id: 'fair', label: 'Fair' },
-  ];
-
-  const categories = [
-    { id: 'textbooks', label: 'Textbooks', count: 234 },
-    { id: 'electronics', label: 'Electronics', count: 156 },
-    { id: 'furniture', label: 'Furniture', count: 89 },
-    { id: 'dorm', label: 'Dorm Essentials', count: 142 },
-    { id: 'vehicles', label: 'Vehicles', count: 45 },
-    { id: 'clothing', label: 'Clothing', count: 98 },
-    { id: 'sports', label: 'Sports & Fitness', count: 76 },
+    { id: 'Brand New', label: 'Mới tinh (100%)' },
+    { id: 'Like New', label: 'Như mới (99%)' },
+    { id: 'Excellent', label: 'Rất tốt' },
+    { id: 'Good', label: 'Tốt' },
+    { id: 'Fair', label: 'Trung bình' },
   ];
 
   const toggleCondition = (id: string) => {
-    setSelectedConditions(prev => (prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]));
+    if (condition === id) {
+      onConditionChange(null);
+    } else {
+      onConditionChange(id);
+    }
   };
 
-  const toggleCategory = (id: string) => {
-    setSelectedCategories(prev => (prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]));
+  const toggleCategory = (id: number) => {
+    if (selectedCategoryId === id) {
+      onCategoryChange(null);
+    } else {
+      onCategoryChange(id);
+    }
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -43,12 +61,12 @@ export function FiltersSidebar() {
   };
 
   return (
-    <div className="w-64 flex-shrink-0 space-y-4">
+    <div className="w-64 flex-shrink-0 space-y-4 hidden md:block">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
         <div className="flex items-center gap-2 text-[#0A2647]">
           <SlidersHorizontal className="w-5 h-5" />
-          <h3 className="font-medium">Filters</h3>
+          <h3 className="font-semibold">Bộ lọc tìm kiếm</h3>
         </div>
       </div>
 
@@ -56,39 +74,34 @@ export function FiltersSidebar() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <button
           onClick={() => toggleSection('price')}
-          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-none bg-transparent outline-none"
         >
-          <h4 className="font-medium text-gray-900">Price Range</h4>
+          <h4 className="font-medium text-gray-900">Khoảng giá (đ)</h4>
           {expandedSections.price ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
         </button>
 
         {expandedSections.price && (
           <div className="px-4 pb-4 space-y-4">
-            <div className="space-y-2">
-              <input
-                type="range"
-                min="0"
-                max="1000"
-                value={priceRange[1]}
-                // eslint-disable-next-line radix
-                onChange={e => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FF6B35]"
-              />
-              <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <div className="flex-1">
+                <label className="block text-xs text-gray-500 mb-1">Thấp nhất</label>
                 <input
                   type="number"
-                  value={priceRange[0]}
-                  // eslint-disable-next-line radix
-                  onChange={e => setPriceRange([parseInt(e.target.value), priceRange[1]])}
-                  className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
+                  placeholder="0"
+                  value={minPrice || ''}
+                  onChange={e => onPriceChange(Number(e.target.value), maxPrice)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                 />
-                <span className="text-gray-500">to</span>
+              </div>
+              <span className="text-gray-400 mt-4">—</span>
+              <div className="flex-1">
+                <label className="block text-xs text-gray-500 mb-1">Cao nhất</label>
                 <input
                   type="number"
-                  value={priceRange[1]}
-                  // eslint-disable-next-line radix
-                  onChange={e => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                  className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
+                  placeholder="Vô hạn"
+                  value={maxPrice === 100000000 ? '' : maxPrice}
+                  onChange={e => onPriceChange(minPrice, e.target.value ? Number(e.target.value) : 100000000)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                 />
               </div>
             </div>
@@ -100,23 +113,23 @@ export function FiltersSidebar() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <button
           onClick={() => toggleSection('condition')}
-          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-none bg-transparent outline-none"
         >
-          <h4 className="font-medium text-gray-900">Condition</h4>
+          <h4 className="font-medium text-gray-900">Tình trạng</h4>
           {expandedSections.condition ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
         </button>
 
         {expandedSections.condition && (
           <div className="px-4 pb-4 space-y-2">
-            {conditions.map(condition => (
-              <label key={condition.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
+            {conditions.map(item => (
+              <label key={item.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
                 <input
                   type="checkbox"
-                  checked={selectedConditions.includes(condition.id)}
-                  onChange={() => toggleCondition(condition.id)}
+                  checked={condition === item.id}
+                  onChange={() => toggleCondition(item.id)}
                   className="rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
                 />
-                <span className="text-sm text-gray-700">{condition.label}</span>
+                <span className="text-sm text-gray-700">{item.label}</span>
               </label>
             ))}
           </div>
@@ -127,9 +140,9 @@ export function FiltersSidebar() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <button
           onClick={() => toggleSection('categories')}
-          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-none bg-transparent outline-none"
         >
-          <h4 className="font-medium text-gray-900">Categories</h4>
+          <h4 className="font-medium text-gray-900">Danh mục</h4>
           {expandedSections.categories ? (
             <ChevronUp className="w-4 h-4 text-gray-600" />
           ) : (
@@ -139,21 +152,20 @@ export function FiltersSidebar() {
 
         {expandedSections.categories && (
           <div className="px-4 pb-4 space-y-2">
-            {categories.map(category => (
+            {categories.map(cat => (
               <label
-                key={category.id}
+                key={cat.id}
                 className="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={selectedCategories.includes(category.id)}
-                    onChange={() => toggleCategory(category.id)}
+                    checked={selectedCategoryId === cat.id}
+                    onChange={() => toggleCategory(cat.id || 0)}
                     className="rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
                   />
-                  <span className="text-sm text-gray-700">{category.label}</span>
+                  <span className="text-sm text-gray-700">{cat.name}</span>
                 </div>
-                <span className="text-xs text-gray-500">({category.count})</span>
               </label>
             ))}
           </div>
@@ -161,7 +173,12 @@ export function FiltersSidebar() {
       </div>
 
       {/* Clear Filters Button */}
-      <button className="w-full py-2 text-sm text-[#FF6B35] hover:text-[#FF5722] font-medium transition-colors">Clear All Filters</button>
+      <button
+        onClick={onClearFilters}
+        className="w-full py-2 text-sm text-[#FF6B35] hover:text-[#FF5722] font-semibold transition-colors bg-white rounded-xl border border-gray-200 hover:border-[#FF6B35]/20 shadow-sm"
+      >
+        Xóa tất cả bộ lọc
+      </button>
     </div>
   );
 }

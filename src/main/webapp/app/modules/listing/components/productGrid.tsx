@@ -1,119 +1,99 @@
 import { ProductCard } from './productCard';
 import React from 'react';
-
-const featuredProducts = [
-  {
-    id: '1',
-    image:
-      'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlcnxlbnwxfHx8fDE3MzM4NDMyNTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    title: 'MacBook Pro M2 16GB',
-    price: 16000000,
-    originalPrice: 18000000,
-    seller: 'Nguyễn Văn A',
-    university: 'ĐH FPT',
-    rating: 4.9,
-    reviews: 23,
-    condition: 'Like New',
-    verified: true,
-  },
-  {
-    id: '2',
-    image:
-      'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpcGhvbmUlMjBzbWFydHBob25lfGVufDF8fHx8MTczMzg0MzI1NXww&ixlib=rb-4.1.0&q=80&w=1080',
-    title: 'iPhone 14 Pro Max 256GB',
-    price: 20000000,
-    originalPrice: 22000000,
-    seller: 'Trần Thị B',
-    university: 'ĐH FPT',
-    rating: 5.0,
-    reviews: 18,
-    condition: 'Excellent',
-    verified: true,
-  },
-  {
-    id: '3',
-    image:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-    title: 'Sony WH-1000XM5',
-    price: 6500000,
-    originalPrice: 7500000,
-    seller: 'Lê Minh C',
-    university: 'ĐH FPT',
-    rating: 4.8,
-    reviews: 31,
-    condition: 'Good',
-    verified: true,
-  },
-];
-
-const homeAppliancesProducts = [
-  {
-    id: '4',
-    image:
-      'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pJTIwZnJpZGdlfGVufDB8fHx8MTczMzg0MzM1MHww&ixlib=rb-4.1.0&q=80&w=1080',
-    title: 'Tủ lạnh mini Aqua 90L',
-    price: 2500000,
-    originalPrice: 3000000,
-    seller: 'Phạm Thị D',
-    university: 'ĐH FPT',
-    rating: 4.7,
-    reviews: 15,
-    condition: 'Good',
-    verified: true,
-  },
-  {
-    id: '5',
-    image:
-      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNrJTIwbGFtcHxlbnwwfHx8fDE3MzM4NDMzNTV8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    title: 'Đèn bàn học LED Philips',
-    price: 450000,
-    originalPrice: 600000,
-    seller: 'Hoàng Văn E',
-    university: 'ĐH FPT',
-    rating: 4.9,
-    reviews: 28,
-    condition: 'Like New',
-    verified: true,
-  },
-  {
-    id: '6',
-    image:
-      'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVjdHJpYyUyMGtldHRsZXxlbnwwfHx8fDE3MzM4NDMzNjB8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    title: 'Ấm đun nước siêu tốc',
-    price: 250000,
-    originalPrice: 350000,
-    seller: 'Mai Ngọc F',
-    university: 'ĐH FPT',
-    rating: 4.6,
-    reviews: 12,
-    condition: 'Good',
-    verified: true,
-  },
-];
+import { IProduct } from 'app/shared/model/product.model';
 
 interface ProductGridProps {
-  activeCategory: string;
+  products: IProduct[];
+  loading: boolean;
 }
 
-export function ProductGrid({ activeCategory }: ProductGridProps) {
-  const currentProducts = activeCategory === 'electronics' ? featuredProducts : homeAppliancesProducts;
+const SkeletonCard = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+    <div className="aspect-square bg-gray-200" />
+    <div className="p-4 space-y-3">
+      <div className="h-4 bg-gray-200 rounded w-3/4" />
+      <div className="h-6 bg-gray-200 rounded w-1/2" />
+      <div className="flex gap-2">
+        <div className="h-8 bg-gray-200 rounded-full w-8" />
+        <div className="space-y-1 flex-1">
+          <div className="h-3 bg-gray-200 rounded w-1/2" />
+          <div className="h-2 bg-gray-200 rounded w-1/3" />
+        </div>
+      </div>
+      <div className="h-10 bg-gray-200 rounded-lg w-full" />
+    </div>
+  </div>
+);
+
+export function ProductGrid({ products, loading }: ProductGridProps) {
+  // Map IProduct to the UI Card format
+  const mappedProducts = products.map(prod => {
+    const imageUrl =
+      (prod as any).imageUrl ||
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080';
+
+    const conditionDisplay = (() => {
+      switch (prod.condition) {
+        case 'Brand New':
+          return 'Mới tinh (100%)';
+        case 'Like New':
+          return 'Như mới (99%)';
+        case 'Excellent':
+          return 'Rất tốt';
+        case 'Good':
+          return 'Tốt';
+        case 'Fair':
+          return 'Trung bình';
+        default:
+          return prod.condition || 'Như mới';
+      }
+    })();
+
+    return {
+      id: prod.id?.toString() || '',
+      image: imageUrl,
+      title: prod.name || 'Sản phẩm',
+      price: prod.price || 0,
+      originalPrice: prod.price ? Math.round(prod.price * 1.15) : null,
+      seller: prod.seller?.login || 'Sinh viên',
+      university: (prod.seller as any)?.university?.name || 'Đại học Quốc gia',
+      rating: 4.8,
+      reviews: 12,
+      condition: conditionDisplay,
+    };
+  });
 
   return (
     <div className="space-y-6">
       {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {currentProducts.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : mappedProducts.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <div className="w-16 h-16 bg-[#FF6B35]/10 rounded-full flex items-center justify-center mx-auto mb-4 text-[#FF6B35]">🔍</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Không tìm thấy sản phẩm</h3>
+          <p className="text-gray-500 text-sm max-w-sm mx-auto">
+            Không có sản phẩm nào phù hợp với bộ lọc tìm kiếm của bạn. Hãy thử thay đổi từ khóa hoặc bộ lọc khác.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {mappedProducts.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
 
       {/* Category Description */}
       <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-xl p-6 border border-[#FF6B35]/20">
-        <h3 className="font-bold text-[#0A2647] mb-2">{activeCategory === 'electronics' ? 'Đồ điện tử' : 'Đồ gia dụng'}</h3>
+        <h3 className="font-bold text-[#0A2647] mb-2">Thông tin mua sắm an toàn</h3>
         <p className="text-sm text-gray-700">
-          {activeCategory === 'electronics'
-            ? 'Tìm kiếm laptop, điện thoại, tai nghe và thiết bị điện tử khác từ các sinh viên đã xác thực. Tất cả sản phẩm đều được kiểm tra kỹ lưỡng.'
-            : 'Mua đồ gia dụng chất lượng cho ký túc xá và phòng trọ. Từ tủ lạnh mini đến đèn bàn, tìm mọi thứ bạn cần cho không gian sống.'}
+          Tìm kiếm sách giáo khoa, đồ điện tử, đồ gia dụng và nhiều thiết bị khác từ các sinh viên đã được xác thực. Tất cả sản phẩm đều
+          được kiểm tra kỹ lưỡng để đảm bảo giao dịch an toàn và minh bạch trong cộng đồng học đường.
         </p>
       </div>
     </div>
