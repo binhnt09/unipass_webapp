@@ -5,5 +5,7 @@ export const MESSAGE_PARAM_HEADER_NAME = 'x-unipasswebapp-params';
 export enum Authority {
   ADMIN = 'ROLE_ADMIN',
   USER = 'ROLE_USER',
+  MANAGER = 'ROLE_MANAGER',
   SELLER = 'ROLE_SELLER',
+  BUYER = 'ROLE_BUYER',
 }
