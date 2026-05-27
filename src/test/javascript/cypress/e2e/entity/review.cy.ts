@@ -15,7 +15,7 @@ describe('Review e2e test', () => {
   const reviewPageUrlPattern = new RegExp('/review(\\?.*)?$');
   let username: string;
   let password: string;
-  const reviewSample = { rating: 4 };
+  const reviewSample = { rating: 1 };
 
   let review;
 
@@ -171,20 +171,20 @@ describe('Review e2e test', () => {
       cy.get(`[data-cy="rating"]`).type('4');
       cy.get(`[data-cy="rating"]`).should('have.value', '4');
 
-      cy.get(`[data-cy="comment"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="comment"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="comment"]`).type('brandish feminize yowza');
+      cy.get(`[data-cy="comment"]`).should('have.value', 'brandish feminize yowza');
 
       cy.get(`[data-cy="isDeleted"]`).should('not.be.checked');
       cy.get(`[data-cy="isDeleted"]`).click();
       cy.get(`[data-cy="isDeleted"]`).should('be.checked');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T02:51');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T09:42');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T02:51');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T09:42');
 
-      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T00:03');
+      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T17:13');
       cy.get(`[data-cy="updatedAt"]`).blur();
-      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T00:03');
+      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T17:13');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

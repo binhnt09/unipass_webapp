@@ -148,7 +148,10 @@ export const WalletTransactionUpdate = () => {
                 id="wallet-transaction-description"
                 name="description"
                 data-cy="description"
-                type="textarea"
+                type="text"
+                validate={{
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
+                }}
               />
               <ValidatedField
                 label={translate('unipassWebApp.walletTransaction.createdAt')}

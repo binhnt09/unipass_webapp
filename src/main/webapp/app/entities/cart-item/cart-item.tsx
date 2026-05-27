@@ -89,6 +89,10 @@ export const CartItem = () => {
                 <th className="hand" onClick={sort('id')}>
                   <Translate contentKey="unipassWebApp.cartItem.id">ID</Translate> <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
                 </th>
+                <th className="hand" onClick={sort('quantity')}>
+                  <Translate contentKey="unipassWebApp.cartItem.quantity">Quantity</Translate>{' '}
+                  <FontAwesomeIcon icon={getSortIconByFieldName('quantity')} />
+                </th>
                 <th className="hand" onClick={sort('createdAt')}>
                   <Translate contentKey="unipassWebApp.cartItem.createdAt">Created At</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
@@ -110,6 +114,7 @@ export const CartItem = () => {
                       {cartItem.id}
                     </Button>
                   </td>
+                  <td>{cartItem.quantity}</td>
                   <td>{cartItem.createdAt ? <TextFormat type="date" value={cartItem.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{cartItem.product ? <Link to={`/product/${cartItem.product.id}`}>{cartItem.product.name}</Link> : ''}</td>
                   <td>{cartItem.user ? cartItem.user.login : ''}</td>

@@ -15,7 +15,7 @@ describe('PremiumPackage e2e test', () => {
   const premiumPackagePageUrlPattern = new RegExp('/premium-package(\\?.*)?$');
   let username: string;
   let password: string;
-  const premiumPackageSample = { name: 'cultivated', priceCoin: 11877.65, durationDays: 29112 };
+  const premiumPackageSample = { name: 'frightfully meatloaf', priceCoin: 14501.52, durationDays: 6942 };
 
   let premiumPackage;
 
@@ -177,20 +177,20 @@ describe('PremiumPackage e2e test', () => {
       cy.get(`[data-cy="durationDays"]`).type('4232');
       cy.get(`[data-cy="durationDays"]`).should('have.value', '4232');
 
-      cy.get(`[data-cy="features"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="features"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="features"]`).type('frantically');
+      cy.get(`[data-cy="features"]`).should('have.value', 'frantically');
 
       cy.get(`[data-cy="isDeleted"]`).should('not.be.checked');
       cy.get(`[data-cy="isDeleted"]`).click();
       cy.get(`[data-cy="isDeleted"]`).should('be.checked');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T08:05');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T09:43');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T08:05');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T09:43');
 
-      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T12:10');
+      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T00:58');
       cy.get(`[data-cy="updatedAt"]`).blur();
-      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T12:10');
+      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T00:58');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

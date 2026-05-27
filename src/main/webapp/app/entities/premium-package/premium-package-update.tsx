@@ -141,7 +141,10 @@ export const PremiumPackageUpdate = () => {
                 id="premium-package-features"
                 name="features"
                 data-cy="features"
-                type="textarea"
+                type="text"
+                validate={{
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
+                }}
               />
               <ValidatedField
                 label={translate('unipassWebApp.premiumPackage.isDeleted')}

@@ -27,6 +27,18 @@
       "fieldValidateRulesMaxlength": "255"
     },
     {
+      "fieldName": "cancelReason",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "1000"
+    },
+    {
+      "fieldName": "buyerNote",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
       "fieldName": "createdAt",
       "fieldType": "Instant"
     }

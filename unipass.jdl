@@ -11,14 +11,14 @@ entity University {
 
 entity Campus {
   name String required maxlength(255)
-  address TextBlob required
+  address String maxlength(5000) required
   latitude BigDecimal
   longitude BigDecimal
 }
 
 entity UserProfile {
   phoneNumber String unique maxlength(20)
-  studentIdNumber String maxlength(50)
+  studentIdNumber String maxlength(50) unique
   reputationScore Integer
   referralCode String unique maxlength(20)
   fingerprintId String maxlength(255)
@@ -37,10 +37,11 @@ entity Category {
 
 entity Product {
   name String required maxlength(255)
-  description TextBlob
+  description String maxlength(5000)
   price BigDecimal required
   status String maxlength(50)
   condition String maxlength(50)
+  stock Integer required
   createdAt Instant
   updatedAt Instant
 }
@@ -51,12 +52,13 @@ entity ProductImage {
 }
 
 entity CartItem {
+  quantity Integer required
   createdAt Instant
 }
 
 entity ItemRequest {
   title String required maxlength(255)
-  description TextBlob
+  description String maxlength(5000)
   expectedPrice BigDecimal
   status String maxlength(50)
   createdAt Instant
@@ -64,7 +66,7 @@ entity ItemRequest {
 
 entity RequestOffer {
   offerPrice BigDecimal required
-  message TextBlob
+  message String maxlength(5000)
   createdAt Instant
 }
 
@@ -73,16 +75,19 @@ entity Orders {
   platformDiscount BigDecimal
   status String maxlength(50)
   meetupLocation String maxlength(255)
+  cancelReason String maxlength(1000)
+  buyerNote String maxlength(500)
   createdAt Instant
 }
 
 entity OrderItem {
   price BigDecimal required
+  quantity Integer required
 }
 
 entity Review {
   rating Integer required min(1) max(5)
-  comment TextBlob
+  comment String maxlength(5000)
   isDeleted Boolean
   createdAt Instant
   updatedAt Instant
@@ -91,7 +96,7 @@ entity Review {
 entity Report {
   targetType String required maxlength(50)
   targetId Long required
-  reason TextBlob required
+  reason String maxlength(5000) required
   status String maxlength(50)
   isDeleted Boolean
   createdAt Instant
@@ -112,7 +117,7 @@ entity WalletTransaction {
   transactionType String required maxlength(50)
   referenceType String maxlength(50)
   referenceId Long
-  description TextBlob
+  description String maxlength(5000)
   createdAt Instant
 }
 
@@ -127,7 +132,7 @@ entity PremiumPackage {
   name String required maxlength(255)
   priceCoin BigDecimal required
   durationDays Integer required
-  features TextBlob
+  features String maxlength(5000)
   isDeleted Boolean
   createdAt Instant
   updatedAt Instant
@@ -149,7 +154,7 @@ entity SystemPaymentTransaction {
   appOrderId String required unique maxlength(100)
   bankCode String maxlength(50)
   status String maxlength(50)
-  rawResponse TextBlob
+  rawResponse String maxlength(5000)
   createdAt Instant
   updatedAt Instant
 }
@@ -177,20 +182,20 @@ entity ChatRoom {
 }
 
 entity ChatMessage {
-  content TextBlob required
+  content String maxlength(5000) required
   isRead Boolean
   createdAt Instant
 }
 
 entity AiChatSession {
-  contextSummary TextBlob
+  contextSummary String maxlength(5000)
   createdAt Instant
   updatedAt Instant
 }
 
 entity AiChatMessage {
   role String required maxlength(50)
-  content TextBlob required
+  content String maxlength(5000) required
   tokensUsed Integer
   createdAt Instant
 }
@@ -203,7 +208,7 @@ entity UserSearchHistory {
 
 entity Notification {
   title String required maxlength(255)
-  content TextBlob required
+  content String maxlength(5000) required
   type String required maxlength(50)
   isRead Boolean
   createdAt Instant

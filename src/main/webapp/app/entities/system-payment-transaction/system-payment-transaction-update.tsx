@@ -201,7 +201,10 @@ export const SystemPaymentTransactionUpdate = () => {
                 id="system-payment-transaction-rawResponse"
                 name="rawResponse"
                 data-cy="rawResponse"
-                type="textarea"
+                type="text"
+                validate={{
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
+                }}
               />
               <ValidatedField
                 label={translate('unipassWebApp.systemPaymentTransaction.createdAt')}

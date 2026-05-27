@@ -14,7 +14,7 @@
     {
       "fieldName": "studentIdNumber",
       "fieldType": "String",
-      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRules": ["maxlength", "unique"],
       "fieldValidateRulesMaxlength": "50"
     },
     {

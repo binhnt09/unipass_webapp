@@ -16,11 +16,11 @@ describe('SystemPaymentTransaction e2e test', () => {
   let username: string;
   let password: string;
   const systemPaymentTransactionSample = {
-    paymentMethod: 'embossing',
-    amountVnd: 24872.68,
-    coinReceived: 27145.69,
-    gatewayReference: 'as only inscribe',
-    appOrderId: 'flawed',
+    paymentMethod: 'once times whether',
+    amountVnd: 30415.66,
+    coinReceived: 14346.73,
+    gatewayReference: 'flawed',
+    appOrderId: 'ick sermon',
   };
 
   let systemPaymentTransaction;
@@ -198,16 +198,16 @@ describe('SystemPaymentTransaction e2e test', () => {
       cy.get(`[data-cy="status"]`).type('unlike pace');
       cy.get(`[data-cy="status"]`).should('have.value', 'unlike pace');
 
-      cy.get(`[data-cy="rawResponse"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="rawResponse"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="rawResponse"]`).type('um');
+      cy.get(`[data-cy="rawResponse"]`).should('have.value', 'um');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T03:27');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T02:42');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T03:27');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T02:42');
 
-      cy.get(`[data-cy="updatedAt"]`).type('2026-05-18T23:58');
+      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T04:13');
       cy.get(`[data-cy="updatedAt"]`).blur();
-      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-18T23:58');
+      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T04:13');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

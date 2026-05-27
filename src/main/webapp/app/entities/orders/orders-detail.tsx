@@ -58,6 +58,18 @@ export const OrdersDetail = () => {
           </dt>
           <dd>{ordersEntity.meetupLocation}</dd>
           <dt>
+            <span id="cancelReason">
+              <Translate contentKey="unipassWebApp.orders.cancelReason">Cancel Reason</Translate>
+            </span>
+          </dt>
+          <dd>{ordersEntity.cancelReason}</dd>
+          <dt>
+            <span id="buyerNote">
+              <Translate contentKey="unipassWebApp.orders.buyerNote">Buyer Note</Translate>
+            </span>
+          </dt>
+          <dd>{ordersEntity.buyerNote}</dd>
+          <dt>
             <span id="createdAt">
               <Translate contentKey="unipassWebApp.orders.createdAt">Created At</Translate>
             </span>

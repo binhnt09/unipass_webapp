@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Button, Col, Row } from 'react-bootstrap';
-import { Translate, ValidatedField, ValidatedForm, translate } from 'react-jhipster';
+import { Translate, ValidatedField, ValidatedForm, isNumber, translate } from 'react-jhipster';
 import { Link, useNavigate, useParams } from 'react-router';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -51,6 +51,9 @@ export const CartItemUpdate = () => {
   const saveEntity = values => {
     if (values.id !== undefined && typeof values.id !== 'number') {
       values.id = Number(values.id);
+    }
+    if (values.quantity !== undefined && typeof values.quantity !== 'number') {
+      values.quantity = Number(values.quantity);
     }
     values.createdAt = convertDateTimeToServer(values.createdAt);
 
@@ -105,6 +108,17 @@ export const CartItemUpdate = () => {
                   validate={{ required: true }}
                 />
               )}
+              <ValidatedField
+                label={translate('unipassWebApp.cartItem.quantity')}
+                id="cart-item-quantity"
+                name="quantity"
+                data-cy="quantity"
+                type="text"
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                  validate: v => isNumber(v) || translate('entity.validation.number'),
+                }}
+              />
               <ValidatedField
                 label={translate('unipassWebApp.cartItem.createdAt')}
                 id="cart-item-createdAt"

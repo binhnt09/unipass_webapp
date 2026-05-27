@@ -15,7 +15,7 @@ describe('Campus e2e test', () => {
   const campusPageUrlPattern = new RegExp('/campus(\\?.*)?$');
   let username: string;
   let password: string;
-  const campusSample = { name: 'equally creature supportive', address: 'Li4vZmFrZS1kYXRhL2Jsb2IvaGlwc3Rlci50eHQ=' };
+  const campusSample = { name: 'openly squirm gadzooks', address: 'meh' };
 
   let campus;
 
@@ -171,14 +171,14 @@ describe('Campus e2e test', () => {
       cy.get(`[data-cy="name"]`).type('aw vibraphone');
       cy.get(`[data-cy="name"]`).should('have.value', 'aw vibraphone');
 
-      cy.get(`[data-cy="address"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="address"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="address"]`).type('dutiful fake per');
+      cy.get(`[data-cy="address"]`).should('have.value', 'dutiful fake per');
 
-      cy.get(`[data-cy="latitude"]`).type('22633.51');
-      cy.get(`[data-cy="latitude"]`).should('have.value', '22633.51');
+      cy.get(`[data-cy="latitude"]`).type('28029.06');
+      cy.get(`[data-cy="latitude"]`).should('have.value', '28029.06');
 
-      cy.get(`[data-cy="longitude"]`).type('16766.08');
-      cy.get(`[data-cy="longitude"]`).should('have.value', '16766.08');
+      cy.get(`[data-cy="longitude"]`).type('27095.79');
+      cy.get(`[data-cy="longitude"]`).should('have.value', '27095.79');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

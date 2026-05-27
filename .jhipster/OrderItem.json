@@ -9,6 +9,11 @@
       "fieldName": "price",
       "fieldType": "BigDecimal",
       "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "quantity",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["required"]
     }
   ],
   "jpaMetamodelFiltering": true,

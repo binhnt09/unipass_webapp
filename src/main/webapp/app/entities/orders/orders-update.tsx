@@ -147,6 +147,26 @@ export const OrdersUpdate = () => {
                 }}
               />
               <ValidatedField
+                label={translate('unipassWebApp.orders.cancelReason')}
+                id="orders-cancelReason"
+                name="cancelReason"
+                data-cy="cancelReason"
+                type="text"
+                validate={{
+                  maxLength: { value: 1000, message: translate('entity.validation.maxlength', { max: 1000 }) },
+                }}
+              />
+              <ValidatedField
+                label={translate('unipassWebApp.orders.buyerNote')}
+                id="orders-buyerNote"
+                name="buyerNote"
+                data-cy="buyerNote"
+                type="text"
+                validate={{
+                  maxLength: { value: 500, message: translate('entity.validation.maxlength', { max: 500 }) },
+                }}
+              />
+              <ValidatedField
                 label={translate('unipassWebApp.orders.createdAt')}
                 id="orders-createdAt"
                 name="createdAt"

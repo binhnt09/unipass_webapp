@@ -135,6 +135,10 @@ export const Product = () => {
                   <Translate contentKey="unipassWebApp.product.condition">Condition</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('condition')} />
                 </th>
+                <th className="hand" onClick={sort('stock')}>
+                  <Translate contentKey="unipassWebApp.product.stock">Stock</Translate>{' '}
+                  <FontAwesomeIcon icon={getSortIconByFieldName('stock')} />
+                </th>
                 <th className="hand" onClick={sort('createdAt')}>
                   <Translate contentKey="unipassWebApp.product.createdAt">Created At</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
@@ -165,6 +169,7 @@ export const Product = () => {
                   <td>{product.price}</td>
                   <td>{product.status}</td>
                   <td>{product.condition}</td>
+                  <td>{product.stock}</td>
                   <td>{product.createdAt ? <TextFormat type="date" value={product.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{product.updatedAt ? <TextFormat type="date" value={product.updatedAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{product.category ? <Link to={`/category/${product.category.id}`}>{product.category.name}</Link> : ''}</td>

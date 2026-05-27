@@ -165,16 +165,16 @@ describe('AiChatSession e2e test', () => {
     });
 
     it('should create an instance of AiChatSession', () => {
-      cy.get(`[data-cy="contextSummary"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="contextSummary"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="contextSummary"]`).type('drat but');
+      cy.get(`[data-cy="contextSummary"]`).should('have.value', 'drat but');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T12:34');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-18T23:03');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T12:34');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-18T23:03');
 
-      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T06:11');
+      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T05:01');
       cy.get(`[data-cy="updatedAt"]`).blur();
-      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T06:11');
+      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T05:01');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

@@ -15,7 +15,7 @@ describe('WalletTransaction e2e test', () => {
   const walletTransactionPageUrlPattern = new RegExp('/wallet-transaction(\\?.*)?$');
   let username: string;
   let password: string;
-  const walletTransactionSample = { amount: 31264.82, transactionType: 'ethyl observe' };
+  const walletTransactionSample = { amount: 9871.87, transactionType: 'near' };
 
   let walletTransaction;
 
@@ -180,12 +180,12 @@ describe('WalletTransaction e2e test', () => {
       cy.get(`[data-cy="referenceId"]`).type('15188');
       cy.get(`[data-cy="referenceId"]`).should('have.value', '15188');
 
-      cy.get(`[data-cy="description"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="description"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="description"]`).type('where');
+      cy.get(`[data-cy="description"]`).should('have.value', 'where');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-18T22:11');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-18T23:15');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-18T22:11');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-18T23:15');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

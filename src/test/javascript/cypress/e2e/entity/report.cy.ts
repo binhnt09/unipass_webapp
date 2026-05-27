@@ -15,7 +15,7 @@ describe('Report e2e test', () => {
   const reportPageUrlPattern = new RegExp('/report(\\?.*)?$');
   let username: string;
   let password: string;
-  const reportSample = { targetType: 'longingly perky', targetId: 12157, reason: 'Li4vZmFrZS1kYXRhL2Jsb2IvaGlwc3Rlci50eHQ=' };
+  const reportSample = { targetType: 'qua that', targetId: 27275, reason: 'rust' };
 
   let report;
 
@@ -174,23 +174,23 @@ describe('Report e2e test', () => {
       cy.get(`[data-cy="targetId"]`).type('5588');
       cy.get(`[data-cy="targetId"]`).should('have.value', '5588');
 
-      cy.get(`[data-cy="reason"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="reason"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="reason"]`).type('majestically');
+      cy.get(`[data-cy="reason"]`).should('have.value', 'majestically');
 
-      cy.get(`[data-cy="status"]`).type('majestically');
-      cy.get(`[data-cy="status"]`).should('have.value', 'majestically');
+      cy.get(`[data-cy="status"]`).type('claw sure-footed');
+      cy.get(`[data-cy="status"]`).should('have.value', 'claw sure-footed');
 
       cy.get(`[data-cy="isDeleted"]`).should('not.be.checked');
       cy.get(`[data-cy="isDeleted"]`).click();
       cy.get(`[data-cy="isDeleted"]`).should('be.checked');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T13:36');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T15:30');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T13:36');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T15:30');
 
-      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T02:04');
+      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T11:37');
       cy.get(`[data-cy="updatedAt"]`).blur();
-      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T02:04');
+      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T11:37');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

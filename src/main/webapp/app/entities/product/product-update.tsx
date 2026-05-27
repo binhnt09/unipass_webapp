@@ -55,6 +55,9 @@ export const ProductUpdate = () => {
     if (values.price !== undefined && typeof values.price !== 'number') {
       values.price = Number(values.price);
     }
+    if (values.stock !== undefined && typeof values.stock !== 'number') {
+      values.stock = Number(values.stock);
+    }
     values.createdAt = convertDateTimeToServer(values.createdAt);
     values.updatedAt = convertDateTimeToServer(values.updatedAt);
 
@@ -127,7 +130,10 @@ export const ProductUpdate = () => {
                 id="product-description"
                 name="description"
                 data-cy="description"
-                type="textarea"
+                type="text"
+                validate={{
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
+                }}
               />
               <ValidatedField
                 label={translate('unipassWebApp.product.price')}
@@ -158,6 +164,17 @@ export const ProductUpdate = () => {
                 type="text"
                 validate={{
                   maxLength: { value: 50, message: translate('entity.validation.maxlength', { max: 50 }) },
+                }}
+              />
+              <ValidatedField
+                label={translate('unipassWebApp.product.stock')}
+                id="product-stock"
+                name="stock"
+                data-cy="stock"
+                type="text"
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                  validate: v => isNumber(v) || translate('entity.validation.number'),
                 }}
               />
               <ValidatedField

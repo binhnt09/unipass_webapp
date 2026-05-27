@@ -15,7 +15,7 @@ describe('AiChatMessage e2e test', () => {
   const aiChatMessagePageUrlPattern = new RegExp('/ai-chat-message(\\?.*)?$');
   let username: string;
   let password: string;
-  const aiChatMessageSample = { role: 'whose cautiously that', content: 'Li4vZmFrZS1kYXRhL2Jsb2IvaGlwc3Rlci50eHQ=' };
+  const aiChatMessageSample = { role: 'ack once confusion', content: 'motivate amid qua' };
 
   let aiChatMessage;
 
@@ -171,15 +171,15 @@ describe('AiChatMessage e2e test', () => {
       cy.get(`[data-cy="role"]`).type('within energetically below');
       cy.get(`[data-cy="role"]`).should('have.value', 'within energetically below');
 
-      cy.get(`[data-cy="content"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="content"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="content"]`).type('behind enormously');
+      cy.get(`[data-cy="content"]`).should('have.value', 'behind enormously');
 
-      cy.get(`[data-cy="tokensUsed"]`).type('20488');
-      cy.get(`[data-cy="tokensUsed"]`).should('have.value', '20488');
+      cy.get(`[data-cy="tokensUsed"]`).type('13779');
+      cy.get(`[data-cy="tokensUsed"]`).should('have.value', '13779');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-18T21:15');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-18T23:36');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-18T21:15');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-18T23:36');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

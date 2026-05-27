@@ -135,9 +135,10 @@ export const ReportUpdate = () => {
                 id="report-reason"
                 name="reason"
                 data-cy="reason"
-                type="textarea"
+                type="text"
                 validate={{
                   required: { value: true, message: translate('entity.validation.required') },
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
                 }}
               />
               <ValidatedField

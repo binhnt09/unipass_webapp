@@ -15,7 +15,7 @@ describe('Product e2e test', () => {
   const productPageUrlPattern = new RegExp('/product(\\?.*)?$');
   let username: string;
   let password: string;
-  const productSample = { name: 'clavicle only upwardly', price: 23550.3 };
+  const productSample = { name: 'mammoth quarterly', price: 14203.59, stock: 13291 };
 
   let product;
 
@@ -171,25 +171,28 @@ describe('Product e2e test', () => {
       cy.get(`[data-cy="name"]`).type('handle phew geez');
       cy.get(`[data-cy="name"]`).should('have.value', 'handle phew geez');
 
-      cy.get(`[data-cy="description"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="description"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="description"]`).type('reel arrange');
+      cy.get(`[data-cy="description"]`).should('have.value', 'reel arrange');
 
-      cy.get(`[data-cy="price"]`).type('14802.58');
-      cy.get(`[data-cy="price"]`).should('have.value', '14802.58');
+      cy.get(`[data-cy="price"]`).type('13873.88');
+      cy.get(`[data-cy="price"]`).should('have.value', '13873.88');
 
-      cy.get(`[data-cy="status"]`).type('next idle');
-      cy.get(`[data-cy="status"]`).should('have.value', 'next idle');
+      cy.get(`[data-cy="status"]`).type('unique revere iridescence');
+      cy.get(`[data-cy="status"]`).should('have.value', 'unique revere iridescence');
 
-      cy.get(`[data-cy="condition"]`).type('unique revere iridescence');
-      cy.get(`[data-cy="condition"]`).should('have.value', 'unique revere iridescence');
+      cy.get(`[data-cy="condition"]`).type('zowie ditch');
+      cy.get(`[data-cy="condition"]`).should('have.value', 'zowie ditch');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T12:06');
+      cy.get(`[data-cy="stock"]`).type('16305');
+      cy.get(`[data-cy="stock"]`).should('have.value', '16305');
+
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T10:27');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T12:06');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T10:27');
 
-      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T01:56');
+      cy.get(`[data-cy="updatedAt"]`).type('2026-05-18T23:43');
       cy.get(`[data-cy="updatedAt"]`).blur();
-      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T01:56');
+      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-18T23:43');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

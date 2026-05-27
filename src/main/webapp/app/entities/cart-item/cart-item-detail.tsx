@@ -34,6 +34,12 @@ export const CartItemDetail = () => {
           </dt>
           <dd>{cartItemEntity.id}</dd>
           <dt>
+            <span id="quantity">
+              <Translate contentKey="unipassWebApp.cartItem.quantity">Quantity</Translate>
+            </span>
+          </dt>
+          <dd>{cartItemEntity.quantity}</dd>
+          <dt>
             <span id="createdAt">
               <Translate contentKey="unipassWebApp.cartItem.createdAt">Created At</Translate>
             </span>

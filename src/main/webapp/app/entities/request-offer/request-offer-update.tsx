@@ -129,7 +129,10 @@ export const RequestOfferUpdate = () => {
                 id="request-offer-message"
                 name="message"
                 data-cy="message"
-                type="textarea"
+                type="text"
+                validate={{
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
+                }}
               />
               <ValidatedField
                 label={translate('unipassWebApp.requestOffer.createdAt')}

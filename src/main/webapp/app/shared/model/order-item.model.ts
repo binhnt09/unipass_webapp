@@ -4,6 +4,7 @@ import { IProduct } from 'app/shared/model/product.model';
 export interface IOrderItem {
   id?: number;
   price?: number;
+  quantity?: number;
   order?: IOrders | null;
   product?: IProduct | null;
 }

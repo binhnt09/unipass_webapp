@@ -15,7 +15,7 @@ describe('CartItem e2e test', () => {
   const cartItemPageUrlPattern = new RegExp('/cart-item(\\?.*)?$');
   let username: string;
   let password: string;
-  const cartItemSample = {};
+  const cartItemSample = { quantity: 8415 };
 
   let cartItem;
 
@@ -165,9 +165,12 @@ describe('CartItem e2e test', () => {
     });
 
     it('should create an instance of CartItem', () => {
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T05:06');
+      cy.get(`[data-cy="quantity"]`).type('10830');
+      cy.get(`[data-cy="quantity"]`).should('have.value', '10830');
+
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T05:57');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T05:06');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T05:57');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

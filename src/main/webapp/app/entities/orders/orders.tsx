@@ -131,6 +131,14 @@ export const Orders = () => {
                   <Translate contentKey="unipassWebApp.orders.meetupLocation">Meetup Location</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('meetupLocation')} />
                 </th>
+                <th className="hand" onClick={sort('cancelReason')}>
+                  <Translate contentKey="unipassWebApp.orders.cancelReason">Cancel Reason</Translate>{' '}
+                  <FontAwesomeIcon icon={getSortIconByFieldName('cancelReason')} />
+                </th>
+                <th className="hand" onClick={sort('buyerNote')}>
+                  <Translate contentKey="unipassWebApp.orders.buyerNote">Buyer Note</Translate>{' '}
+                  <FontAwesomeIcon icon={getSortIconByFieldName('buyerNote')} />
+                </th>
                 <th className="hand" onClick={sort('createdAt')}>
                   <Translate contentKey="unipassWebApp.orders.createdAt">Created At</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
@@ -156,6 +164,8 @@ export const Orders = () => {
                   <td>{orders.platformDiscount}</td>
                   <td>{orders.status}</td>
                   <td>{orders.meetupLocation}</td>
+                  <td>{orders.cancelReason}</td>
+                  <td>{orders.buyerNote}</td>
                   <td>{orders.createdAt ? <TextFormat type="date" value={orders.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{orders.buyer ? orders.buyer.login : ''}</td>
                   <td>{orders.seller ? orders.seller.login : ''}</td>

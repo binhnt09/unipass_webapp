@@ -28,7 +28,9 @@
     },
     {
       "fieldName": "description",
-      "fieldType": "TextBlob"
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "5000"
     },
     {
       "fieldName": "createdAt",

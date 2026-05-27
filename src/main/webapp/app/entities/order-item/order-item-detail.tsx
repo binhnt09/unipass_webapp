@@ -39,6 +39,12 @@ export const OrderItemDetail = () => {
           </dt>
           <dd>{orderItemEntity.price}</dd>
           <dt>
+            <span id="quantity">
+              <Translate contentKey="unipassWebApp.orderItem.quantity">Quantity</Translate>
+            </span>
+          </dt>
+          <dd>{orderItemEntity.quantity}</dd>
+          <dt>
             <Translate contentKey="unipassWebApp.orderItem.order">Order</Translate>
           </dt>
           <dd>{orderItemEntity.order ? orderItemEntity.order.id : ''}</dd>

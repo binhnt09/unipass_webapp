@@ -18,6 +18,7 @@
         "title": "Cart Item"
       },
       "id": "ID",
+      "quantity": "Quantity",
       "createdAt": "Created At",
       "product": "Product",
       "user": "User"

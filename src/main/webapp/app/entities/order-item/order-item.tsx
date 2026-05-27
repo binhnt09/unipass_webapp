@@ -92,6 +92,10 @@ export const OrderItem = () => {
                   <Translate contentKey="unipassWebApp.orderItem.price">Price</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('price')} />
                 </th>
+                <th className="hand" onClick={sort('quantity')}>
+                  <Translate contentKey="unipassWebApp.orderItem.quantity">Quantity</Translate>{' '}
+                  <FontAwesomeIcon icon={getSortIconByFieldName('quantity')} />
+                </th>
                 <th>
                   <Translate contentKey="unipassWebApp.orderItem.order">Order</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
@@ -110,6 +114,7 @@ export const OrderItem = () => {
                     </Button>
                   </td>
                   <td>{orderItem.price}</td>
+                  <td>{orderItem.quantity}</td>
                   <td>{orderItem.order ? <Link to={`/orders/${orderItem.order.id}`}>{orderItem.order.id}</Link> : ''}</td>
                   <td>{orderItem.product ? <Link to={`/product/${orderItem.product.id}`}>{orderItem.product.name}</Link> : ''}</td>
                   <td className="text-end">

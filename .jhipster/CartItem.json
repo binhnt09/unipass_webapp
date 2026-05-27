@@ -6,6 +6,11 @@
   "dto": "mapstruct",
   "fields": [
     {
+      "fieldName": "quantity",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["required"]
+    },
+    {
       "fieldName": "createdAt",
       "fieldType": "Instant"
     }

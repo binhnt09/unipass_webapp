@@ -108,7 +108,10 @@ export const AiChatSessionUpdate = () => {
                 id="ai-chat-session-contextSummary"
                 name="contextSummary"
                 data-cy="contextSummary"
-                type="textarea"
+                type="text"
+                validate={{
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
+                }}
               />
               <ValidatedField
                 label={translate('unipassWebApp.aiChatSession.createdAt')}

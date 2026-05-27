@@ -23,7 +23,9 @@
     },
     {
       "fieldName": "features",
-      "fieldType": "TextBlob"
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "5000"
     },
     {
       "fieldName": "isDeleted",

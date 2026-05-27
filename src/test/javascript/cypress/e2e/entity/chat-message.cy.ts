@@ -15,7 +15,7 @@ describe('ChatMessage e2e test', () => {
   const chatMessagePageUrlPattern = new RegExp('/chat-message(\\?.*)?$');
   let username: string;
   let password: string;
-  const chatMessageSample = { content: 'Li4vZmFrZS1kYXRhL2Jsb2IvaGlwc3Rlci50eHQ=' };
+  const chatMessageSample = { content: 'pinion zebra' };
 
   let chatMessage;
 
@@ -168,16 +168,16 @@ describe('ChatMessage e2e test', () => {
     });
 
     it('should create an instance of ChatMessage', () => {
-      cy.get(`[data-cy="content"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="content"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="content"]`).type('meh');
+      cy.get(`[data-cy="content"]`).should('have.value', 'meh');
 
       cy.get(`[data-cy="isRead"]`).should('not.be.checked');
       cy.get(`[data-cy="isRead"]`).click();
       cy.get(`[data-cy="isRead"]`).should('be.checked');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T13:27');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T12:54');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T13:27');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T12:54');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

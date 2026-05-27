@@ -64,6 +64,12 @@ export const ProductDetail = () => {
           </dt>
           <dd>{productEntity.condition}</dd>
           <dt>
+            <span id="stock">
+              <Translate contentKey="unipassWebApp.product.stock">Stock</Translate>
+            </span>
+          </dt>
+          <dd>{productEntity.stock}</dd>
+          <dt>
             <span id="createdAt">
               <Translate contentKey="unipassWebApp.product.createdAt">Created At</Translate>
             </span>

@@ -15,7 +15,7 @@ describe('ItemRequest e2e test', () => {
   const itemRequestPageUrlPattern = new RegExp('/item-request(\\?.*)?$');
   let username: string;
   let password: string;
-  const itemRequestSample = { title: 'unrealistic' };
+  const itemRequestSample = { title: 'qua' };
 
   let itemRequest;
 
@@ -171,18 +171,18 @@ describe('ItemRequest e2e test', () => {
       cy.get(`[data-cy="title"]`).type('out energetically');
       cy.get(`[data-cy="title"]`).should('have.value', 'out energetically');
 
-      cy.get(`[data-cy="description"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="description"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="description"]`).type('ideal opposite');
+      cy.get(`[data-cy="description"]`).should('have.value', 'ideal opposite');
 
-      cy.get(`[data-cy="expectedPrice"]`).type('18709.22');
-      cy.get(`[data-cy="expectedPrice"]`).should('have.value', '18709.22');
+      cy.get(`[data-cy="expectedPrice"]`).type('18004.77');
+      cy.get(`[data-cy="expectedPrice"]`).should('have.value', '18004.77');
 
-      cy.get(`[data-cy="status"]`).type('stabilise navigate');
-      cy.get(`[data-cy="status"]`).should('have.value', 'stabilise navigate');
+      cy.get(`[data-cy="status"]`).type('which reluctantly unto');
+      cy.get(`[data-cy="status"]`).should('have.value', 'which reluctantly unto');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T20:09');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T18:51');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T20:09');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T18:51');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

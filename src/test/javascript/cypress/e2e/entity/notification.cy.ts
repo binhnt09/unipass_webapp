@@ -15,11 +15,7 @@ describe('Notification e2e test', () => {
   const notificationPageUrlPattern = new RegExp('/notification(\\?.*)?$');
   let username: string;
   let password: string;
-  const notificationSample = {
-    title: 'for safeguard bah',
-    content: 'Li4vZmFrZS1kYXRhL2Jsb2IvaGlwc3Rlci50eHQ=',
-    type: 'quizzically forager',
-  };
+  const notificationSample = { title: 'nor quizzically forager', content: 'phooey from', type: 'hm' };
 
   let notification;
 
@@ -175,19 +171,19 @@ describe('Notification e2e test', () => {
       cy.get(`[data-cy="title"]`).type('majestically extension');
       cy.get(`[data-cy="title"]`).should('have.value', 'majestically extension');
 
-      cy.get(`[data-cy="content"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="content"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="content"]`).type('or mostly');
+      cy.get(`[data-cy="content"]`).should('have.value', 'or mostly');
 
-      cy.get(`[data-cy="type"]`).type('or mostly');
-      cy.get(`[data-cy="type"]`).should('have.value', 'or mostly');
+      cy.get(`[data-cy="type"]`).type('lively agitated');
+      cy.get(`[data-cy="type"]`).should('have.value', 'lively agitated');
 
       cy.get(`[data-cy="isRead"]`).should('not.be.checked');
       cy.get(`[data-cy="isRead"]`).click();
       cy.get(`[data-cy="isRead"]`).should('be.checked');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-18T22:36');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T15:11');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-18T22:36');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T15:11');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

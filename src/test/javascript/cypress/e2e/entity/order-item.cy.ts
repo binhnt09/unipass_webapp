@@ -15,7 +15,7 @@ describe('OrderItem e2e test', () => {
   const orderItemPageUrlPattern = new RegExp('/order-item(\\?.*)?$');
   let username: string;
   let password: string;
-  const orderItemSample = { price: 16008.75 };
+  const orderItemSample = { price: 25193.49, quantity: 3172 };
 
   let orderItem;
 
@@ -167,6 +167,9 @@ describe('OrderItem e2e test', () => {
     it('should create an instance of OrderItem', () => {
       cy.get(`[data-cy="price"]`).type('14330.89');
       cy.get(`[data-cy="price"]`).should('have.value', '14330.89');
+
+      cy.get(`[data-cy="quantity"]`).type('16009');
+      cy.get(`[data-cy="quantity"]`).should('have.value', '16009');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

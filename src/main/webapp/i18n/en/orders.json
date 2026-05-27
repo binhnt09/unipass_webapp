@@ -22,6 +22,8 @@
       "platformDiscount": "Platform Discount",
       "status": "Status",
       "meetupLocation": "Meetup Location",
+      "cancelReason": "Cancel Reason",
+      "buyerNote": "Buyer Note",
       "createdAt": "Created At",
       "buyer": "Buyer",
       "seller": "Seller"

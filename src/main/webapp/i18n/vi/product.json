@@ -23,6 +23,7 @@
       "price": "Price",
       "status": "Status",
       "condition": "Condition",
+      "stock": "Stock",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
       "category": "Category",

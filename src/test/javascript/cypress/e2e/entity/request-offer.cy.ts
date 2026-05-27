@@ -15,7 +15,7 @@ describe('RequestOffer e2e test', () => {
   const requestOfferPageUrlPattern = new RegExp('/request-offer(\\?.*)?$');
   let username: string;
   let password: string;
-  const requestOfferSample = { offerPrice: 17224.98 };
+  const requestOfferSample = { offerPrice: 16356.75 };
 
   let requestOffer;
 
@@ -171,12 +171,12 @@ describe('RequestOffer e2e test', () => {
       cy.get(`[data-cy="offerPrice"]`).type('7552.91');
       cy.get(`[data-cy="offerPrice"]`).should('have.value', '7552.91');
 
-      cy.get(`[data-cy="message"]`).type('../fake-data/blob/hipster.txt');
-      cy.get(`[data-cy="message"]`).invoke('val').should('match', new RegExp('../fake-data/blob/hipster.txt'));
+      cy.get(`[data-cy="message"]`).type('emotional although');
+      cy.get(`[data-cy="message"]`).should('have.value', 'emotional although');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T11:33');
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T05:57');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T11:33');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T05:57');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

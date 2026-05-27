@@ -8,6 +8,8 @@ export interface IOrders {
   platformDiscount?: number | null;
   status?: string | null;
   meetupLocation?: string | null;
+  cancelReason?: string | null;
+  buyerNote?: string | null;
   createdAt?: dayjs.Dayjs | null;
   buyer?: IUser | null;
   seller?: IUser | null;

@@ -54,6 +54,9 @@ export const OrderItemUpdate = () => {
     if (values.price !== undefined && typeof values.price !== 'number') {
       values.price = Number(values.price);
     }
+    if (values.quantity !== undefined && typeof values.quantity !== 'number') {
+      values.quantity = Number(values.quantity);
+    }
 
     const entity = {
       ...orderItemEntity,
@@ -108,6 +111,17 @@ export const OrderItemUpdate = () => {
                 id="order-item-price"
                 name="price"
                 data-cy="price"
+                type="text"
+                validate={{
+                  required: { value: true, message: translate('entity.validation.required') },
+                  validate: v => isNumber(v) || translate('entity.validation.number'),
+                }}
+              />
+              <ValidatedField
+                label={translate('unipassWebApp.orderItem.quantity')}
+                id="order-item-quantity"
+                name="quantity"
+                data-cy="quantity"
                 type="text"
                 validate={{
                   required: { value: true, message: translate('entity.validation.required') },

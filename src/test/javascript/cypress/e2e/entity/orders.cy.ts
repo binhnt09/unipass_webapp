@@ -15,7 +15,7 @@ describe('Orders e2e test', () => {
   const ordersPageUrlPattern = new RegExp('/orders(\\?.*)?$');
   let username: string;
   let password: string;
-  const ordersSample = { totalAmount: 32536.99 };
+  const ordersSample = { totalAmount: 9318.16 };
 
   let orders;
 
@@ -180,9 +180,15 @@ describe('Orders e2e test', () => {
       cy.get(`[data-cy="meetupLocation"]`).type('narrowcast powerfully for');
       cy.get(`[data-cy="meetupLocation"]`).should('have.value', 'narrowcast powerfully for');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T12:13');
+      cy.get(`[data-cy="cancelReason"]`).type('off er');
+      cy.get(`[data-cy="cancelReason"]`).should('have.value', 'off er');
+
+      cy.get(`[data-cy="buyerNote"]`).type('ack');
+      cy.get(`[data-cy="buyerNote"]`).should('have.value', 'ack');
+
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T04:50');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T12:13');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T04:50');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

@@ -19,6 +19,7 @@
       },
       "id": "ID",
       "price": "Price",
+      "quantity": "Quantity",
       "order": "Order",
       "product": "Product"
     }

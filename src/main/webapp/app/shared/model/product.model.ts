@@ -10,6 +10,7 @@ export interface IProduct {
   price?: number;
   status?: string | null;
   condition?: string | null;
+  stock?: number;
   createdAt?: dayjs.Dayjs | null;
   updatedAt?: dayjs.Dayjs | null;
   category?: ICategory | null;

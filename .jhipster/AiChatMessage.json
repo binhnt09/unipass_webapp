@@ -13,8 +13,9 @@
     },
     {
       "fieldName": "content",
-      "fieldType": "TextBlob",
-      "fieldValidateRules": ["required"]
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength", "required"],
+      "fieldValidateRulesMaxlength": "5000"
     },
     {
       "fieldName": "tokensUsed",
