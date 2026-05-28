@@ -1,19 +1,21 @@
 import { ShoppingBag, Shield, Users } from 'lucide-react';
 import React from 'react';
+import { Translate } from 'react-jhipster';
 
 export function HeroSection() {
   return (
     <div className="bg-gradient-to-br from-[#0A2647] via-[#144272] to-[#0A2647] text-white py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[1400px] mx-auto">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-4">Chợ trường an toàn của bạn</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            <Translate contentKey="global.slogan">Chợ trường an toàn của bạn</Translate>
+          </h1>
           <p className="text-xl text-white/90 mb-8">
-            Giao dịch an toàn với bạn bè đã xác thực. Mua và bán sách giáo khoa, điện tử và nhiều hơn nữa trong cộng đồng trường đại học của
-            bạn.
+            <Translate contentKey="global.menu.home.text_home"></Translate>
           </p>
           <button className="px-8 py-4 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium transition-colors shadow-lg inline-flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" />
-            Bắt đầu bán hàng
+            <Translate contentKey="global.menu.home.title_home_1"></Translate>
           </button>
         </div>
 

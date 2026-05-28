@@ -142,17 +142,20 @@ public class AccountResource {
     /**
      * {@code POST   /account/reset-password/init} : Send an email to reset the password of the user.
      *
-     * @param mail the mail of the user.
+     * @param request the mail of the user.
      */
     @PostMapping(path = "/account/reset-password/init")
-    public void requestPasswordReset(@RequestBody String mail) {
+    public void requestPasswordReset(@RequestBody Map<String, String> request) {
+        String mail = request.get("mail");
+        if (mail == null || mail.trim().isEmpty()) {
+            throw new BadRequestAlertException("Email không được để trống", "accountManagement", "emailrequired");
+        }
         Optional<User> user = userService.requestPasswordReset(mail);
         if (user.isPresent()) {
             mailService.sendPasswordResetMail(user.orElseThrow());
         } else {
-            // Pretend the request has been successful to prevent checking which emails really exist
-            // but log that an invalid attempt has been made
             LOG.warn("Password reset requested for non existing mail");
+            throw new BadRequestAlertException("Email này chưa được đăng ký tài khoản", "accountManagement", "emailnotfound");
         }
     }
 
@@ -171,7 +174,7 @@ public class AccountResource {
         Optional<User> user = userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
 
         if (!user.isPresent()) {
-            throw new AccountResourceException("No user was found for this reset key");
+            throw new BadRequestAlertException("Mã reset không hợp lệ hoặc đã hết hạn", "accountManagement", "resetkeynotfound");
         }
     }
 
