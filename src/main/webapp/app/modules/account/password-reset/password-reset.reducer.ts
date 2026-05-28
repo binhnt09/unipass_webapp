@@ -7,7 +7,7 @@ const initialState = {
   loading: false,
   resetPasswordSuccess: false,
   resetPasswordFailure: false,
-  successMessage: null,
+  successMessage: null as string | null,
 };
 
 export type PasswordResetState = Readonly<typeof initialState>;
@@ -17,8 +17,7 @@ const apiUrl = 'api/account/reset-password';
 
 export const handlePasswordResetInit = createAsyncThunk(
   'passwordReset/reset_password_init',
-  // If the content-type isn't set that way, axios will try to encode the body and thus modify the data sent to the server.
-  async (mail: string) => axios.post(`${apiUrl}/init`, mail, { headers: { 'Content-Type': 'text/plain' } }),
+  async (mail: string) => axios.post(`${apiUrl}/init`, { mail }),
   { serializeError: serializeAxiosError },
 );
 

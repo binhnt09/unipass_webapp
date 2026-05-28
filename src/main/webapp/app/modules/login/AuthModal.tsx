@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { toast } from 'react-toastify';
 import { Translate, translate, ValidatedField } from 'react-jhipster';
 import { useForm } from 'react-hook-form';
@@ -19,6 +19,9 @@ interface AuthModalProps {
 
 export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: AuthModalProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isFirstRender = React.useRef(true);
+
   const { login: authLogin, isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(defaultTab);
   const [emailError, setEmailError] = useState(false);
@@ -37,6 +40,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerTermsAccepted, setRegisterTermsAccepted] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
 
@@ -55,26 +59,39 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
     handleSubmit,
     formState: { errors, touchedFields, dirtyFields },
     getValues,
+    setValue,
+    trigger,
+    reset,
   } = useForm<any>({ mode: 'onBlur' });
   const formErrors = errors as Record<string, any>;
 
   const emailCustomValidate = (v: any) => {
     const rawSid = (getValues && getValues('studentIdNumber')) || registerStudentId || '';
     const normalizedStudentId = (rawSid || '').toString().trim().toUpperCase();
+
     if (!normalizedStudentId) return true;
+
     const batchMatch = normalizedStudentId.match(/^[A-Z]{2}(\d{2})/);
+
     if (!batchMatch) return true;
+
     const batch = parseInt(batchMatch[1], 10);
     const normalizedEmail = (v || '').toString().trim().toLowerCase();
+
     if (batch <= 18) {
+      if (!normalizedEmail.endsWith('@fpt.edu.vn')) {
+        return translate('register.messages.missing.k18_expected_email');
+      }
       const expectedSuffix = `${normalizedStudentId.toLowerCase()}@fpt.edu.vn`;
       if (!normalizedEmail.endsWith(expectedSuffix)) {
-        return translate('register.messages.missing.k18_expected_email', { expected: expectedSuffix });
+        return translate('register.messages.missing.k18_expected_email_1', { expected: expectedSuffix });
       }
       return true;
     }
-    if (normalizedEmail.endsWith('@fpt.edu.vn')) {
-      return translate('register.messages.missing.k19_forbidden_fpt');
+    if (batch >= 19) {
+      if (normalizedEmail.endsWith('@fpt.edu.vn')) {
+        return translate('register.messages.missing.k19_forbidden_fpt');
+      }
     }
     const trashDomains = ['10minutemail', 'tempmail', 'mailinator', 'dispostable'];
     if (trashDomains.some(domain => normalizedEmail.includes(domain))) {
@@ -88,6 +105,14 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
   const isPasswordValid = (password: string) => passwordPattern.test(password);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    onClose();
+  }, [location.pathname, onClose]);
+
+  useEffect(() => {
     dispatch(getUniversityEntities({ page: 0, size: 100, sort: 'id,asc' }));
     // dispatch(fetchUniversities());
     return () => {
@@ -97,7 +122,20 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
 
   useEffect(() => {
     setLoginErrorMessage(null);
-  }, [activeTab]);
+    // Reset register form khi chuyển sang tab register để tránh autofill
+    if (activeTab === 'register') {
+      setRegisterFirstName('');
+      setRegisterLastName('');
+      setRegisterEmail('');
+      setRegisterStudentId('');
+      setRegisterUniversityId('');
+      setRegisterPassword('');
+      setRegisterConfirmPassword('');
+      setRegisterError(null);
+      setEmailError(false);
+      reset();
+    }
+  }, [activeTab, reset]);
 
   useEffect(() => {
     if (successMessage) {
@@ -113,8 +151,9 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
       setEmailError(false);
       setRegisterError(null);
       setRegisterLoading(false);
+      reset();
     }
-  }, [successMessage]);
+  }, [successMessage, reset]);
 
   useEffect(() => {
     if (registrationFailure) {
@@ -136,105 +175,73 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
     }
   }, [loginErrorRedux, loginErrorMessageFromServer]);
 
-  const renderEmailHelperText = () => {
-    if (!registerStudentId || registerStudentId.length < 5) return null;
+  // const renderEmailHelperText = () => {
+  //   if (!registerStudentId || registerStudentId.length < 5) return null;
 
-    const match = registerStudentId.match(/^[A-Z]{2}(\d{2})/i);
-    if (match) {
-      const batch = parseInt(match[1], 10);
-      if (batch <= 18) {
-        return (
-          <div className="mt-2 text-sm text-blue-600 font-medium">
-            <Translate contentKey="register.messages.missing.k18_expected_email_1">
-              Hệ thống yêu cầu bạn nhập đúng Email @fpt.edu.vn chính chủ của mã sinh viên này
-            </Translate>
-          </div>
-        );
-      }
-      return (
-        <div className="mt-2 text-sm text-emerald-600 font-medium">
-          <Translate contentKey="register.messages.missing.k19_forbidden_fpt_1">
-            Khóa K19 có thể tự do sử dụng Email cá nhân để đăng ký/Email khác (Không sử dụng đuôi @fpt.edu.vn)
-          </Translate>
-        </div>
-      );
-    }
-    return null;
-  };
+  //   const match = registerStudentId.match(/^[A-Z]{2}(\d{2})/i);
+  //   if (match) {
+  //     const batch = parseInt(match[1], 10);
+  //     if (batch <= 18) {
+  //       return (
+  //         <div className="mt-2 text-sm text-blue-600 font-medium">
+  //           <Translate contentKey="register.messages.missing.k18_expected_email_1">
+  //             Hệ thống yêu cầu bạn nhập đúng Email @fpt.edu.vn chính chủ của mã sinh viên này
+  //           </Translate>
+  //         </div>
+  //       );
+  //     }
+  //     return (
+  //       <div className="mt-2 text-sm text-emerald-600 font-medium">
+  //         <Translate contentKey="register.messages.missing.k19_forbidden_fpt_1">
+  //           Khóa K19 có thể tự do sử dụng Email cá nhân để đăng ký/Email khác (Không sử dụng đuôi @fpt.edu.vn)
+  //         </Translate>
+  //       </div>
+  //     );
+  //   }
+  //   return null;
+  // };
 
   const handleRegisterSubmit = async () => {
     const normalizedStudentId = registerStudentId.trim().toUpperCase();
-    const normalizedEmail = registerEmail.trim().toLowerCase(); // Khai báo dùng chung cho chuẩn
+    // const normalizedEmail = registerEmail.trim().toLowerCase(); // Khai báo dùng chung cho chuẩn
 
-    if (!registerFirstName.trim()) {
-      setRegisterError(translate('register.messages.missing.missingFirstName'));
-      return;
-    }
-    if (!registerLastName.trim()) {
-      setRegisterError(translate('register.messages.missing.missingLastName'));
-      return;
-    }
-    if (!registerUniversityId) {
-      setRegisterError(translate('register.messages.missing.missingUniversity'));
-      return;
-    }
-    if (!normalizedStudentId.trim()) {
-      setRegisterError(translate('register.messages.missing.missingStudentId'));
-      return;
-    }
-    if (!/^[A-Z]{2}\d{5,6}$/.test(normalizedStudentId)) {
-      setRegisterError(translate('register.messages.missing.invalidStudentId'));
-      return;
-    }
-    if (!registerEmail) {
-      setRegisterError(translate('register.messages.missing.missingEmail'));
-      return;
-    }
-    if (emailError) {
-      setRegisterError(translate('register.messages.missing.invalidEmailSuffix'));
-      return;
-    }
+    // if (!registerFirstName.trim()) {
+    //   setRegisterError(translate('register.messages.missing.missingFirstName'));
+    //   return;
+    // }
+    // if (!registerLastName.trim()) {
+    //   setRegisterError(translate('register.messages.missing.missingLastName'));
+    //   return;
+    // }
+    // if (!registerUniversityId) {
+    //   setRegisterError(translate('register.messages.missing.missingUniversity'));
+    //   return;
+    // }
+    // if (!normalizedStudentId.trim()) {
+    //   setRegisterError(translate('register.messages.missing.missingStudentId'));
+    //   return;
+    // }
+    // if (!/^[A-Z]{2}\d{5,6}$/.test(normalizedStudentId)) {
+    //   setRegisterError(translate('register.messages.missing.invalidStudentId'));
+    //   return;
+    // }
+    // if (!registerEmail) {
+    //   setRegisterError(translate('register.messages.missing.missingEmail'));
+    //   return;
+    // }
 
-    // ==================== ĐOẠN KIỂM TRA MÃ SINH VIÊN & EMAIL THÊM MỚI ====================
-    const batchMatch = normalizedStudentId.match(/^[A-Z]{2}(\d{2})/);
-    if (batchMatch) {
-      const batch = parseInt(batchMatch[1], 10);
-
-      if (batch <= 18) {
-        // K18 trở xuống: Email bắt buộc phải là <masinhvien>@fpt.edu.vn
-        const expectedSuffix = `${normalizedStudentId.toLowerCase()}@fpt.edu.vn`;
-        if (!normalizedEmail.endsWith(expectedSuffix)) {
-          setRegisterError(translate('register.messages.missing.k18_expected_email', { expected: expectedSuffix }));
-          return;
-        }
-      } else {
-        // K19 trở lên: Nghiêm cấm dùng đuôi @fpt.edu.vn
-        if (normalizedEmail.endsWith('@fpt.edu.vn')) {
-          setRegisterError(translate('register.messages.missing.k19_forbidden_fpt'));
-          return;
-        }
-        // Tiện tay chặn luôn email rác ở Frontend
-        const trashDomains = ['10minutemail', 'tempmail', 'mailinator', 'dispostable'];
-        if (trashDomains.some(domain => normalizedEmail.includes(domain))) {
-          setRegisterError(translate('register.messages.missing.disposable_email'));
-          return;
-        }
-      }
-    }
-    // ===================================================================================
-
-    if (!registerPassword) {
-      setRegisterError(translate('register.messages.missing.missingPassword'));
-      return;
-    }
-    if (!isPasswordValid(registerPassword)) {
-      setRegisterError(translate('register.messages.missing.invalidPassword'));
-      return;
-    }
-    if (registerPassword !== registerConfirmPassword) {
-      setRegisterError(translate('register.messages.missing.passwords_mismatch'));
-      return;
-    }
+    // if (!registerPassword) {
+    //   setRegisterError(translate('register.messages.missing.missingPassword'));
+    //   return;
+    // }
+    // if (!isPasswordValid(registerPassword)) {
+    //   setRegisterError(translate('register.messages.missing.invalidPassword'));
+    //   return;
+    // }
+    // if (registerPassword !== registerConfirmPassword) {
+    //   setRegisterError(translate('register.messages.missing.passwords_mismatch'));
+    //   return;
+    // }
     if (!registerTermsAccepted) {
       setRegisterError(translate('register.messages.missing.terms_required'));
       return;
@@ -349,6 +356,19 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
     setLoading(false);
   };
 
+  const loginUsernameValidate = (value: any) => {
+    const val = (value || '').toString().trim();
+    // Bỏ qua kiểm tra nếu là tài khoản 'admin' hoặc 'user' (bất kỳ tài khoản bypass nào bạn muốn)
+    if (val.toLowerCase() === 'admin') return true;
+
+    // Nếu không phải admin, bắt buộc phải đúng định dạng email
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(val)) {
+      return translate('login.messages.validate.username.invalid', { default: 'Tên đăng nhập phải là một email hợp lệ.' });
+    }
+    return true;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] overflow-y-auto">
@@ -361,9 +381,13 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
             <div className="w-10 h-10 bg-[#FF6B35] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">U</span>
             </div>
-            <span className="text-2xl font-bold">Unipass</span>
+            <span className="text-2xl font-bold">
+              <Translate contentKey="global.title">UniPass</Translate>
+            </span>
           </div>
-          <p className="text-white/80 text-sm">Chợ trường an toàn của bạn</p>
+          <p className="text-white/80 text-sm">
+            <Translate contentKey="global.slogan">Chợ trường an toàn của bạn</Translate>
+          </p>
         </div>
 
         {/* Tabs */}
@@ -376,7 +400,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
               activeTab === 'login' ? 'text-[#FF6B35] bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            Đăng nhập
+            <Translate contentKey="global.menu.account.login">Sign in</Translate>
             {activeTab === 'login' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]"></div>}
           </button>
           <button
@@ -387,7 +411,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
               activeTab === 'register' ? 'text-[#FF6B35] bg-orange-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            Đăng ký
+            <Translate contentKey="global.menu.account.register">Register</Translate>
             {activeTab === 'register' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF6B35]"></div>}
           </button>
         </div>
@@ -491,43 +515,94 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
 
               <div>
                 <label className="block text-sm text-gray-700 mb-2 font-medium">Email trường đại học</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
+                <div className="relative flex flex-col justify-center">
+                  <Mail className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400 z-10 pointer-events-none" />
+                  <ValidatedField
+                    name="username"
                     type="text"
+                    placeholder={translate('global.form.username.placeholder')}
+                    validate={{
+                      required: {
+                        value: true,
+                        message: translate('login.messages.validate.username.required', { default: 'Tên đăng nhập là bắt buộc.' }),
+                      },
+                      validate: loginUsernameValidate,
+                    }}
+                    register={formRegister}
+                    error={formErrors.username}
+                    isTouched={touchedFields.username}
+                    isDirty={dirtyFields.username}
                     value={emailValue}
-                    onChange={e => setEmailValue(e.target.value)}
-                    placeholder="tencuaban@truongdaihoc.edu.vn"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
-                    required
+                    onChange={e => {
+                      const val = e.target.value;
+                      setEmailValue(val);
+                      setValue('username', val);
+                      trigger('username'); // Chạy báo lỗi real-time
+                    }}
+                    className="w-full pl-8"
+                    inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm text-gray-700 mb-2 font-medium">Mật khẩu</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
+                <div className="relative flex flex-col justify-center">
+                  <Lock className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400 z-10 pointer-events-none" />{' '}
+                  <ValidatedField
+                    name="password"
                     type="password"
+                    placeholder={translate('login.form.password.placeholder')}
+                    validate={{
+                      required: {
+                        value: true,
+                        message: translate('login.messages.validate.password.required', { default: 'Mật khẩu là bắt buộc.' }),
+                      },
+                    }}
+                    register={formRegister}
+                    error={formErrors.password}
+                    isTouched={touchedFields.password}
+                    isDirty={dirtyFields.password}
                     value={passwordValue}
-                    onChange={e => setPasswordValue(e.target.value)}
-                    placeholder="Nhập mật khẩu của bạn"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
-                    required
+                    onChange={e => {
+                      const val = e.target.value;
+                      setPasswordValue(val);
+                      setValue('password', val);
+                      trigger('password'); // Chạy báo lỗi real-time
+                    }}
+                    className="w-full pl-8"
+                    inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
                 </div>
                 <p className="mt-2 text-xs text-gray-500">Mật khẩu tối thiểu 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]" />
-                  <span className="text-gray-700">Ghi nhớ đăng nhập</span>
-                </label>
-                <a href="#" className="text-[#FF6B35] hover:text-[#FF5722]">
-                  Quên mật khẩu?
-                </a>
+              <div className="flex items-center justify-between text-sm w-full">
+                <div className="inline-flex items-center gap-2 cursor-pointer [&_.form-group]:mb-0 [&_.form-check]:mb-0 [&_.form-check]:p-0 [&_.form-check]:inline-flex [&_.form-check]:items-center">
+                  <ValidatedField
+                    name="rememberMe"
+                    type="checkbox"
+                    check
+                    label=""
+                    checked={rememberMe}
+                    register={formRegister}
+                    onChange={e => {
+                      const target = e.target as HTMLInputElement;
+                      setRememberMe(target.checked);
+                      setValue('rememberMe', target.checked);
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35] cursor-pointer"
+                  />
+                  <span className="text-gray-700 select-none whitespace-nowrap">{translate('login.form.rememberme')}</span>
+                </div>
+
+                <Link
+                  to="/account/reset/request"
+                  data-cy="forgetYourPasswordSelector"
+                  className="text-[#FF6B35] hover:text-[#FF5722] hover:underline whitespace-nowrap"
+                >
+                  <Translate contentKey="login.password.forgot">Quên mật khẩu?</Translate>
+                </Link>
               </div>
 
               <button
@@ -541,6 +616,19 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
               <div className="flex items-center gap-2 text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
                 <Shield className="w-4 h-4 text-[#0A2647]" />
                 <span>Đăng nhập bảo mật với xác thực email trường đại học</span>
+              </div>
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('register')}
+                  className="text-sm text-gray-500 hover:text-[#FF6B35] transition-colors focus:outline-none font-medium hover:underline"
+                >
+                  <span>
+                    <Translate contentKey="global.messages.info.register.noaccount">You don&apos;t have an account yet?</Translate>
+                  </span>{' '}
+                  <Translate contentKey="global.messages.info.register.link">Register a new account</Translate>
+                </button>
               </div>
             </form>
           ) : (
@@ -572,7 +660,12 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                       isTouched={touchedFields.firstName}
                       isDirty={dirtyFields.firstName}
                       value={registerFirstName}
-                      onChange={e => setRegisterFirstName(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setRegisterFirstName(val);
+                        setValue('firstName', val);
+                        trigger('firstName');
+                      }}
                       className="w-full pl-8"
                       inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                     />
@@ -597,7 +690,12 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                       isTouched={touchedFields.lastName}
                       isDirty={dirtyFields.lastName}
                       value={registerLastName}
-                      onChange={e => setRegisterLastName(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setRegisterLastName(val);
+                        setValue('lastName', val);
+                        trigger('lastName');
+                      }}
                       className="w-full pl-8"
                       inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                     />
@@ -626,7 +724,13 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                       isTouched={touchedFields.studentIdNumber}
                       isDirty={dirtyFields.studentIdNumber}
                       value={registerStudentId}
-                      onChange={e => setRegisterStudentId(e.target.value.toUpperCase())}
+                      onChange={e => {
+                        const newValue = e.target.value.toUpperCase();
+                        setRegisterStudentId(newValue);
+                        setValue('studentIdNumber', newValue);
+                        trigger('studentIdNumber');
+                        trigger('email');
+                      }}
                       className="w-full pl-8"
                       inputClass="uppercase w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                       maxLength={8}
@@ -647,7 +751,12 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                       isTouched={touchedFields.universityId}
                       isDirty={dirtyFields.universityId}
                       value={registerUniversityId}
-                      onChange={e => setRegisterUniversityId(e.target.value ? Number(e.target.value) : '')}
+                      onChange={e => {
+                        const val = e.target.value ? Number(e.target.value) : '';
+                        setRegisterUniversityId(val);
+                        setValue('universityId', val);
+                        trigger('universityId');
+                      }}
                       inputClass="w-full appearance-none pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-lg shadow-none focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-gray-700"
                     >
                       <option value="" className="text-gray-400 bg-white py-2">
@@ -682,7 +791,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                   />
                   <ValidatedField
                     name="email"
-                    type="email"
+                    type="text"
                     placeholder="tencuaban@truongdaihoc.edu.vn"
                     validate={{
                       required: { value: true, message: translate('register.messages.missing.missingEmail') },
@@ -695,10 +804,13 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                     isDirty={dirtyFields.email}
                     value={registerEmail}
                     onChange={e => {
-                      const value = e.target.value;
+                      const value = e.target.value.trim();
                       setRegisterEmail(value);
+                      setValue('email', value);
                       setEmailError(!value.endsWith('.edu') && !value.endsWith('.edu.vn'));
+                      trigger('email'); // Thực hiện chạy báo lỗi real-time
                     }}
+                    autoComplete="off"
                     className="w-full pl-8"
                     inputClass={`w-full pl-10 pr-10 py-3 border-2 rounded-lg focus:outline-none transition-colors ${
                       emailError
@@ -706,17 +818,17 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                         : 'border-gray-300 focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent'
                     }`}
                   />
-                  {emailError && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />}
+                  {/* {emailError && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />} */}
                 </div>
-                {emailError && (
+                {/* {emailError && (
                   <div className="mt-2 flex items-start gap-2 text-sm text-red-600">
                     <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <span>
                       Email phải có đuôi <strong>.edu</strong> hoặc <strong>.edu.vn</strong>.
                     </span>
                   </div>
-                )}
-                {renderEmailHelperText()}
+                )} */}
+                {/* {renderEmailHelperText()} */}
               </div>
               <div>
                 <label className="block text-sm text-gray-700 mb-2">Mật khẩu</label>
@@ -735,7 +847,15 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                     isTouched={touchedFields.password}
                     isDirty={dirtyFields.password}
                     value={registerPassword}
-                    onChange={e => setRegisterPassword(e.target.value)}
+                    onChange={e => {
+                      const newValue = e.target.value;
+                      setRegisterPassword(newValue);
+                      setValue('password', newValue);
+                      if (registerConfirmPassword) {
+                        trigger('confirmPassword');
+                      }
+                    }}
+                    autoComplete="new-password"
                     className="w-full pl-8"
                     inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
@@ -753,13 +873,20 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                     placeholder="Nhập lại mật khẩu"
                     validate={{
                       required: { value: true, message: translate('register.messages.missing.passwords_mismatch') },
+                      validate: value => value === registerPassword || translate('register.messages.missing.passwords_mismatch'),
                     }}
                     register={formRegister}
                     error={formErrors.confirmPassword}
                     isTouched={touchedFields.confirmPassword}
                     isDirty={dirtyFields.confirmPassword}
                     value={registerConfirmPassword}
-                    onChange={e => setRegisterConfirmPassword(e.target.value)}
+                    onChange={e => {
+                      const newValue = e.target.value;
+                      setRegisterConfirmPassword(newValue);
+                      setValue('confirmPassword', newValue);
+                      trigger('confirmPassword');
+                    }}
+                    autoComplete="new-password"
                     className="w-full pl-8"
                     inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />

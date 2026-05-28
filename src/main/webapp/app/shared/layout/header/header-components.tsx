@@ -31,7 +31,7 @@ export const Home = () => (
     >
       <FontAwesomeIcon icon={faHome} />
       <span>
-        <Translate contentKey="global.menu.home">Home</Translate>
+        <Translate contentKey="global.menu.home.title_home">Home</Translate>
       </span>
     </NavLink>
   </NavItem>

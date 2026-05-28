@@ -1,9 +1,14 @@
 {
   "global": {
-    "title": "UnipassWebApp",
+    "title": "UniPass",
+    "slogan": "Chợ trường an toàn của bạn",
     "browsehappy": "Bạn đang sử dụng một trình duyệt <strong>quá cũ</strong>. Vui lòng <a href=\"http://browsehappy.com/?locale=en\">nâng cấp trình duyệt</a> của bạn để có trải nghiệm tốt nhất.",
     "menu": {
-      "home": "Trang chủ",
+      "home": {
+        "title_home": "Trang chủ",
+        "title_home_1": "Giá tốt, gần bạn",
+        "text_home": "Giao dịch an toàn với bạn bè đã xác thực. Mua và bán sách giáo khoa, điện tử và nhiều hơn nữa trong cộng đồng trường đại học của bạn."
+      },
       "jhipster-needle-menu-add-element": "JHipster will add additional menu entries here (do not translate!)",
       "entities": {
         "main": "Thực thể",
