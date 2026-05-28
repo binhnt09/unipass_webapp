@@ -1,6 +1,6 @@
 import React from 'react';
 import { Translate } from 'react-jhipster';
-import { Navigate, PathRouteProps, useLocation } from 'react-router';
+import { NavigationType, useNavigate, useNavigationType, PathRouteProps } from 'react-router';
 
 import { useAppSelector } from 'app/config/store';
 import { useAuth } from 'app/contexts/AuthContext';
@@ -20,11 +20,26 @@ const PrivateRoute = ({ children, hasAnyAuthorities = [], ...rest }: IOwnProps) 
   const sessionHasBeenFetched = useAppSelector(state => state.authentication.sessionHasBeenFetched);
   const account = useAppSelector(state => state.authentication.account);
   const isAuthorized = hasAnyAuthority(account.authorities, hasAnyAuthorities);
-  const pageLocation = useLocation();
+  const navigate = useNavigate();
+  const navigationType = useNavigationType();
+  const { openAuthModal } = useAuth();
+  const redirectAttemptedRef = React.useRef(false);
 
   if (!children) {
     throw new Error(`A component needs to be specified for private route for path ${rest.path}`);
   }
+
+  React.useEffect(() => {
+    if (!isAuthenticated && sessionHasBeenFetched && !contextIsAuthenticated && !redirectAttemptedRef.current) {
+      redirectAttemptedRef.current = true;
+      const shouldKeepOnRouteChange = navigationType === NavigationType.Push;
+      const shouldNavigateBackOnClose = navigationType !== NavigationType.Push && window.history.length > 1;
+      openAuthModal({ keepOpenOnRouteChange: shouldKeepOnRouteChange, navigateBackOnClose: shouldNavigateBackOnClose });
+      if (shouldKeepOnRouteChange) {
+        navigate(-1);
+      }
+    }
+  }, [isAuthenticated, sessionHasBeenFetched, contextIsAuthenticated, navigate, navigationType, openAuthModal]);
 
   if (!sessionHasBeenFetched && !contextIsAuthenticated) {
     return <div></div>;
@@ -49,16 +64,7 @@ const PrivateRoute = ({ children, hasAnyAuthorities = [], ...rest }: IOwnProps) 
     );
   }
 
-  return (
-    <Navigate
-      to={{
-        pathname: '/login',
-        search: pageLocation.search,
-      }}
-      replace
-      state={{ from: pageLocation }}
-    />
-  );
+  return null;
 };
 
 export const hasAnyAuthority = (authorities: string[], hasAnyAuthorities: string[]) => {

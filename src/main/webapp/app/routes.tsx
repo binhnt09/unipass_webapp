@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
+import { createBrowserRouter, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
 
 import { sendActivity } from 'app/config/websocket-middleware';
 // import EntitiesRoutes from 'app/entities/routes';
@@ -16,6 +16,8 @@ import PageNotFound from 'app/shared/error/page-not-found';
 import { Authority } from 'app/shared/jhipster/constants';
 import Footer from 'app/shared/layout/footer/footer';
 import Header from 'app/shared/layout/header/header';
+import { useAuth } from 'app/contexts/AuthContext';
+import { AuthModal } from 'app/modules/login/AuthModal';
 import { useAppSelector, useAppDispatch } from 'app/config/store';
 import { hasAnyAuthority } from 'app/shared/auth/private-route';
 import { getProfile } from 'app/shared/reducers/application-profile';
@@ -94,6 +96,8 @@ const RootLayout = () => {
   const ribbonEnv = useAppSelector(state => state.applicationProfile.ribbonEnv);
   const isInProduction = useAppSelector(state => state.applicationProfile.inProduction);
   const isOpenAPIEnabled = useAppSelector(state => state.applicationProfile.isOpenAPIEnabled);
+  const navigate = useNavigate();
+  const { authModalOpen, authModalOpenedByPrivateRoute, authModalNavigateBackOnClose, closeAuthModal } = useAuth();
 
   const paddingTop = '60px';
   return (
@@ -115,6 +119,22 @@ const RootLayout = () => {
           </Suspense>
         </ErrorBoundary>
         <Footer />
+        {authModalOpen ? (
+          <AuthModal
+            onClose={() => {
+              if (authModalNavigateBackOnClose) {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/', { replace: true });
+                }
+              }
+              closeAuthModal();
+            }}
+            onLoginSuccess={closeAuthModal}
+            closeOnLocationChange={!authModalOpenedByPrivateRoute}
+          />
+        ) : null}
       </div>
     </div>
   );

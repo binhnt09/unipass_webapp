@@ -19,6 +19,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isSeller: boolean;
   isAdmin: boolean;
+  authModalOpen: boolean;
+  authModalOpenedByPrivateRoute: boolean;
+  authModalNavigateBackOnClose: boolean;
+  openAuthModal: (options?: { keepOpenOnRouteChange?: boolean; navigateBackOnClose?: boolean }) => void;
+  closeAuthModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,6 +91,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalOpenedByPrivateRoute, setAuthModalOpenedByPrivateRoute] = useState(false);
+  const [authModalNavigateBackOnClose, setAuthModalNavigateBackOnClose] = useState(false);
+
+  const openAuthModal = (options?: { keepOpenOnRouteChange?: boolean; navigateBackOnClose?: boolean }) => {
+    setAuthModalOpen(true);
+    setAuthModalOpenedByPrivateRoute(Boolean(options?.keepOpenOnRouteChange));
+    setAuthModalNavigateBackOnClose(Boolean(options?.navigateBackOnClose));
+  };
+  const closeAuthModal = () => {
+    setAuthModalOpen(false);
+    setAuthModalOpenedByPrivateRoute(false);
+    setAuthModalNavigateBackOnClose(false);
+  };
+
   const login = (email: string, password: string): boolean => {
     const userAccount = MOCK_USERS[email.toLowerCase()];
 
@@ -112,6 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!user,
     isSeller: user?.role === 'seller',
     isAdmin: user?.role === 'admin',
+    authModalOpen,
+    authModalOpenedByPrivateRoute,
+    authModalNavigateBackOnClose,
+    openAuthModal,
+    closeAuthModal,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
