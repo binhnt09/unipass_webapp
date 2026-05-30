@@ -1,0 +1,212 @@
+/* Success Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-checkmark {
+  animation: checkmark 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.3s both;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+/* NEW FEATURE: Dark Mode - CSS custom properties for theme colors */
+:root {
+  --primary-bg: #ffffff;
+  --secondary-bg: #f9fafb;
+  --primary-text: #0a2647;
+  --secondary-text: #6b7280;
+  --border-color: #e5e7eb;
+}
+
+.dark {
+  --primary-bg: #1f2937;
+  --secondary-bg: #111827;
+  --primary-text: #ffffff;
+  --secondary-text: #d1d5db;
+  --border-color: #374151;
+}
+
+/* NEW FEATURE: Dark Mode - Smooth transition for theme changes */
+* {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* NEW FEATURE: Accessibility - Font size adjustments */
+.text-normal {
+  font-size: 100%;
+}
+
+.text-large {
+  font-size: 112.5%; /* 1.125x */
+}
+
+.text-x-large {
+  font-size: 125%; /* 1.25x */
+}
+
+/* NEW FEATURE: Accessibility - High contrast mode */
+.high-contrast {
+  --primary-bg: #000000;
+  --secondary-bg: #1a1a1a;
+  --primary-text: #ffffff;
+  --secondary-text: #f0f0f0;
+  --border-color: #ffffff;
+}
+
+.high-contrast * {
+  border-width: 2px !important;
+}
+
+/* NEW FEATURE: Accessibility - Reduce motion for users with motion sensitivity */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* NEW FEATURE: Accessibility - Enhanced focus indicators for keyboard navigation */
+.focus-indicators *:focus {
+  outline: 3px solid #ff6b35 !important;
+  outline-offset: 2px !important;
+  border-radius: 4px;
+}
+
+.focus-indicators button:focus,
+.focus-indicators a:focus,
+.focus-indicators input:focus,
+.focus-indicators select:focus,
+.focus-indicators textarea:focus {
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* NEW FEATURE: Accessibility - Skip to main content link for screen readers */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem 1.5rem;
+  background-color: #ff6b35;
+  color: white;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  font-weight: bold;
+}
+
+.skip-to-main:focus {
+  left: 0;
+  top: 0;
+}
+
+/* NEW FEATURE: Loading States - Shimmer animation for skeleton screens */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-pulse {
+  background: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.dark .animate-pulse {
+  background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #374151 100%);
+  background-size: 1000px 100%;
+}
+
+/* NEW FEATURE: Accessibility - Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

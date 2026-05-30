@@ -45,6 +45,13 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
 
   const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    setEmailValue('');
+    setPasswordValue('');
+    setLoginErrorMessage(null);
+    setRememberMe(false);
+  }, [activeTab]);
+
   const dispatch = useAppDispatch();
   const isAuthenticatedRedux = useAppSelector(state => state.authentication.isAuthenticated);
   const loginErrorRedux = useAppSelector(state => state.authentication.loginError);
@@ -362,7 +369,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
     // Nếu không phải admin, bắt buộc phải đúng định dạng email
     const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
     if (!emailRegex.test(val)) {
-      return translate('login.messages.validate.username.invalid', { default: 'Tên đăng nhập phải là một email hợp lệ.' });
+      return translate('register.messages.missing.invalidEmailSuffix', { default: 'Tên đăng nhập phải là một email hợp lệ.' });
     }
     return true;
   };
@@ -418,6 +425,8 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
         <div className="p-6">
           {activeTab === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-4">
+              <input type="text" name="fake-username" autoComplete="username" style={{ display: 'none' }} readOnly />
+              <input type="password" name="fake-password" autoComplete="new-password" style={{ display: 'none' }} readOnly />
               {/* Demo Accounts Info */}
               {showDemoAccounts && (
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200">
@@ -518,11 +527,12 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                   <ValidatedField
                     name="username"
                     type="text"
+                    // autoComplete="off"
                     placeholder={translate('global.form.username.placeholder')}
                     validate={{
                       required: {
                         value: true,
-                        message: translate('login.messages.validate.username.required', { default: 'Tên đăng nhập là bắt buộc.' }),
+                        message: translate('register.messages.missing.missingEmail', { default: 'Tên đăng nhập là bắt buộc.' }),
                       },
                       validate: loginUsernameValidate,
                     }}
@@ -550,11 +560,12 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                   <ValidatedField
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder={translate('login.form.password.placeholder')}
                     validate={{
                       required: {
                         value: true,
-                        message: translate('login.messages.validate.password.required', { default: 'Mật khẩu là bắt buộc.' }),
+                        message: translate('register.messages.missing.missingPassword', { default: 'Mật khẩu là bắt buộc.' }),
                       },
                     }}
                     register={formRegister}
