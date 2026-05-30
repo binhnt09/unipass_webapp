@@ -56,7 +56,6 @@
     "jest:update": "npm run jest -- --updateSnapshot",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "prepare": "husky",
     "prettier:check": "prettier --check \"{,.blueprint/**/,src/**/,webpack/}*.{md,json,yml,js,cjs,mjs,ts,cts,mts,java,html,tsx,css,scss}\"",
     "prettier:format": "prettier --write \"{,.blueprint/**/,src/**/,webpack/}*.{md,json,yml,js,cjs,mjs,ts,cts,mts,java,html,tsx,css,scss}\"",
     "services:up": "docker compose -f src/main/docker/services.yml up --wait",
