@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
+import { useAppSelector } from 'app/config/store';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface PurchaseRequest {
   id: string;
@@ -23,12 +25,16 @@ export function SellerDashboardPage() {
   const [currentRequests, setCurrentRequests] = useState<PurchaseRequest[]>([]);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
 
+  const account = useAppSelector(state => state.authentication.account);
+  const { user } = useAuth();
+
   // Optimized Fetch Lifecycle to completely eliminate N+1 requests
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
       // 1. Fetch all listings of the seller (single call)
-      const listingsRes = await axios.get<IProduct[]>('/api/products/my-listings?page=0&size=20');
+      const sellerLogin = account?.login || user?.email || 'seller';
+      const listingsRes = await axios.get<IProduct[]>(`/api/products?sellerLogin.equals=${encodeURIComponent(sellerLogin)}&page=0&size=20`);
       const products = listingsRes.data || [];
 
       // 2. Fetch all images and order items in parallel single-batch requests (eliminating parallel loops)
@@ -143,7 +149,9 @@ export function SellerDashboardPage() {
   // Dynamic Header Stats Calculation
   const totalPendingRequests = listings.reduce((sum, item: any) => sum + (item.pendingRequests || 0), 0);
   const activeListingsCount = listings.filter(item => item.status === 'AVAILABLE').length;
-  const totalInventoryValue = listings.filter(item => item.status === 'AVAILABLE').reduce((sum, item) => sum + (item.price || 0), 0);
+  const totalInventoryValue = listings
+    .filter(item => item.status === 'AVAILABLE')
+    .reduce((sum, item) => sum + (item.price || 0) * (item.stock !== undefined ? item.stock : 1), 0);
 
   const formatInventoryValue = (val: number) => {
     if (val >= 1000000) {
@@ -217,6 +225,7 @@ export function SellerDashboardPage() {
                 <tr>
                   <th className="text-left py-4 px-6 font-bold text-gray-900 text-sm">Sản phẩm</th>
                   <th className="text-left py-4 px-6 font-bold text-gray-900 text-sm">Giá</th>
+                  <th className="text-left py-4 px-6 font-bold text-gray-900 text-sm">Kho hàng (Stock)</th>
                   <th className="text-left py-4 px-6 font-bold text-gray-900 text-sm">Lượt xem</th>
                   <th className="text-left py-4 px-6 font-bold text-gray-900 text-sm">Trạng thái</th>
                   <th className="text-center py-4 px-6 font-bold text-gray-900 text-sm">Thao tác</th>
@@ -265,6 +274,21 @@ export function SellerDashboardPage() {
                       {/* Price */}
                       <td className="py-4 px-6">
                         <span className="font-bold text-[#0A2647] text-lg">{(listing.price || 0).toLocaleString('vi-VN')}đ</span>
+                      </td>
+
+                      {/* Stock */}
+                      <td className="py-4 px-6">
+                        {listing.stock !== undefined ? (
+                          listing.stock === 0 ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                              Hết hàng (0)
+                            </span>
+                          ) : (
+                            <span className="text-gray-900 font-medium">{listing.stock}</span>
+                          )
+                        ) : (
+                          <span className="text-gray-500">1</span>
+                        )}
                       </td>
 
                       {/* Views (Defaulting to 0 since not present in basic product schema) */}

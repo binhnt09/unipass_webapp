@@ -12,6 +12,7 @@ interface CartItem {
   university: string;
   condition: string;
   quantity: number;
+  stock?: number;
 }
 
 export function ShoppingCartPage() {
@@ -26,6 +27,7 @@ export function ShoppingCartPage() {
       university: 'MIT',
       condition: 'Like New',
       quantity: 1,
+      stock: 5,
     },
     {
       id: '2',
@@ -37,6 +39,7 @@ export function ShoppingCartPage() {
       university: 'Yale',
       condition: 'Excellent',
       quantity: 1,
+      stock: 1,
     },
     {
       id: '3',
@@ -48,19 +51,26 @@ export function ShoppingCartPage() {
       university: 'Berkeley',
       condition: 'Like New',
       quantity: 2,
+      stock: 3,
     },
   ]);
 
   const updateQuantity = (id: string, delta: number) => {
     setCartItems(items =>
-      items.map(item =>
-        item.id === id
-          ? {
-              ...item,
-              quantity: Math.max(1, item.quantity + delta),
-            }
-          : item,
-      ),
+      items.map(item => {
+        if (item.id === id) {
+          const nextQty = item.quantity + delta;
+          if (item.stock !== undefined && nextQty > item.stock) {
+            alert(`Chỉ còn ${item.stock} sản phẩm có sẵn trong kho!`);
+            return item;
+          }
+          return {
+            ...item,
+            quantity: Math.max(1, nextQty),
+          };
+        }
+        return item;
+      }),
     );
   };
 
@@ -145,21 +155,27 @@ export function ShoppingCartPage() {
                       {/* Quantity and Price */}
                       <div className="flex items-center justify-between">
                         {/* Quantity Selector */}
-                        <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-1">
-                          <button
-                            onClick={() => updateQuantity(item.id, -1)}
-                            disabled={item.quantity === 1}
-                            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <span className="w-8 text-center font-medium">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, 1)}
-                            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white transition-colors"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-1">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              disabled={item.quantity === 1}
+                              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              disabled={item.stock !== undefined && item.quantity >= item.stock}
+                              className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                          {item.stock !== undefined && (
+                            <span className="text-[10px] text-gray-500 font-medium text-center">Còn lại: {item.stock}</span>
+                          )}
                         </div>
 
                         {/* Price */}

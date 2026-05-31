@@ -54,7 +54,8 @@ export const AccountMenu = ({
 
   // 3. Hợp nhất trạng thái
   const isAuthenticated = propIsAuthenticated || isDemoAuth || isRealAuth;
-  const isSeller = isDemoSeller; // Hoặc logic check role từ realUser nếu cần
+  const authorities = realUser?.authorities || [];
+  const isSeller = isDemoAuth ? !!isDemoSeller : authorities.includes('ROLE_SELLER');
   const currentUser = isDemoAuth ? demoUser : { name: realUser.login, email: realUser.email };
 
   const dispatch = useAppDispatch();

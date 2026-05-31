@@ -60,6 +60,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
       rating: 4.8,
       reviews: 12,
       condition: conditionDisplay,
+      stock: prod.stock,
     };
   });
 

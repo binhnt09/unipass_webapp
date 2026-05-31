@@ -15,6 +15,7 @@ interface Product {
   rating: number;
   reviews: number;
   condition: string;
+  stock?: number;
 }
 
 interface ProductCardProps {
@@ -39,7 +40,12 @@ export function ProductCard({ product }: ProductCardProps) {
           {discount && (
             <div className="absolute top-2 left-2 bg-[#FF6B35] text-white px-2 py-1 rounded-md text-xs font-medium">{discount}% OFF</div>
           )}
-          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-gray-700">
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm tracking-wider z-10">
+              HẾT HÀNG
+            </div>
+          )}
+          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-gray-700 z-10">
             {product.condition}
           </div>
         </div>
@@ -84,10 +90,19 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <button className="flex-1 bg-[#FF6B35] hover:bg-[#FF5722] text-white py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2">
-            <ShoppingCart className="w-4 h-4" />
-            Thêm vào giỏ
-          </button>
+          {product.stock === 0 ? (
+            <button
+              disabled
+              className="flex-1 bg-gray-300 text-gray-500 py-2 px-3 rounded-lg font-medium text-sm cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              Hết hàng
+            </button>
+          ) : (
+            <button className="flex-1 bg-[#FF6B35] hover:bg-[#FF5722] text-white py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2">
+              <ShoppingCart className="w-4 h-4" />
+              Thêm vào giỏ
+            </button>
+          )}
           <button className="p-2 border border-gray-300 hover:border-[#0A2647] hover:bg-gray-50 rounded-lg transition-colors">
             <MessageCircle className="w-4 h-4 text-gray-700" />
           </button>

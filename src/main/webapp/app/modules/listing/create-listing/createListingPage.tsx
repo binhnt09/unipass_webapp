@@ -33,6 +33,7 @@ export function CreateListingPage() {
     category: '',
     condition: '',
     description: '',
+    stock: '1',
   });
 
   // Fetch categories dynamically on component mount
@@ -67,6 +68,7 @@ export function CreateListingPage() {
             category: product.category?.id ? String(product.category.id) : '',
             condition: product.condition || '',
             description: product.description || '',
+            stock: product.stock !== undefined && product.stock !== null ? String(product.stock) : '1',
           });
         })
         .catch(err => {
@@ -162,6 +164,12 @@ export function CreateListingPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
 
+    if (Number(formData.stock) < 0) {
+      setErrorMessage('Số lượng trong kho không được âm.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // Step 1: Create or Update Product with standard JSON request
       const payload = {
@@ -172,6 +180,7 @@ export function CreateListingPage() {
         condition: formData.condition,
         category: formData.category ? { id: Number(formData.category) } : null,
         status: productData?.status || 'AVAILABLE',
+        stock: Number(formData.stock),
       };
 
       let productId = isEditMode ? Number(id) : null;
@@ -371,8 +380,8 @@ export function CreateListingPage() {
               />
             </div>
 
-            {/* Price and Category Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Price, Stock and Category Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {/* Price */}
               <div>
                 <label className="block text-gray-900 font-medium mb-2">
@@ -387,6 +396,27 @@ export function CreateListingPage() {
                   value={formData.price}
                   onChange={e => setFormData({ ...formData, price: e.target.value })}
                   placeholder="0.00"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              {/* Stock */}
+              <div>
+                <label className="block text-gray-900 font-medium mb-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-[#FF6B35]" />
+                    Stock
+                  </div>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.stock}
+                  onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                  placeholder="1"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
                   required
                   disabled={isSubmitting}
