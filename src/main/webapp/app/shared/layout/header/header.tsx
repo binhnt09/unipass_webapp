@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Nav, Navbar } from 'react-bootstrap';
 import { Storage } from 'react-jhipster';
 import { NavLink as Link } from 'react-router';
@@ -14,6 +14,7 @@ import { AuthModal } from 'app/modules/login/AuthModal';
 import { Brand, Home } from './header-components';
 import { useAuth } from 'app/contexts/AuthContext';
 import { AIChatButton } from 'app/modules/chatboxAI/AIChatButton';
+import axios from 'axios';
 
 export interface IHeaderProps {
   isAuthenticated: boolean;
@@ -30,6 +31,7 @@ const Header = (props: IHeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalDefaultTab, setAuthModalDefaultTab] = useState<'login' | 'register'>('login');
+  const [cartCount, setCartCount] = useState(0);
 
   const isUserLoggedIn = props.isAuthenticated || isDemoAuth;
   const isUserSeller = isDemoSeller;
@@ -49,6 +51,30 @@ const Header = (props: IHeaderProps) => {
   //       </a>
   //     </div>
   //   );
+
+  const fetchCartCount = async () => {
+    try {
+      const res = await axios.get('/api/cart-items/current-user/items');
+      const cartItems = res.data || [];
+
+      setCartCount(cartItems.length);
+      // const totalQuantity = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      // setCartCount(totalQuantity);
+    } catch (error) {
+      console.error('Lỗi lấy số lượng giỏ hàng:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isUserLoggedIn && !isAdmin) {
+      fetchCartCount(); // Lấy lần đầu khi load trang
+      window.addEventListener('cartUpdated', fetchCartCount); // Lắng nghe tín hiệu "cartUpdated" từ các trang khác bắn tới
+      // Cleanup khi component bị hủy
+      return () => {
+        window.removeEventListener('cartUpdated', fetchCartCount);
+      };
+    }
+  }, [isUserLoggedIn, isAdmin]);
 
   const openAuthModal = () => {
     setAuthModalDefaultTab('login');
@@ -134,7 +160,7 @@ const Header = (props: IHeaderProps) => {
                   <Link to="/cart" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Giỏ hàng">
                     <ShoppingCart className="w-5 h-5" />
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
-                      3
+                      {cartCount > 99 ? '99+' : cartCount}
                     </span>
                   </Link>
                 )}

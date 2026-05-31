@@ -54,8 +54,18 @@ export const AccountMenu = ({
 
   // 3. Hợp nhất trạng thái
   const isAuthenticated = propIsAuthenticated || isDemoAuth || isRealAuth;
-  const isSeller = isDemoSeller; // Hoặc logic check role từ realUser nếu cần
-  const currentUser = isDemoAuth ? demoUser : { name: realUser.login, email: realUser.email };
+  const currentUser = isDemoAuth
+    ? demoUser
+    : {
+        name: realUser.firstName && realUser.lastName ? `${realUser.lastName} ${realUser.firstName}` : realUser.login,
+        email: realUser.email,
+      };
+  const authorities = realUser?.authorities || [];
+  const isSeller = isDemoAuth ? !!isDemoSeller : authorities.includes('ROLE_SELLER');
+  // const isUser = authorities.includes('ROLE_USER');
+  const isBuyer = isAuthenticated || isDemoAuth;
+  // const isAdmin = authorities.includes('ROLE_ADMIN');
+  // const isManager = authorities.includes('ROLE_MANAGER');
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -151,14 +161,16 @@ export const AccountMenu = ({
               </Link>
             )}
 
-            <Link
-              to="/orders"
-              onClick={() => setShowUserMenu(false)}
-              className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
-            >
-              <ShoppingBag size={16} />
-              Purchase Order
-            </Link>
+            {isBuyer && (
+              <Link
+                to="/orders"
+                onClick={() => setShowUserMenu(false)}
+                className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
+              >
+                <ShoppingBag size={16} />
+                Purchase Order
+              </Link>
+            )}
 
             <Link
               to="/messages"

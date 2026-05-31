@@ -1,8 +1,8 @@
 import { Star, MessageCircle, ShoppingCart, BadgeCheck } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
 import { Link } from 'react-router';
-// import { useState } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
 interface Product {
   id: string;
@@ -25,6 +25,41 @@ export function ProductCard({ product }: ProductCardProps) {
   //   const [showMenu, setShowMenu] = useState(false);
 
   const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : null;
+
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Tránh việc click vô tình kích hoạt thẻ <Link> bên ngoài
+    e.stopPropagation();
+
+    setIsAdding(true);
+    try {
+      // 3. Chuẩn bị Payload theo chuẩn DTO của JHipster (CartItemDTO)
+      const payload = {
+        quantity: 1, // Mặc định thêm 1 sản phẩm
+        product: {
+          id: product.id,
+        },
+        // Lưu ý: Tùy vào BE của bạn có tự động bắt User đang login không.
+        // Thường JHipster custom API sẽ tự lấy user từ Token.
+      };
+
+      await axios.post('/api/cart-items', payload);
+
+      showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+    } catch (error) {
+      console.error('Lỗi khi thêm vào giỏ hàng:', error);
+      showToast('Có lỗi xảy ra khi thêm vào giỏ hàng hoặc bạn chưa đăng nhập!', 'error');
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group">
@@ -83,16 +118,34 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
-          <button className="flex-1 bg-[#FF6B35] hover:bg-[#FF5722] text-white py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2">
+        <div className="flex items-center gap-2 mt-auto">
+          <button
+            onClick={handleAddToCart}
+            disabled={isAdding}
+            className={`flex-1 py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 text-white
+              ${isAdding ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#FF6B35] hover:bg-[#FF5722]'}`}
+          >
             <ShoppingCart className="w-4 h-4" />
-            Thêm vào giỏ
+            {isAdding ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </button>
           <button className="p-2 border border-gray-300 hover:border-[#0A2647] hover:bg-gray-50 rounded-lg transition-colors">
             <MessageCircle className="w-4 h-4 text-gray-700" />
           </button>
         </div>
       </div>
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-20 md:bottom-6 right-6 z-50 animate-slideUp">
+          <div
+            className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+              toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`}
+          >
+            <BadgeCheck className="w-5 h-5" />
+            <span className="font-medium">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

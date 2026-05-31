@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Minus,
   Plus,
@@ -16,15 +16,18 @@ import {
 } from 'lucide-react';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 import { Link, useNavigate } from 'react-router';
+import axios from 'axios';
 
 interface CartItem {
   id: string;
+  productId: string;
   image: string;
   title: string;
   price: number;
   condition: string;
   quantity: number;
   inStock: boolean;
+  maxStock: number;
 }
 
 interface SellerGroup {
@@ -48,94 +51,8 @@ export function ShoppingCartPage() {
   const navigate = useNavigate();
 
   // Cart items grouped by seller
-  const [sellerGroups, setSellerGroups] = useState<SellerGroup[]>([
-    {
-      sellerId: '1',
-      sellerName: 'Sarah M.',
-      sellerAvatar: 'S',
-      university: 'MIT',
-      // COMMENTED OUT: Voucher mock data - will be replaced by API data
-
-      // NEW FEATURE: Trust badges - seller reputation data
-      rating: 4.8, // Average rating from reviews
-      reviewCount: 127, // Total number of reviews
-      verified: true, // Email verified and active seller
-      items: [
-        {
-          id: '1',
-          image:
-            'https://images.unsplash.com/photo-1633707392225-d883c8cd3e99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xsZWdlJTIwdGV4dGJvb2slMjBzdGFja3xlbnwxfHx8fDE3NzMyOTYwODJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-          title: 'Calculus Early Transcendentals 8th Ed.',
-          price: 45.0,
-          condition: 'Like New',
-          quantity: 1,
-          inStock: true,
-        },
-        {
-          id: '4',
-          image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop',
-          title: 'Linear Algebra and Its Applications',
-          price: 35.0,
-          condition: 'Good',
-          quantity: 1,
-          inStock: true,
-        },
-      ],
-    },
-    {
-      sellerId: '2',
-      sellerName: 'Lisa W.',
-      sellerAvatar: 'L',
-      university: 'Yale',
-      // NEW FEATURE: Trust badges - seller reputation data
-      rating: 4.6,
-      reviewCount: 89,
-      verified: true,
-      items: [
-        {
-          id: '2',
-          image:
-            'https://images.unsplash.com/photo-1583373351761-fa9e3a19c99d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzJTIwZWxlY3Ryb25pY3N8ZW58MXx8fHwxNzczMjQ2MTY1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-          title: 'Sony WH-1000XM4 Headphones',
-          price: 220.0,
-          condition: 'Excellent',
-          quantity: 1,
-          inStock: true,
-        },
-      ],
-    },
-    {
-      sellerId: '3',
-      sellerName: 'Mike T.',
-      sellerAvatar: 'M',
-      university: 'Berkeley',
-      // NEW FEATURE: Trust badges - seller reputation data
-      rating: 4.9,
-      reviewCount: 203,
-      verified: true,
-      items: [
-        {
-          id: '3',
-          image:
-            'https://images.unsplash.com/photo-1700627565641-bd6b7890befd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNrJTIwbGFtcCUyMHN0dWR5fGVufDF8fHx8MTc3MzI5NjA4M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-          title: 'LED Desk Lamp with USB Charging',
-          price: 25.0,
-          condition: 'Like New',
-          quantity: 2,
-          inStock: true,
-        },
-        {
-          id: '5',
-          image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=400&fit=crop',
-          title: 'Wireless Keyboard and Mouse Combo',
-          price: 40.0,
-          condition: 'Good',
-          quantity: 1,
-          inStock: false,
-        },
-      ],
-    },
-  ]);
+  const [sellerGroups, setSellerGroups] = useState<SellerGroup[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Selected items per seller (map of sellerId to set of item IDs)
   const [selectedItems, setSelectedItems] = useState<Record<string, Set<string>>>({});
@@ -242,42 +159,64 @@ export function ShoppingCartPage() {
     });
   };
 
-  const updateQuantity = (sellerId: string, itemId: string, delta: number) => {
-    setSellerGroups(groups =>
-      groups.map(group =>
-        group.sellerId === sellerId
-          ? {
-              ...group,
-              items: group.items.map(item => (item.id === itemId ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item)),
-            }
-          : group,
-      ),
-    );
+  const updateQuantity = async (sellerId: string, itemId: string, delta: number) => {
+    // 1. Tìm item hiện tại để lấy maxStock
+    const group = sellerGroups.find(g => g.sellerId === sellerId);
+    const item = group?.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    // 2. Tính toán số lượng mới (không nhỏ hơn 1, không lớn hơn maxStock)
+    const newQuantity = Math.max(1, Math.min(item.quantity + delta, item.maxStock));
+    if (newQuantity === item.quantity) return; // Không có sự thay đổi
+
+    try {
+      // NOTE: JHipster mặc định dùng partial-update (PATCH) hoặc PUT.
+      // Hãy điều chỉnh endpoint này theo code Backend thực tế của bạn
+      await axios.patch(`/api/cart-items/${itemId}`, { id: itemId, quantity: newQuantity });
+
+      // Cập nhật giao diện
+      setSellerGroups(groups =>
+        groups.map(g =>
+          g.sellerId === sellerId
+            ? {
+                ...g,
+                items: g.items.map(i => (i.id === itemId ? { ...i, quantity: newQuantity } : i)),
+              }
+            : g,
+        ),
+      );
+    } catch (error: any) {
+      console.error('Error updating cart item quantity:', error);
+      const errorMessage =
+        error?.response?.data?.message || error?.response?.data?.title || error?.message || 'Số lượng sản phẩm không đủ hoặc có lỗi xảy ra';
+      showToast(errorMessage, 'error');
+    }
   };
 
-  const removeItem = (sellerId: string, itemId: string) => {
-    // COMMENTED OUT: Native window.confirm - should use custom modal component
-    // when implementing with consistent design system
-    // if (!window.confirm("Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?")) {
-    //   return;
-    // }
+  const removeItem = async (sellerId: string, itemId: string) => {
+    try {
+      // Gọi API xóa ở Backend trước
+      await axios.delete(`/api/cart-items/${itemId}`);
 
-    // TODO: Replace with custom confirmation modal for better UX
-    // For now, remove directly without confirmation
-    setSellerGroups(groups =>
-      groups
-        .map(group => (group.sellerId === sellerId ? { ...group, items: group.items.filter(item => item.id !== itemId) } : group))
-        .filter(group => group.items.length > 0),
-    );
+      // Xóa thành công thì mới update giao diện FE
+      setSellerGroups(groups =>
+        groups
+          .map(group => (group.sellerId === sellerId ? { ...group, items: group.items.filter(item => item.id !== itemId) } : group))
+          .filter(group => group.items.length > 0),
+      );
 
-    // Also remove from selections
-    setSelectedItems(prev => {
-      const sellerSelections = new Set(prev[sellerId] || []);
-      sellerSelections.delete(itemId);
-      return { ...prev, [sellerId]: sellerSelections };
-    });
+      setSelectedItems(prev => {
+        const sellerSelections = new Set(prev[sellerId] || []);
+        sellerSelections.delete(itemId);
+        return { ...prev, [sellerId]: sellerSelections };
+      });
 
-    showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
+      showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
+    } catch (error: any) {
+      console.error('Lỗi khi xóa sản phẩm:', error);
+      const errorMessage = error?.response?.data?.message || error?.response?.data?.title || error?.message || 'Lỗi khi xóa sản phẩm';
+      showToast(errorMessage, 'error');
+    }
   };
 
   // COMMENTED OUT: Voucher functions - uncomment when implementing voucher system with backend API
@@ -307,6 +246,98 @@ export function ShoppingCartPage() {
   };
 
   const totalItems = sellerGroups.reduce((sum, group) => sum + group.items.length, 0);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCartData = async () => {
+      setLoading(true);
+      try {
+        // 1. Gọi API lấy giỏ hàng từ BE
+        const resCart = await axios.get('/api/cart-items/current-user/items');
+        const cartItemsData = resCart.data || [];
+
+        // 2. Gom mảng ID sản phẩm để lấy ảnh
+        const productIds = cartItemsData.map((item: any) => item.product?.id).filter(Boolean);
+        let allImages: any[] = [];
+
+        if (productIds.length > 0) {
+          const resImages = await axios.get(`/api/product-images?productId.in=${productIds.join(',')}`);
+          allImages = resImages.data || [];
+        }
+
+        if (!isMounted) return;
+
+        // 3. Gom nhóm dữ liệu theo Seller giống hệt UI của bạn
+        const groupsMap = new Map<string, SellerGroup>();
+
+        cartItemsData.forEach((ci: any) => {
+          const prod = ci.product;
+          if (!prod) return;
+
+          const seller = prod.seller;
+          const sellerId = seller?.id?.toString() || 'unknown';
+
+          // Tạo nhóm Seller nếu chưa có
+          if (!groupsMap.has(sellerId)) {
+            groupsMap.set(sellerId, {
+              sellerId,
+              sellerName: seller?.login || 'Người bán ẩn danh',
+              sellerAvatar: seller?.login?.charAt(0).toUpperCase() || 'U',
+              university: 'Đại học FPT', // Tạm thời hardcode, sau này lấy từ profile seller
+              verified: true,
+              rating: 5.0,
+              reviewCount: 0,
+              items: [],
+            });
+          }
+
+          // Trích xuất ảnh chính
+          const productImages = allImages.filter(img => img.product?.id === prod.id);
+          const primaryImage = productImages.find(img => img.isPrimary) || productImages[0];
+
+          // Đẩy item vào nhóm của Seller đó
+          const currentGroup = groupsMap.get(sellerId);
+          if (currentGroup) {
+            currentGroup.items.push({
+              id: ci.id.toString(), // Cart Item ID
+              productId: prod.id.toString(), // Product ID
+              image: primaryImage ? primaryImage.imageUrl : 'https://via.placeholder.com/150?text=No+Image',
+              title: prod.name,
+              price: prod.price,
+              condition: prod.condition || 'N/A',
+              quantity: ci.quantity,
+              inStock: prod.status === 'AVAILABLE' && prod.stock > 0,
+              maxStock: prod.stock || 1,
+            });
+          }
+        });
+
+        setSellerGroups(Array.from(groupsMap.values()));
+      } catch (err) {
+        console.error('Error fetching cart:', err);
+        showToast('Không thể tải giỏ hàng', 'error');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchCartData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-[#FF6B35] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-gray-500 font-medium">Đang tải giỏ hàng...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -400,7 +431,7 @@ export function ShoppingCartPage() {
 
                           {/* Product Image */}
                           <Link
-                            to={`/product/${item.id}`}
+                            to={`/product/${item.productId}`}
                             className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative block hover:opacity-80 transition-opacity"
                           >
                             <ImageWithFallback src={item.image} alt={item.title} className="w-full h-full object-cover" />
@@ -414,7 +445,7 @@ export function ShoppingCartPage() {
                           {/* Product Details */}
                           <div className="flex-1 min-w-0">
                             <Link
-                              to={`/product/${item.id}`}
+                              to={`/product/${item.productId}`}
                               className="font-medium text-gray-900 hover:text-[#FF6B35] mb-2 line-clamp-2 block transition-colors"
                             >
                               {item.title}
@@ -438,7 +469,8 @@ export function ShoppingCartPage() {
                                   <span className="w-8 text-center font-medium text-sm">{item.quantity}</span>
                                   <button
                                     onClick={() => updateQuantity(group.sellerId, item.id, 1)}
-                                    className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white transition-colors"
+                                    disabled={item.quantity >= item.maxStock} // Chặn bấm cộng thêm nếu hết tồn kho
+                                    className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white disabled:opacity-50 transition-colors"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
