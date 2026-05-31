@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router';
+import React, { useState, useEffect } from 'react';
+
+import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
+import { useParams, Link, useNavigate } from 'react-router';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -19,8 +21,18 @@ import {
   Calendar,
   CreditCard,
   User,
+  RotateCcw,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
-import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
+// NEW FEATURE: Import new components
+import { CancelOrderModal } from '../pages/cancelOrderModal';
+import { OrderTrackingTimeline } from '../pages/orderTrackingTimeline';
+import { OrderNotes } from '../pages/orderNotes';
+// NEW FEATURE: Real-time Status Updates - Import WebSocket hook
+import { useOrderRealtime } from '../../../shared/hooks/useOrderRealtime';
+// NEW FEATURE: Notifications for user feedback
+import { useNotifications } from '../../../contexts/notificationContext';
 
 interface OrderItem {
   id: string;
@@ -55,14 +67,25 @@ interface OrderDetail {
     completed: boolean;
     description?: string;
   }[];
+  notes?: string; // NEW FEATURE: Order Notes
+  sellerId?: string; // NEW FEATURE: For contact seller link
 }
 
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { addNotification } = useNotifications();
+
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+
+  // NEW FEATURE: Cancel Order - State for cancel modal
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  // NEW FEATURE: Order state (will be updated via WebSocket or API)
+  const [order, setOrder] = useState<OrderDetail | null>(null);
 
   // Mock order data based on ID
   const orderData: Record<string, OrderDetail> = {
@@ -240,7 +263,67 @@ export function OrderDetailPage() {
     },
   };
 
-  const order = orderData[id || '1'] || orderData['1'];
+  // Initialize order from mock data
+  useEffect(() => {
+    const initialOrder = orderData[id || '1'] || orderData['1'];
+    setOrder(initialOrder);
+  }, [id]);
+
+  // NEW FEATURE: Real-time Status Updates - Connect to WebSocket for live updates
+  const { isConnected: isRealtimeConnected } = useOrderRealtime({
+    orderId: id || '1',
+    onStatusChange(update) {
+      console.warn('[OrderDetail] Status changed:', update);
+      setOrder(prev =>
+        prev
+          ? {
+              ...prev,
+              status: update.status || prev.status,
+              statusText: update.statusText || prev.statusText,
+            }
+          : null,
+      );
+
+      // Show notification
+      addNotification({
+        type: 'order',
+        title: 'Cập nhật đơn hàng',
+        message: `Đơn hàng #${order?.orderNumber} ${update.statusText}`,
+        actionUrl: `/orders/${id}`,
+      });
+    },
+    onTrackingUpdate(update) {
+      console.warn('[OrderDetail] Tracking updated:', update);
+      setOrder(prev =>
+        prev
+          ? {
+              ...prev,
+              trackingSteps: update.trackingSteps || prev.trackingSteps,
+            }
+          : null,
+      );
+    },
+    onMessage(update) {
+      console.warn('[OrderDetail] Message from seller:', update);
+      addNotification({
+        type: 'message',
+        title: 'Tin nhắn mới từ người bán',
+        message: update.message || 'Bạn có tin nhắn mới về đơn hàng này',
+        actionUrl: `/messages?seller=${order?.sellerName}&order=${id}`,
+      });
+    },
+  });
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -250,6 +333,121 @@ export function OrderDetailPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  // NEW FEATURE: Cancel Order - Handle order cancellation
+  const handleCancelOrder = async (reason: string, notes: string) => {
+    console.warn(`[OrderCancel] Hủy đơn hàng với lý do: ${reason}, ghi chú: ${notes}`);
+    try {
+      // TODO: Replace with actual API call to backend
+      // await api.post(`/api/orders/${order.id}/cancel`, { reason, notes });
+
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update order status
+      setOrder({ ...order, status: 'cancelled', statusText: 'ĐÃ HỦY' });
+
+      // Show success notification
+      addNotification({
+        type: 'order',
+        title: 'Đơn hàng đã được hủy',
+        message: 'Nếu đã thanh toán, tiền sẽ được hoàn lại trong 3-5 ngày làm việc.',
+        actionUrl: '/orders',
+      });
+
+      // Navigate back to orders after short delay
+      setTimeout(() => navigate('/orders'), 2000);
+    } catch (error) {
+      console.error('[OrderDetail] Failed to cancel order:', error);
+      alert('Không thể hủy đơn hàng. Vui lòng thử lại.');
+    }
+  };
+
+  // NEW FEATURE: Confirm Received - Handle order confirmation
+  const handleConfirmReceived = async () => {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      'Xác nhận bạn đã nhận được hàng và hài lòng với sản phẩm?\n\n' +
+        'Sau khi xác nhận, đơn hàng sẽ được chuyển sang trạng thái "Hoàn thành" và bạn không thể yêu cầu trả hàng nữa.',
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // TODO: Replace with actual API call to backend
+      // await api.post(`/api/orders/${order.id}/confirm-received`);
+
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update order status
+      setOrder({ ...order, status: 'completed', statusText: 'ĐÃ GIAO' });
+
+      // Show success notification
+      addNotification({
+        type: 'order',
+        title: 'Cảm ơn bạn!',
+        message: 'Đơn hàng đã hoàn thành. Hãy đánh giá để giúp người mua khác nhé!',
+        actionUrl: `/orders/${id}`,
+      });
+
+      // Prompt review modal after short delay
+      setTimeout(() => setShowRatingModal(true), 1500);
+    } catch (error) {
+      console.error('[OrderDetail] Failed to confirm received:', error);
+      alert('Không thể xác nhận. Vui lòng thử lại.');
+    }
+  };
+
+  // NEW FEATURE: Re-order - Add all order items back to cart
+  const handleReorder = async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      // Check product availability
+      // TODO: Call backend to verify products still available
+      // const availabilityCheck = await api.post('/api/cart/check-availability', {
+      //   productIds: order.items.map(item => item.id)
+      // });
+
+      // Mock: assume all available
+      const unavailableItems: string[] = [];
+
+      // Add items to cart
+      order.items.forEach(item => {
+        // TODO: Use cart context or API to add items
+        // addToCart(item.id, item.quantity);
+        console.warn(`[Re-order] Adding to cart: ${item.productTitle} x${item.quantity}`);
+      });
+
+      if (unavailableItems.length > 0) {
+        addNotification({
+          type: 'system',
+          title: 'Một số sản phẩm không còn',
+          message: `${unavailableItems.length} sản phẩm đã hết hàng và không thể thêm vào giỏ.`,
+        });
+      } else {
+        addNotification({
+          type: 'order',
+          title: 'Đã thêm vào giỏ hàng',
+          message: `${order.items.length} sản phẩm đã được thêm vào giỏ hàng.`,
+          actionUrl: '/cart',
+        });
+      }
+
+      // Navigate to cart
+      navigate('/cart');
+    } catch (error) {
+      console.error('[OrderDetail] Failed to reorder:', error);
+      alert('Không thể mua lại đơn hàng. Vui lòng thử lại.');
+    }
+  };
+
+  // NEW FEATURE: Order Notes - Save notes to backend
+  const handleSaveNotes = async (notes: string) => {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    console.warn(`[OrderDetail] Saving notes for order ${order.id}:`, notes);
+    // TODO: API call handled in OrderNotes component
   };
 
   const getStatusIcon = (status: string) => {
@@ -282,27 +480,50 @@ export function OrderDetailPage() {
     }
   };
 
-  const getStepIcon = (index: number, completed: boolean) => {
-    if (completed) {
-      return <CheckCircle className="w-5 h-5" />;
-    }
-    return <div className="w-3 h-3 rounded-full bg-current" />;
-  };
+  // const getStepIcon = (index: number, completed: boolean) => {
+  //   if (completed) {
+  //     return <CheckCircle className="w-5 h-5" />;
+  //   }
+  //   return <div className="w-3 h-3 rounded-full bg-current" />;
+  // };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <Link
-          to="/orders"
-          className="inline-flex items-center gap-2 text-[#0A2647] hover:text-[#FF6B35] mb-6 font-medium transition-colors group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Quay lại đơn hàng của tôi
-        </Link>
+        {/* NEW FEATURE: Real-time Status Updates - Connection indicator */}
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            to="/orders"
+            className="inline-flex items-center gap-2 text-[#0A2647] dark:text-white hover:text-[#FF6B35] font-medium transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            Quay lại đơn hàng của tôi
+          </Link>
+
+          {/* Real-time connection status */}
+          <div
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium ${
+              isRealtimeConnected
+                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            {isRealtimeConnected ? (
+              <>
+                <Wifi className="w-3 h-3" />
+                <span>Cập nhật trực tiếp</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3" />
+                <span>Không kết nối</span>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Order Status Header */}
-        <div className={`rounded-xl p-6 mb-6 border-2 shadow-sm ${getStatusColor(order.status)}`}>
+        <div className={`rounded-xl p-6 mb-6 border-2 shadow-sm dark:bg-gray-800 ${getStatusColor(order.status)}`}>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/50 rounded-lg">{getStatusIcon(order.status)}</div>
@@ -345,62 +566,27 @@ export function OrderDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Tracking Steps */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <h3 className="text-lg font-bold text-[#0A2647] mb-6 flex items-center gap-2">
-                <Package className="w-5 h-5 text-[#FF6B35]" />
-                Trạng thái đơn hàng
-              </h3>
-              <div className="space-y-6">
-                {order.trackingSteps.map((step, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                          step.completed ? 'bg-[#FF6B35] text-white shadow-md' : 'bg-gray-200 text-gray-400'
-                        }`}
-                      >
-                        {getStepIcon(index, step.completed)}
-                      </div>
-                      {index < order.trackingSteps.length - 1 && (
-                        <div className={`w-0.5 h-16 transition-all ${step.completed ? 'bg-[#FF6B35]' : 'bg-gray-200'}`} />
-                      )}
-                    </div>
-                    <div className="flex-1 pb-4">
-                      <p className={`font-bold mb-1 ${step.completed ? 'text-[#0A2647]' : 'text-gray-400'}`}>{step.label}</p>
-                      {step.description && (
-                        <p className={`text-sm mb-2 ${step.completed ? 'text-gray-600' : 'text-gray-400'}`}>{step.description}</p>
-                      )}
-                      {step.time && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Clock className="w-4 h-4" />
-                          {step.time}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* NEW FEATURE: Order Tracking Timeline - Visual timeline component */}
+            <OrderTrackingTimeline steps={order.trackingSteps} currentStatus={order.status} />
 
             {/* Products */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white font-bold shadow-md">
                     {order.sellerName.charAt(0)}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-[#0A2647]">{order.sellerName}</span>
+                      <span className="font-bold text-[#0A2647] dark:text-white">{order.sellerName}</span>
                       <BadgeCheck className="w-4 h-4 text-[#FF6B35]" />
                     </div>
-                    <p className="text-sm text-gray-500">{order.sellerUniversity}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{order.sellerUniversity}</p>
                   </div>
                 </div>
                 <Link
-                  to="/messages"
-                  className="flex items-center gap-2 px-4 py-2 border-2 border-[#0A2647] text-[#0A2647] hover:bg-[#0A2647] hover:text-white rounded-lg font-medium text-sm transition-all"
+                  to={`/messages?seller=${order.sellerName}&order=${order.orderNumber}`}
+                  className="flex items-center gap-2 px-4 py-2 border-2 border-[#0A2647] dark:border-blue-500 text-[#0A2647] dark:text-blue-400 hover:bg-[#0A2647] hover:text-white dark:hover:bg-blue-900/20 rounded-lg font-medium text-sm transition-all"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Nhắn tin
@@ -411,21 +597,21 @@ export function OrderDetailPage() {
                 {order.items.map(item => (
                   <div
                     key={item.id}
-                    className="flex gap-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0 hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                    className="flex gap-4 pb-4 border-b border-gray-100 dark:border-gray-700 last:border-0 last:pb-0 hover:bg-gray-50 dark:hover:bg-gray-700 p-3 rounded-lg transition-colors"
                   >
-                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 ring-2 ring-gray-200 hover:ring-[#FF6B35]/50 transition-all">
+                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0 ring-2 ring-gray-200 dark:ring-gray-600 hover:ring-[#FF6B35]/50 transition-all">
                       <ImageWithFallback src={item.productImage} alt={item.productTitle} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0 flex items-center justify-between">
                       <div className="flex-1 min-w-0 pr-4">
-                        <h4 className="font-medium text-gray-900 mb-2 hover:text-[#FF6B35] transition-colors cursor-pointer">
+                        <h4 className="font-medium text-gray-900 dark:text-white mb-2 hover:text-[#FF6B35] transition-colors cursor-pointer">
                           {item.productTitle}
                         </h4>
-                        {item.variation && <p className="text-sm text-gray-500 mb-1">Phân loại: {item.variation}</p>}
-                        <p className="text-sm text-gray-600">x{item.quantity}</p>
+                        {item.variation && <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Phân loại: {item.variation}</p>}
+                        <p className="text-sm text-gray-600 dark:text-gray-400">x{item.quantity}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <span className="text-lg font-bold text-[#0A2647]">{item.unitPrice.toLocaleString('vi-VN')}đ</span>
+                        <span className="text-lg font-bold text-[#0A2647] dark:text-white">{item.unitPrice.toLocaleString('vi-VN')}đ</span>
                       </div>
                     </div>
                   </div>
@@ -434,43 +620,55 @@ export function OrderDetailPage() {
             </div>
 
             {/* Action Buttons Based on Status */}
+            {/* NEW FEATURE: Cancel Order - Show cancel button for pending orders */}
             {order.status === 'pending' && (
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 border-2 border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-start gap-3 mb-4">
-                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-1">Bạn muốn hủy đơn hàng?</h4>
-                    <p className="text-sm text-gray-600">Bạn có thể hủy đơn hàng trước khi người bán xác nhận</p>
+                    <h4 className="font-bold text-gray-900 dark:text-white mb-1">Cần hủy đơn hàng?</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Bạn có thể hủy đơn hàng miễn phí khi chưa được người bán xác nhận
+                    </p>
                   </div>
                 </div>
-                <button className="w-full px-6 py-3 bg-white hover:bg-red-50 text-red-600 border-2 border-red-600 rounded-lg font-medium transition-colors">
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="w-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors shadow-md"
+                >
                   Hủy đơn hàng
                 </button>
               </div>
             )}
 
+            {/* NEW FEATURE: Confirm Received - Working handler */}
             {order.status === 'shipping' && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-6 border-2 border-blue-200 dark:border-blue-800">
                 <div className="flex items-start gap-3 mb-4">
-                  <Truck className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-1">Đã nhận được hàng?</h4>
-                    <p className="text-sm text-gray-600">Xác nhận khi bạn đã nhận được sản phẩm</p>
+                    <h4 className="font-bold text-gray-900 dark:text-white mb-1">Đã nhận được hàng?</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Xác nhận khi bạn đã nhận được sản phẩm và hài lòng với chất lượng
+                    </p>
                   </div>
                 </div>
-                <button className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-colors shadow-md">
+                <button
+                  onClick={handleConfirmReceived}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-colors shadow-md"
+                >
                   Xác nhận đã nhận hàng
                 </button>
               </div>
             )}
 
             {order.status === 'completed' && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border-2 border-green-200 dark:border-green-800">
                 <div className="flex items-start gap-3 mb-4">
                   <Star className="w-5 h-5 text-yellow-500 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-1">Đánh giá đơn hàng này</h4>
-                    <p className="text-sm text-gray-600">Chia sẻ trải nghiệm của bạn để giúp người mua khác</p>
+                    <h4 className="font-bold text-gray-900 dark:text-white mb-1">Đánh giá đơn hàng này</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Chia sẻ trải nghiệm của bạn để giúp người mua khác</p>
                   </div>
                 </div>
                 <button
@@ -486,28 +684,28 @@ export function OrderDetailPage() {
           {/* Right Column - Order Summary */}
           <div className="space-y-6">
             {/* Delivery Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <h3 className="text-lg font-bold text-[#0A2647] mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-bold text-[#0A2647] dark:text-white mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-[#FF6B35]" />
                 Thông tin giao hàng
               </h3>
               <div className="space-y-4">
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <User className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500 mb-1">Người nhận</p>
-                      <p className="font-bold text-gray-900">{order.receiverName}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Người nhận</p>
+                      <p className="font-bold text-gray-900 dark:text-white">{order.receiverName}</p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <Phone className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500 mb-1">Số điện thoại</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Số điện thoại</p>
                       <div className="flex items-center justify-between">
-                        <p className="font-medium text-gray-900">{order.deliveryPhone}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{order.deliveryPhone}</p>
                         <button
                           onClick={() => copyToClipboard(order.deliveryPhone, 'phone')}
                           className="text-gray-400 hover:text-[#FF6B35] transition-colors"
@@ -518,12 +716,12 @@ export function OrderDetailPage() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500 mb-1">Địa chỉ</p>
-                      <p className="text-sm text-gray-900">{order.deliveryAddress}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Địa chỉ</p>
+                      <p className="text-sm text-gray-900 dark:text-white">{order.deliveryAddress}</p>
                     </div>
                   </div>
                 </div>
@@ -531,75 +729,99 @@ export function OrderDetailPage() {
             </div>
 
             {/* Payment Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <h3 className="text-lg font-bold text-[#0A2647] mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-bold text-[#0A2647] dark:text-white mb-4 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-[#FF6B35]" />
                 Thanh toán
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tạm tính</span>
-                  <span className="font-medium text-gray-900">{order.subtotal.toLocaleString('vi-VN')}đ</span>
+                  <span className="text-gray-600 dark:text-gray-400">Tạm tính</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{order.subtotal.toLocaleString('vi-VN')}đ</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Phí vận chuyển</span>
-                  <span className="font-medium text-green-600">
+                  <span className="text-gray-600 dark:text-gray-400">Phí vận chuyển</span>
+                  <span className="font-medium text-green-600 dark:text-green-400">
                     {order.shippingFee === 0 ? 'Miễn phí' : `${order.shippingFee.toLocaleString('vi-VN')}đ`}
                   </span>
                 </div>
-                <div className="border-t-2 border-gray-200 pt-3 mt-3">
+                <div className="border-t-2 border-gray-200 dark:border-gray-700 pt-3 mt-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-900 font-bold">Tổng cộng</span>
+                    <span className="text-gray-900 dark:text-white font-bold">Tổng cộng</span>
                     <span className="text-2xl font-bold text-[#FF6B35]">{order.total.toLocaleString('vi-VN')}đ</span>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-gray-200 bg-gray-50 -mx-6 px-6 py-3 mt-4">
-                  <p className="text-xs text-gray-500 mb-1">Phương thức thanh toán</p>
-                  <p className="font-medium text-gray-900">{order.paymentMethod}</p>
+                <div className="pt-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 -mx-6 px-6 py-3 mt-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Phương thức thanh toán</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{order.paymentMethod}</p>
                 </div>
               </div>
             </div>
 
+            {/* NEW FEATURE: Order Notes/Comments - Private notes for user */}
+            <OrderNotes orderId={order.id} initialNotes={order.notes || ''} onSave={handleSaveNotes} />
+
             {/* Seller Contact */}
-            <div className="bg-gradient-to-br from-[#0A2647] via-[#144272] to-[#0A2647] rounded-xl shadow-md p-6 text-white">
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Thông tin người bán
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-bold text-[#0A2647] dark:text-white mb-4 flex items-center gap-2">
+                <User className="w-5 h-5 text-[#FF6B35]" />
+                Người bán
               </h3>
-              <div className="space-y-4">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                  <p className="text-xs text-gray-300 mb-1">Tên người bán</p>
-                  <p className="font-bold">{order.sellerName}</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                  <p className="text-xs text-gray-300 mb-1">Trường</p>
-                  <p className="font-medium">{order.sellerUniversity}</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-300 mb-1">Số điện thoại</p>
-                      <p className="font-medium">{order.sellerPhone}</p>
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#0A2647] to-[#FF6B35] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {order.sellerName[0]}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-gray-900 dark:text-white">{order.sellerName}</span>
+                      <BadgeCheck className="w-4 h-4 text-[#FF6B35]" />
                     </div>
-                    <button
-                      onClick={() => copyToClipboard(order.sellerPhone, 'sellerPhone')}
-                      className="text-white/70 hover:text-white transition-colors"
-                    >
-                      {copiedText === 'sellerPhone' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    </button>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{order.sellerUniversity}</p>
                   </div>
                 </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-700 dark:text-gray-300">{order.sellerPhone}</span>
+                  <button
+                    onClick={() => copyToClipboard(order.sellerPhone, 'sellerPhone')}
+                    className="ml-auto text-gray-400 hover:text-[#FF6B35] transition-colors"
+                  >
+                    {copiedText === 'sellerPhone' ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {/* NEW FEATURE: Contact Seller with Order Context */}
                 <Link
-                  to="/messages"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white hover:bg-gray-100 text-[#0A2647] rounded-lg font-medium text-sm transition-colors mt-4"
+                  to={`/messages?seller=${order.sellerName}&order=${order.orderNumber}`}
+                  className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-[#0A2647] dark:border-blue-500 text-[#0A2647] dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg font-medium transition-colors w-full"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Liên hệ người bán
+                  Nhắn tin về đơn hàng này
                 </Link>
+
+                {/* NEW FEATURE: Re-order Functionality */}
+                <button
+                  onClick={handleReorder}
+                  className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors w-full"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Mua lại
+                </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* NEW FEATURE: Cancel Order Modal */}
+        <CancelOrderModal
+          isOpen={showCancelModal}
+          orderNumber={order.orderNumber}
+          onClose={() => setShowCancelModal(false)}
+          onConfirm={handleCancelOrder}
+        />
       </div>
 
       {/* Rating Modal */}

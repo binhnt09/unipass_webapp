@@ -10,14 +10,17 @@ import { ToastContainer } from 'react-toastify';
 
 import { router } from 'app/routes';
 import { AuthProvider } from 'app/contexts/AuthContext';
+import { NotificationProvider } from './contexts/notificationContext';
 
 // const baseHref = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
 
 export const App = () => {
   return (
     <AuthProvider>
-      <ToastContainer position="top-left" className="toastify-container" toastClassName="toastify-toast" />
-      <RouterProvider router={router} />
+      <NotificationProvider>
+        <ToastContainer position="top-left" className="toastify-container" toastClassName="toastify-toast" />
+        <RouterProvider router={router} />
+      </NotificationProvider>
     </AuthProvider>
   );
 };

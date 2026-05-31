@@ -15,9 +15,10 @@ interface AuthModalProps {
   onClose: () => void;
   onLoginSuccess?: () => void;
   defaultTab?: 'login' | 'register';
+  closeOnLocationChange?: boolean;
 }
 
-export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: AuthModalProps) {
+export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', closeOnLocationChange = true }: AuthModalProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const isFirstRender = React.useRef(true);
@@ -43,6 +44,13 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
   const [rememberMe, setRememberMe] = useState(false);
 
   const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setEmailValue('');
+    setPasswordValue('');
+    setLoginErrorMessage(null);
+    setRememberMe(false);
+  }, [activeTab]);
 
   const dispatch = useAppDispatch();
   const isAuthenticatedRedux = useAppSelector(state => state.authentication.isAuthenticated);
@@ -109,8 +117,10 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
       isFirstRender.current = false;
       return;
     }
-    onClose();
-  }, [location.pathname, onClose]);
+    if (closeOnLocationChange !== false) {
+      onClose();
+    }
+  }, [location.pathname, onClose, closeOnLocationChange]);
 
   useEffect(() => {
     dispatch(getUniversityEntities({ page: 0, size: 100, sort: 'id,asc' }));
@@ -275,17 +285,15 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
     // Điều kiện: Đã login Demo HOẶC đã login Thật và có thông tin account
     if (isAuthenticated || (isAuthenticatedRedux && account)) {
       let targetPath = '';
-
       // 1. LUỒNG KIỂM TRA QUYỀN CHO BACKEND THẬT (JHIPSTER)
       if (isAuthenticatedRedux && account) {
         const roles = account.authorities || [];
         if (roles.includes('ROLE_ADMIN')) {
           targetPath = '/admin/health'; // Vào thẳng quản lý user tạm thời như bạn muốn
         } else {
-          targetPath = '/'; // Các quyền khác (User thường) ở lại trang chủ
+          targetPath = ''; // Các quyền khác (User thường) ở lại trang chủ
         }
       }
-
       // 2. LUỒNG KIỂM TRA QUYỀN CHO DEMO (CONTEXT)
       else if (isAuthenticated && user) {
         if (user.role === 'admin') {
@@ -293,15 +301,13 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
         } else if (user.role === 'seller') {
           targetPath = '/seller-dashboard';
         } else {
-          targetPath = '/';
+          targetPath = '';
         }
       }
-
-      // 执行 chuyển hướng (nếu có đường dẫn dịch chuyển)
+      // Chỉ điều hướng nếu có targetPath (như admin, seller)
       if (targetPath) {
         navigate(targetPath);
       }
-
       // Sau khi điều hướng xong mới tiến hành đóng modal
       if (onLoginSuccess) {
         onLoginSuccess();
@@ -309,7 +315,6 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
         onClose();
       }
     }
-
     if (loginErrorRedux) {
       setLoading(false);
     }
@@ -364,7 +369,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
     // Nếu không phải admin, bắt buộc phải đúng định dạng email
     const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
     if (!emailRegex.test(val)) {
-      return translate('login.messages.validate.username.invalid', { default: 'Tên đăng nhập phải là một email hợp lệ.' });
+      return translate('register.messages.missing.invalidEmailSuffix', { default: 'Tên đăng nhập phải là một email hợp lệ.' });
     }
     return true;
   };
@@ -420,6 +425,8 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
         <div className="p-6">
           {activeTab === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-4">
+              <input type="text" name="fake-username" autoComplete="username" style={{ display: 'none' }} readOnly />
+              <input type="password" name="fake-password" autoComplete="new-password" style={{ display: 'none' }} readOnly />
               {/* Demo Accounts Info */}
               {showDemoAccounts && (
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200">
@@ -520,11 +527,12 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                   <ValidatedField
                     name="username"
                     type="text"
+                    // autoComplete="off"
                     placeholder={translate('global.form.username.placeholder')}
                     validate={{
                       required: {
                         value: true,
-                        message: translate('login.messages.validate.username.required', { default: 'Tên đăng nhập là bắt buộc.' }),
+                        message: translate('register.messages.missing.missingEmail', { default: 'Tên đăng nhập là bắt buộc.' }),
                       },
                       validate: loginUsernameValidate,
                     }}
@@ -552,11 +560,12 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login' }: Aut
                   <ValidatedField
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder={translate('login.form.password.placeholder')}
                     validate={{
                       required: {
                         value: true,
-                        message: translate('login.messages.validate.password.required', { default: 'Mật khẩu là bắt buộc.' }),
+                        message: translate('register.messages.missing.missingPassword', { default: 'Mật khẩu là bắt buộc.' }),
                       },
                     }}
                     register={formRegister}

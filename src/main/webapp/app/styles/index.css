@@ -2,6 +2,7 @@
 @import './tailwind.css';
 @import './theme.css';
 @import './entities-bridge.css';
+/* @import './app.css'; */
 
 /* ==========================================================================
    Hỗ trợ đóng/mở cho React-Bootstrap Dropdown

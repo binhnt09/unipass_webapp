@@ -56,7 +56,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
       price: prod.price || 0,
       originalPrice: prod.price ? Math.round(prod.price * 1.15) : null,
       seller: prod.seller?.login || 'Sinh viên',
-      university: (prod.seller as any)?.university?.name || 'Đại học Quốc gia',
+      university: (prod.seller as any)?.university?.name || 'Đại học FPT Hà Nội',
       rating: 4.8,
       reviews: 12,
       condition: conditionDisplay,
