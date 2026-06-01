@@ -4,7 +4,6 @@ import axios from 'axios';
 import { IProductImage, defaultValue } from 'app/shared/model/product-image.model';
 import { EntityState, IQueryParams, createEntitySlice, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { ASC } from 'app/shared/util/pagination.constants';
 
 const initialState: EntityState<IProductImage> = {
   loading: false,
@@ -12,6 +11,7 @@ const initialState: EntityState<IProductImage> = {
   entities: [],
   entity: defaultValue,
   updating: false,
+  totalItems: 0,
   updateSuccess: false,
 };
 
@@ -21,8 +21,8 @@ const apiUrl = 'api/product-images';
 
 export const getEntities = createAsyncThunk(
   'productImage/fetch_entity_list',
-  async ({ sort }: IQueryParams) => {
-    const requestUrl = `${apiUrl}?${sort ? `sort=${sort}&` : ''}cacheBuster=${Date.now()}`;
+  async ({ page, size, sort }: IQueryParams) => {
+    const requestUrl = `${apiUrl}?${sort ? `page=${page}&size=${size}&sort=${sort}&` : ''}cacheBuster=${Date.now()}`;
     return axios.get<IProductImage[]>(requestUrl);
   },
   { serializeError: serializeAxiosError },
@@ -95,19 +95,13 @@ export const ProductImageSlice = createEntitySlice({
         state.entity = {};
       })
       .addMatcher(isFulfilled(getEntities), (state, action) => {
-        const { data } = action.payload;
+        const { data, headers } = action.payload;
 
         return {
           ...state,
           loading: false,
-          entities: data.sort((a, b) => {
-            if (!action.meta?.arg?.sort) {
-              return 1;
-            }
-            const order = action.meta.arg.sort.split(',')[1];
-            const predicate = action.meta.arg.sort.split(',')[0];
-            return order === ASC ? (a[predicate] < b[predicate] ? -1 : 1) : b[predicate] < a[predicate] ? -1 : 1;
-          }),
+          entities: data,
+          totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
       .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {

@@ -1,0 +1,33 @@
+{
+  "unipassWebApp": {
+    "sellerRequest": {
+      "home": {
+        "title": "Seller Requests",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Seller Request",
+        "createOrEditLabel": "Create or edit a Seller Request",
+        "notFound": "No Seller Requests found"
+      },
+      "created": "A new Seller Request is created with identifier {{ param }}",
+      "updated": "A Seller Request is updated with identifier {{ param }}",
+      "deleted": "A Seller Request is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Seller Request {{ id }}?"
+      },
+      "detail": {
+        "title": "Seller Request"
+      },
+      "id": "ID",
+      "phoneNumber": "Phone Number",
+      "hostelLocation": "Hostel Location",
+      "bio": "Bio",
+      "idCardUrl": "Id Card Url",
+      "status": "Status",
+      "rejectionReason": "Rejection Reason",
+      "submittedAt": "Submitted At",
+      "reviewedAt": "Reviewed At",
+      "reviewedBy": "Reviewed By",
+      "user": "User"
+    }
+  }
+}

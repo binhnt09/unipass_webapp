@@ -61,6 +61,11 @@ describe('ProductImage e2e test', () => {
   });
 
   describe('ProductImage page', () => {
+    it('should have translated page title', () => {
+      cy.visit(productImagePageUrl);
+      cy.getEntityHeading('ProductImage').should('not.contain', 'unipassWebApp.productImage.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(productImagePageUrl);
@@ -97,6 +102,9 @@ describe('ProductImage e2e test', () => {
             },
             {
               statusCode: 200,
+              headers: {
+                link: '<http://localhost/api/product-images?page=0&size=20>; rel="last",<http://localhost/api/product-images?page=0&size=20>; rel="first"',
+              },
               body: [productImage],
             },
           ).as('entitiesRequestInternal');

@@ -28,7 +28,7 @@ export const CartItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.cartItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/cart-item');
+    navigate(`/cart-item${location.search}`);
   };
 
   useEffect(() => {

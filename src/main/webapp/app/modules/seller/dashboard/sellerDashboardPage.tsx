@@ -44,9 +44,10 @@ export function SellerDashboardPage() {
       const allOrderItems = itemsRes.data || [];
 
       // 3. Perform dynamic mapping in memory on the frontend
-      const mappedListings = products.map(prod => {
-        const productImages = allImages.filter(img => img.product?.id === prod.id);
-        const primaryImage = productImages.find(img => img.isPrimary) || productImages[0];
+      const mappedListings = products.map((prod: any) => {
+        const productImages =
+          prod.productImages && prod.productImages.length > 0 ? prod.productImages : allImages.filter(img => img.product?.id === prod.id);
+        const primaryImage = productImages.find((img: any) => img.isPrimary) || productImages[0];
 
         const productOrderItems = allOrderItems.filter(item => item.product?.id === prod.id);
         // Exclude cancelled or completed order items
@@ -54,9 +55,14 @@ export function SellerDashboardPage() {
           item => item.order?.status !== 'CANCELLED' && item.order?.status !== 'COMPLETED',
         ).length;
 
+        let imageUrl = primaryImage ? primaryImage.imageUrl : null;
+        if (imageUrl && imageUrl.startsWith('uploads/')) {
+          imageUrl = '/' + imageUrl;
+        }
+
         return {
           ...prod,
-          imageUrl: primaryImage ? primaryImage.imageUrl : null,
+          imageUrl,
           pendingRequests: pendingCount,
         };
       });

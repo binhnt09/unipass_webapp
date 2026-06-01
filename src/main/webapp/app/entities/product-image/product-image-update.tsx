@@ -25,7 +25,7 @@ export const ProductImageUpdate = () => {
   const updateSuccess = useAppSelector(state => state.productImage.updateSuccess);
 
   const handleClose = () => {
-    navigate('/product-image');
+    navigate(`/product-image${location.search}`);
   };
 
   useEffect(() => {

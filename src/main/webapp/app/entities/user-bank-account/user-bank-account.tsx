@@ -83,7 +83,7 @@ export const UserBankAccount = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const order = paginationState.order;
+    const { order } = paginationState;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -178,7 +178,7 @@ export const UserBankAccount = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (window.location.href = `/user-bank-account/${userBankAccount.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (globalThis.location.href = `/user-bank-account/${userBankAccount.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

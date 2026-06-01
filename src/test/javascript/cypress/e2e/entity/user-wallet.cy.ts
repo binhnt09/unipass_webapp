@@ -36,7 +36,7 @@ describe('UserWallet e2e test', () => {
     cy.authenticatedRequest({
       method: 'POST',
       url: '/api/users',
-      body: {"login":"Nathaniel.Tremblay88","firstName":"Elisa","lastName":"Sanford","email":"Valentina.Roberts9@gmail.com","langKey":"lest","imageUrl":"pronoun afraid down"},
+      body: {"login":"Neil.Tremblay88","firstName":"Elaine","lastName":"Sanford","email":"Vada.Roberts9@gmail.com","langKey":"lest","imageUrl":"pronoun afraid down"},
     }).then(({ body }) => {
       user = body;
     });
@@ -99,6 +99,11 @@ describe('UserWallet e2e test', () => {
   });
 
   describe('UserWallet page', () => {
+    it('should have translated page title', () => {
+      cy.visit(userWalletPageUrl);
+      cy.getEntityHeading('UserWallet').should('not.contain', 'unipassWebApp.userWallet.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(userWalletPageUrl);
@@ -139,6 +144,9 @@ describe('UserWallet e2e test', () => {
             },
             {
               statusCode: 200,
+              headers: {
+                link: '<http://localhost/api/user-wallets?page=0&size=20>; rel="last",<http://localhost/api/user-wallets?page=0&size=20>; rel="first"',
+              },
               body: [userWallet],
             }
           ).as('entitiesRequestInternal');

@@ -27,7 +27,7 @@ export const OrderItemUpdate = () => {
   const updateSuccess = useAppSelector(state => state.orderItem.updateSuccess);
 
   const handleClose = () => {
-    navigate('/order-item');
+    navigate(`/order-item${location.search}`);
   };
 
   useEffect(() => {

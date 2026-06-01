@@ -31,6 +31,7 @@
 // import PremiumHistory from './premium-history';
 // import Notification from './notification';
 // import { EntitiesLayout } from './layout/entities-layout';
+// import SellerRequest from './seller-request';
 // /* jhipster-needle-add-route-import - JHipster will add routes here */
 
 // export default () => {
@@ -66,6 +67,7 @@
 //           <Route path="/ai-chat-message/*" element={<AiChatMessage />} />
 //           <Route path="/user-search-history/*" element={<UserSearchHistory />} />
 //           <Route path="/notification/*" element={<Notification />} />
+//           <Route path="/seller-request/*" element={<SellerRequest />} />
 //           {/* jhipster-needle-add-route-path - JHipster will add routes here */}
 //         </Route>
 //       </ErrorBoundaryRoutes>

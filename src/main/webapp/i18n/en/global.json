@@ -34,7 +34,8 @@
         "aiChatSession": "Ai Chat Session",
         "aiChatMessage": "Ai Chat Message",
         "userSearchHistory": "User Search History",
-        "notification": "Notification"
+        "notification": "Notification",
+        "sellerRequest": "Seller Request"
       },
       "account": {
         "main": "Account",

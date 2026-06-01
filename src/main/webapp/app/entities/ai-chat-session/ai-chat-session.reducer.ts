@@ -1,17 +1,21 @@
+import { loadMoreDataWhenScrolled } from 'react-jhipster';
+
 import { createAsyncThunk, isFulfilled, isPending } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { getPageNumberFromLinkHeader } from 'app/shared/jhipster/link-header';
 import { IAiChatSession, defaultValue } from 'app/shared/model/ai-chat-session.model';
 import { EntityState, IQueryParams, createEntitySlice, serializeAxiosError } from 'app/shared/reducers/reducer.utils';
 import { cleanEntity } from 'app/shared/util/entity-utils';
-import { ASC } from 'app/shared/util/pagination.constants';
 
 const initialState: EntityState<IAiChatSession> = {
   loading: false,
   errorMessage: null,
   entities: [],
   entity: defaultValue,
+  links: { next: 0 },
   updating: false,
+  totalItems: 0,
   updateSuccess: false,
 };
 
@@ -21,8 +25,8 @@ const apiUrl = 'api/ai-chat-sessions';
 
 export const getEntities = createAsyncThunk(
   'aiChatSession/fetch_entity_list',
-  async ({ sort }: IQueryParams) => {
-    const requestUrl = `${apiUrl}?${sort ? `sort=${sort}&` : ''}cacheBuster=${Date.now()}`;
+  async ({ page, size, sort }: IQueryParams) => {
+    const requestUrl = `${apiUrl}?${sort ? `page=${page}&size=${size}&sort=${sort}&` : ''}cacheBuster=${Date.now()}`;
     return axios.get<IAiChatSession[]>(requestUrl);
   },
   { serializeError: serializeAxiosError },
@@ -39,41 +43,33 @@ export const getEntity = createAsyncThunk(
 
 export const createEntity = createAsyncThunk(
   'aiChatSession/create_entity',
-  async (entity: IAiChatSession, thunkAPI) => {
-    const result = await axios.post<IAiChatSession>(apiUrl, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
-    return result;
+  async (entity: IAiChatSession) => {
+    return axios.post<IAiChatSession>(apiUrl, cleanEntity(entity));
   },
   { serializeError: serializeAxiosError },
 );
 
 export const updateEntity = createAsyncThunk(
   'aiChatSession/update_entity',
-  async (entity: IAiChatSession, thunkAPI) => {
-    const result = await axios.put<IAiChatSession>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
-    return result;
+  async (entity: IAiChatSession) => {
+    return axios.put<IAiChatSession>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
   },
   { serializeError: serializeAxiosError },
 );
 
 export const partialUpdateEntity = createAsyncThunk(
   'aiChatSession/partial_update_entity',
-  async (entity: IAiChatSession, thunkAPI) => {
-    const result = await axios.patch<IAiChatSession>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
-    thunkAPI.dispatch(getEntities({}));
-    return result;
+  async (entity: IAiChatSession) => {
+    return axios.patch<IAiChatSession>(`${apiUrl}/${entity.id}`, cleanEntity(entity));
   },
   { serializeError: serializeAxiosError },
 );
 
 export const deleteEntity = createAsyncThunk(
   'aiChatSession/delete_entity',
-  async (id: string | number, thunkAPI) => {
+  async (id: string | number) => {
     const requestUrl = `${apiUrl}/${id}`;
-    const result = await axios.delete<IAiChatSession>(requestUrl);
-    thunkAPI.dispatch(getEntities({}));
-    return result;
+    return await axios.delete<IAiChatSession>(requestUrl);
   },
   { serializeError: serializeAxiosError },
 );
@@ -95,19 +91,15 @@ export const AiChatSessionSlice = createEntitySlice({
         state.entity = {};
       })
       .addMatcher(isFulfilled(getEntities), (state, action) => {
-        const { data } = action.payload;
+        const { data, headers } = action.payload;
+        const links = getPageNumberFromLinkHeader(headers.link);
 
         return {
           ...state,
           loading: false,
-          entities: data.sort((a, b) => {
-            if (!action.meta?.arg?.sort) {
-              return 1;
-            }
-            const order = action.meta.arg.sort.split(',')[1];
-            const predicate = action.meta.arg.sort.split(',')[0];
-            return order === ASC ? (a[predicate] < b[predicate] ? -1 : 1) : b[predicate] < a[predicate] ? -1 : 1;
-          }),
+          links,
+          entities: loadMoreDataWhenScrolled(state.entities, data, links),
+          totalItems: parseInt(headers['x-total-count'], 10),
         };
       })
       .addMatcher(isFulfilled(createEntity, updateEntity, partialUpdateEntity), (state, action) => {

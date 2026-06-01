@@ -61,6 +61,11 @@ describe('UserBankAccount e2e test', () => {
   });
 
   describe('UserBankAccount page', () => {
+    it('should have translated page title', () => {
+      cy.visit(userBankAccountPageUrl);
+      cy.getEntityHeading('UserBankAccount').should('not.contain', 'unipassWebApp.userBankAccount.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(userBankAccountPageUrl);

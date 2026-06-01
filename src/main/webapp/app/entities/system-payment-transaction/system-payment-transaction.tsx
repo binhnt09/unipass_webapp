@@ -84,7 +84,7 @@ export const SystemPaymentTransaction = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const order = paginationState.order;
+    const { order } = paginationState;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -229,7 +229,7 @@ export const SystemPaymentTransaction = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (window.location.href = `/system-payment-transaction/${systemPaymentTransaction.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (globalThis.location.href = `/system-payment-transaction/${systemPaymentTransaction.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

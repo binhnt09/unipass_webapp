@@ -28,7 +28,7 @@ export const PremiumHistoryUpdate = () => {
   const updateSuccess = useAppSelector(state => state.premiumHistory.updateSuccess);
 
   const handleClose = () => {
-    navigate('/premium-history');
+    navigate(`/premium-history${location.search}`);
   };
 
   useEffect(() => {

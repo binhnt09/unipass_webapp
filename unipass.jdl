@@ -214,6 +214,19 @@ entity Notification {
   createdAt Instant
 }
 
+// Thêm mới thực thể đăng ký người bán vào cuối danh sách Entity
+entity SellerRequest {
+  phoneNumber String required maxlength(20)
+  hostelLocation String maxlength(255)
+  bio String maxlength(500)
+  idCardUrl String required maxlength(500)
+  status String required maxlength(30)
+  rejectionReason String maxlength(500)
+  submittedAt Instant required
+  reviewedAt Instant
+  reviewedBy String maxlength(50)
+}
+
 // ============================================================================
 // RELATIONSHIPS CONFIGURATION (Mối quan hệ)
 // ============================================================================
@@ -247,6 +260,7 @@ relationship ManyToOne {
 relationship OneToOne {
   UserProfile{user(login) required} to User with builtInEntity
   UserWallet{user(login) required} to User with builtInEntity
+  SellerRequest{user(login) required} to User with builtInEntity // Chèn thêm mối quan hệ OneToOne tại đây
 }
 
 // 3. Mối quan hệ Many-to-One nối sang bảng tích hợp User hệ thống
@@ -283,5 +297,8 @@ dto * with mapstruct
 service * with serviceImpl
 filter *
 
-paginate ChatMessage, AiChatMessage, Notification, UserSearchHistory, WalletTransaction with infinite-scroll
-paginate University, Campus, UserProfile, Category, Product, ItemRequest, RequestOffer, Orders, Review, Report, UserBankAccount, PremiumPackage, SystemPaymentTransaction, Invoice with pagination
+paginate ChatMessage, AiChatMessage, Notification, UserSearchHistory, WalletTransaction, AiChatSession with infinite-scroll
+paginate University, Campus, UserProfile, Category, Product, ProductImage, ItemRequest, RequestOffer, Orders, UserWallet, UserPremium with pagination
+paginate OrderItem, Review, Report, UserBankAccount, PremiumPackage, SystemPaymentTransaction, Invoice, ChatRoom, CartItem, PremiumHistory with pagination
+
+paginate SellerRequest with pagination // Thêm dòng cấu hình phân trang riêng biệt cho bảng mới ở cuối file

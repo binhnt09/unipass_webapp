@@ -61,6 +61,11 @@ describe('UserSearchHistory e2e test', () => {
   });
 
   describe('UserSearchHistory page', () => {
+    it('should have translated page title', () => {
+      cy.visit(userSearchHistoryPageUrl);
+      cy.getEntityHeading('UserSearchHistory').should('not.contain', 'unipassWebApp.userSearchHistory.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(userSearchHistoryPageUrl);

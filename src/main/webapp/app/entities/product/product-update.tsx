@@ -171,10 +171,9 @@ export const ProductUpdate = () => {
                 id="product-stock"
                 name="stock"
                 data-cy="stock"
-                type="number"
+                type="text"
                 validate={{
                   required: { value: true, message: translate('entity.validation.required') },
-                  min: { value: 0, message: 'Stock cannot be negative' },
                   validate: v => isNumber(v) || translate('entity.validation.number'),
                 }}
               />

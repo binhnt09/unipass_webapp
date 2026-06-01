@@ -95,7 +95,7 @@ export const AiChatMessage = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const order = paginationState.order;
+    const { order } = paginationState;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -203,7 +203,7 @@ export const AiChatMessage = () => {
                           </span>
                         </Button>
                         <Button
-                          onClick={() => (window.location.href = `/ai-chat-message/${aiChatMessage.id}/delete`)}
+                          onClick={() => (globalThis.location.href = `/ai-chat-message/${aiChatMessage.id}/delete`)}
                           variant="danger"
                           size="sm"
                           data-cy="entityDeleteButton"

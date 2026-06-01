@@ -17,6 +17,7 @@
   ],
   "jpaMetamodelFiltering": true,
   "name": "CartItem",
+  "pagination": "pagination",
   "relationships": [
     {
       "otherEntityField": "name",

@@ -61,6 +61,11 @@ describe('WalletTransaction e2e test', () => {
   });
 
   describe('WalletTransaction page', () => {
+    it('should have translated page title', () => {
+      cy.visit(walletTransactionPageUrl);
+      cy.getEntityHeading('WalletTransaction').should('not.contain', 'unipassWebApp.walletTransaction.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(walletTransactionPageUrl);

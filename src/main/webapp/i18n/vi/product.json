@@ -23,7 +23,7 @@
       "price": "Price",
       "status": "Status",
       "condition": "Condition",
-      "stock": "Số lượng trong kho",
+      "stock": "Stock",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
       "category": "Category",

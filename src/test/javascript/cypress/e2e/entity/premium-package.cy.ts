@@ -61,6 +61,11 @@ describe('PremiumPackage e2e test', () => {
   });
 
   describe('PremiumPackage page', () => {
+    it('should have translated page title', () => {
+      cy.visit(premiumPackagePageUrl);
+      cy.getEntityHeading('PremiumPackage').should('not.contain', 'unipassWebApp.premiumPackage.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(premiumPackagePageUrl);

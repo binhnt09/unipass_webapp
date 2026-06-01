@@ -28,6 +28,7 @@
   ],
   "jpaMetamodelFiltering": true,
   "name": "UserPremium",
+  "pagination": "pagination",
   "relationships": [
     {
       "otherEntityField": "name",

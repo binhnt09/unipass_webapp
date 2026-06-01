@@ -61,6 +61,11 @@ describe('ChatRoom e2e test', () => {
   });
 
   describe('ChatRoom page', () => {
+    it('should have translated page title', () => {
+      cy.visit(chatRoomPageUrl);
+      cy.getEntityHeading('ChatRoom').should('not.contain', 'unipassWebApp.chatRoom.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(chatRoomPageUrl);
@@ -97,6 +102,9 @@ describe('ChatRoom e2e test', () => {
             },
             {
               statusCode: 200,
+              headers: {
+                link: '<http://localhost/api/chat-rooms?page=0&size=20>; rel="last",<http://localhost/api/chat-rooms?page=0&size=20>; rel="first"',
+              },
               body: [chatRoom],
             },
           ).as('entitiesRequestInternal');

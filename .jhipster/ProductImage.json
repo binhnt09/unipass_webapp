@@ -18,6 +18,7 @@
   ],
   "jpaMetamodelFiltering": true,
   "name": "ProductImage",
+  "pagination": "pagination",
   "relationships": [
     {
       "otherEntityField": "name",

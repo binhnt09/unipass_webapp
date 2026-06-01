@@ -17,14 +17,15 @@ import productImage from 'app/entities/product-image/product-image.reducer';
 import report from 'app/entities/report/report.reducer';
 import requestOffer from 'app/entities/request-offer/request-offer.reducer';
 import review from 'app/entities/review/review.reducer';
+import sellerRequest from 'app/entities/seller-request/seller-request.reducer';
 import systemPaymentTransaction from 'app/entities/system-payment-transaction/system-payment-transaction.reducer';
 import university from 'app/entities/university/university.reducer';
+import userBankAccount from 'app/entities/user-bank-account/user-bank-account.reducer';
+import userPremium from 'app/entities/user-premium/user-premium.reducer';
 import userProfile from 'app/entities/user-profile/user-profile.reducer';
 import userSearchHistory from 'app/entities/user-search-history/user-search-history.reducer';
 import userWallet from 'app/entities/user-wallet/user-wallet.reducer';
 import walletTransaction from 'app/entities/wallet-transaction/wallet-transaction.reducer';
-import userBankAccount from 'app/entities/user-bank-account/user-bank-account.reducer';
-import userPremium from 'app/entities/user-premium/user-premium.reducer';
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 const entitiesReducers = {
@@ -55,6 +56,7 @@ const entitiesReducers = {
   aiChatMessage,
   userSearchHistory,
   notification,
+  sellerRequest,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
 };
 

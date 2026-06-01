@@ -79,6 +79,7 @@ function ProductActionButtons({ isOwner, stock, productId }: ProductActionButton
   );
 }
 
+// eslint-disable-next-line complexity
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -125,11 +126,29 @@ export function ProductDetailPage() {
   }, [id]);
 
   const imageUrls =
-    images.length > 0
-      ? images.map(img => img.imageUrl).filter(Boolean)
-      : [
-          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-        ];
+    product && (product as any).productImages && (product as any).productImages.length > 0
+      ? (product as any).productImages
+          .map((img: any) => {
+            let url = img.imageUrl;
+            if (url && url.startsWith('uploads/')) {
+              url = '/' + url;
+            }
+            return url;
+          })
+          .filter(Boolean)
+      : images.length > 0
+        ? images
+            .map(img => {
+              let url = img.imageUrl;
+              if (url && url.startsWith('uploads/')) {
+                url = '/' + url;
+              }
+              return url;
+            })
+            .filter(Boolean)
+        : [
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
+          ];
 
   const nextImage = () => {
     setCurrentImageIndex(prev => (prev + 1) % imageUrls.length);

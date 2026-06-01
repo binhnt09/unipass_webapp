@@ -84,7 +84,7 @@ export const UserProfile = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const order = paginationState.order;
+    const { order } = paginationState;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -221,7 +221,7 @@ export const UserProfile = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (window.location.href = `/user-profile/${userProfile.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (globalThis.location.href = `/user-profile/${userProfile.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

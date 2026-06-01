@@ -77,12 +77,19 @@ export const Home = () => {
         }
 
         if (isMounted) {
-          const mapped = fetchedProducts.map(prod => {
-            const productImages = allImages.filter(img => img.product?.id === prod.id);
-            const primaryImage = productImages.find(img => img.isPrimary) || productImages[0];
+          const mapped = fetchedProducts.map((prod: any) => {
+            const productImages =
+              prod.productImages && prod.productImages.length > 0
+                ? prod.productImages
+                : allImages.filter(img => img.product?.id === prod.id);
+            const primaryImage = productImages.find((img: any) => img.isPrimary) || productImages[0];
+            let imageUrl = primaryImage ? primaryImage.imageUrl : null;
+            if (imageUrl && imageUrl.startsWith('uploads/')) {
+              imageUrl = '/' + imageUrl;
+            }
             return {
               ...prod,
-              imageUrl: primaryImage ? primaryImage.imageUrl : null,
+              imageUrl,
             };
           });
 

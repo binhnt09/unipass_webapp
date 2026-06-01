@@ -95,7 +95,7 @@ export const ChatMessage = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const order = paginationState.order;
+    const { order } = paginationState;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -196,7 +196,7 @@ export const ChatMessage = () => {
                           </span>
                         </Button>
                         <Button
-                          onClick={() => (window.location.href = `/chat-message/${chatMessage.id}/delete`)}
+                          onClick={() => (globalThis.location.href = `/chat-message/${chatMessage.id}/delete`)}
                           variant="danger"
                           size="sm"
                           data-cy="entityDeleteButton"
