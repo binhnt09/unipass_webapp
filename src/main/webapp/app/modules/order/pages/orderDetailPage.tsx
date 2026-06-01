@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-
+import axios from 'axios';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
 import { useParams, Link, useNavigate } from 'react-router';
+import { ConfirmDialog } from '../../notifications/confirmDialog';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -30,9 +31,9 @@ import { CancelOrderModal } from '../pages/cancelOrderModal';
 import { OrderTrackingTimeline } from '../pages/orderTrackingTimeline';
 import { OrderNotes } from '../pages/orderNotes';
 // NEW FEATURE: Real-time Status Updates - Import WebSocket hook
-import { useOrderRealtime } from '../../../shared/hooks/useOrderRealtime';
 // NEW FEATURE: Notifications for user feedback
 import { useNotifications } from '../../../contexts/notificationContext';
+import { toast } from 'react-toastify';
 
 interface OrderItem {
   id: string;
@@ -81,249 +82,310 @@ export function OrderDetailPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  // NEW FEATURE: Cancel Order - State for cancel modal
   const [showCancelModal, setShowCancelModal] = useState(false);
-
-  // NEW FEATURE: Order state (will be updated via WebSocket or API)
   const [order, setOrder] = useState<OrderDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(true);
+  // const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Mock order data based on ID
-  const orderData: Record<string, OrderDetail> = {
-    '1': {
-      id: '1',
-      orderNumber: 'UM2024032301',
-      sellerName: 'Nam Nguyễn',
-      sellerUniversity: 'ĐH Bách Khoa HN',
-      sellerPhone: '0912 345 678',
-      status: 'pending',
-      statusText: 'CHỜ XÁC NHẬN',
-      orderDate: '23/03/2024 14:30',
-      estimatedDelivery: '25/03/2024',
-      deliveryAddress: 'Ký túc xá A, Phòng 305, ĐH Bách Khoa Hà Nội',
-      deliveryPhone: '0987 654 321',
-      receiverName: 'Minh Hoàng',
-      paymentMethod: 'Thanh toán khi nhận hàng (COD)',
-      items: [
-        {
-          id: '1',
-          productImage:
-            'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
-          variation: 'Màu bạc',
-          quantity: 1,
-          unitPrice: 12500000,
-        },
-      ],
-      subtotal: 12500000,
-      shippingFee: 0,
-      total: 12500000,
-      trackingSteps: [
-        {
-          label: 'Đơn hàng đã được đặt',
-          time: '23/03/2024 14:30',
-          completed: true,
-          description: 'Đơn hàng của bạn đã được tạo thành công',
-        },
-        {
-          label: 'Người bán đang chuẩn bị hàng',
-          time: '',
-          completed: false,
-          description: 'Chờ người bán xác nhận và chuẩn bị sản phẩm',
-        },
-        {
-          label: 'Đang giao hàng',
-          time: '',
-          completed: false,
-          description: 'Đơn hàng đang trên đường giao đến bạn',
-        },
-        {
-          label: 'Đã giao hàng',
-          time: '',
-          completed: false,
-          description: 'Giao hàng thành công',
-        },
-      ],
-    },
-    '2': {
-      id: '2',
-      orderNumber: 'UM2024032202',
-      sellerName: 'Minh Trần',
-      sellerUniversity: 'ĐH Kinh tế Quốc dân',
-      sellerPhone: '0923 456 789',
-      status: 'completed',
-      statusText: 'ĐÃ GIAO',
-      orderDate: '22/03/2024 10:15',
-      deliveryAddress: 'Ký túc xá B2, Phòng 201, ĐH Kinh tế Quốc dân',
-      deliveryPhone: '0987 654 321',
-      receiverName: 'Minh Hoàng',
-      paymentMethod: 'Ví MoMo',
-      items: [
-        {
-          id: '2',
-          productImage:
-            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aXJlbGVzcyUyMGhlYWRwaG9uZXN8ZW58MXx8fHwxNzczODkwMDY0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Tai nghe Sony WH-1000XM4 - Chống ồn',
-          variation: 'Màu đen',
-          quantity: 1,
-          unitPrice: 4500000,
-        },
-        {
-          id: '3',
-          productImage:
-            'https://images.unsplash.com/photo-1766411503488-f90eef1124bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNrJTIwbGFtcCUyMG1vZGVybnxlbnwxfHx8fDE3NzM4MTc0Njl8MA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Đèn bàn LED thông minh - 3 chế độ ánh sáng',
-          quantity: 2,
-          unitPrice: 450000,
-        },
-      ],
-      subtotal: 5400000,
-      shippingFee: 0,
-      total: 5400000,
-      trackingSteps: [
-        {
-          label: 'Đơn hàng đã được đặt',
-          time: '22/03/2024 10:15',
-          completed: true,
-          description: 'Đơn hàng của bạn đã được tạo thành công',
-        },
-        {
-          label: 'Người bán đã xác nhận',
-          time: '22/03/2024 10:45',
-          completed: true,
-          description: 'Người bán đã xác nhận và chuẩn bị hàng',
-        },
-        {
-          label: 'Đang giao hàng',
-          time: '22/03/2024 15:20',
-          completed: true,
-          description: 'Đơn hàng đang được giao đến bạn',
-        },
-        {
-          label: 'Đã giao hàng thành công',
-          time: '22/03/2024 17:30',
-          completed: true,
-          description: 'Giao hàng thành công và hoàn tất đơn hàng',
-        },
-      ],
-    },
-    '3': {
-      id: '3',
-      orderNumber: 'UM2024032103',
-      sellerName: 'Hương Lê',
-      sellerUniversity: 'ĐH Ngoại thương',
-      sellerPhone: '0934 567 890',
-      status: 'shipping',
-      statusText: 'ĐANG GIAO HÀNG',
-      orderDate: '21/03/2024 09:00',
-      estimatedDelivery: '23/03/2024',
-      deliveryAddress: 'Ký túc xá C, Phòng 104, ĐH Ngoại thương',
-      deliveryPhone: '0987 654 321',
-      receiverName: 'Minh Hoàng',
-      paymentMethod: 'VNPay',
-      items: [
-        {
-          id: '4',
-          productImage:
-            'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBiYWNrcGFja3xlbnwxfHx8fDE3NzM4OTAwNjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Balo laptop chống nước - Nhiều ngăn tiện lợi',
-          variation: 'Màu xám',
-          quantity: 1,
-          unitPrice: 850000,
-        },
-      ],
-      subtotal: 850000,
-      shippingFee: 0,
-      total: 850000,
-      trackingSteps: [
-        {
-          label: 'Đơn hàng đã được đặt',
-          time: '21/03/2024 09:00',
-          completed: true,
-          description: 'Đơn hàng của bạn đã được tạo thành công',
-        },
-        {
-          label: 'Người bán đã xác nhận',
-          time: '21/03/2024 09:30',
-          completed: true,
-          description: 'Người bán đã xác nhận và chuẩn bị hàng',
-        },
-        {
-          label: 'Đang giao hàng',
-          time: '22/03/2024 14:00',
-          completed: true,
-          description: 'Đơn hàng đang được giao đến bạn',
-        },
-        {
-          label: 'Đã giao hàng',
-          time: '',
-          completed: false,
-          description: 'Chờ giao hàng thành công',
-        },
-      ],
-    },
+  // const showToast = (message: string, type: 'success' | 'error') => {
+  //   setToast({ message, type });
+  //   setTimeout(() => setToast(null), 3000);
+  // };
+
+  // const handleConfirm = () => {
+  //   setShowConfirmModal(true);
+  // };
+
+  const mapBEStatusToFEStatus = (status: string): 'pending' | 'shipping' | 'completed' | 'cancelled' => {
+    if (!status) return 'pending';
+    switch (status.toUpperCase()) {
+      case 'PENDING_CONFIRM':
+        return 'pending';
+      case 'SHIPPING':
+        return 'shipping';
+      case 'COMPLETED':
+        return 'completed';
+      case 'CANCELLED':
+        return 'cancelled';
+      default:
+        return 'pending';
+    }
   };
 
-  // Initialize order from mock data
+  const getStatusText = (status: string): string => {
+    if (!status) return 'CHỜ XÁC NHẬN';
+    switch (status.toUpperCase()) {
+      case 'PENDING_CONFIRM':
+        return 'CHỜ XÁC NHẬN';
+      case 'SHIPPING':
+        return 'ĐANG GIAO HÀNG';
+      case 'COMPLETED':
+        return 'ĐÃ GIAO';
+      case 'CANCELLED':
+        return 'ĐÃ HỦY';
+      default:
+        return 'CHỜ XÁC NHẬN';
+    }
+  };
+
+  // Hàm bóc tách thông tin từ chuỗi meetupLocation của Backend (Định dạng: "Người nhận: ABC | SĐT: 0123 | Địa chỉ: XYZ")
+  const parseDeliveryInfo = (meetupLocation: string) => {
+    if (!meetupLocation) return { name: '', phone: '', address: '' };
+    const parts = meetupLocation.split('|').map(p => p.trim());
+    return {
+      name: parts[0]?.replace('Người nhận:', '').trim() || '',
+      phone: parts[1]?.replace('SĐT:', '').trim() || '',
+      address: parts[2]?.replace('Địa chỉ:', '').trim() || meetupLocation,
+    };
+  };
+
+  // 2. Xử lý Gọi API kết hợp Real-time Polling
   useEffect(() => {
-    const initialOrder = orderData[id || '1'] || orderData['1'];
-    setOrder(initialOrder);
-  }, [id]);
+    let isMounted = true;
 
-  // NEW FEATURE: Real-time Status Updates - Connect to WebSocket for live updates
-  const { isConnected: isRealtimeConnected } = useOrderRealtime({
-    orderId: id || '1',
-    onStatusChange(update) {
-      console.warn('[OrderDetail] Status changed:', update);
-      setOrder(prev =>
-        prev
-          ? {
-              ...prev,
-              status: update.status || prev.status,
-              statusText: update.statusText || prev.statusText,
-            }
-          : null,
-      );
+    const fetchOrderDetail = async () => {
+      try {
+        setError(null);
 
-      // Show notification
-      addNotification({
-        type: 'order',
-        title: 'Cập nhật đơn hàng',
-        message: `Đơn hàng #${order?.orderNumber} ${update.statusText}`,
-        actionUrl: `/orders/${id}`,
-      });
-    },
-    onTrackingUpdate(update) {
-      console.warn('[OrderDetail] Tracking updated:', update);
-      setOrder(prev =>
-        prev
-          ? {
-              ...prev,
-              trackingSteps: update.trackingSteps || prev.trackingSteps,
-            }
-          : null,
-      );
-    },
-    onMessage(update) {
-      console.warn('[OrderDetail] Message from seller:', update);
-      addNotification({
-        type: 'message',
-        title: 'Tin nhắn mới từ người bán',
-        message: update.message || 'Bạn có tin nhắn mới về đơn hàng này',
-        actionUrl: `/messages?seller=${order?.sellerName}&order=${id}`,
-      });
-    },
-  });
+        const response = await axios.get('/api/orders/current-user');
+        const beOrdersData = response.data || [];
 
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
-        </div>
-      </div>
-    );
-  }
+        // Tìm đơn hàng tương ứng với ID trên URL
+        const beOrder = beOrdersData.find((o: any) => o.id?.toString() === id);
+
+        if (!beOrder) {
+          if (isMounted) {
+            setError('Không tìm thấy đơn hàng.');
+          }
+          return;
+        }
+
+        if (!isMounted) return;
+
+        const feStatus = mapBEStatusToFEStatus(beOrder.status);
+        const deliveryInfo = parseDeliveryInfo(beOrder.meetupLocation);
+
+        // Xây dựng Tracking Timeline động dựa trên trạng thái thật
+        const trackingSteps = [
+          {
+            label: 'Đơn hàng đã được đặt',
+            time: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleString('vi-VN') : '',
+            completed: true,
+            description: 'Đơn hàng của bạn đã được tạo thành công',
+          },
+          {
+            label: 'Người bán đã xác nhận',
+            time: '',
+            completed: feStatus === 'shipping' || feStatus === 'completed',
+            description: 'Người bán đã xác nhận và đang đóng gói',
+          },
+          {
+            label: 'Đang giao hàng',
+            time: '',
+            completed: feStatus === 'shipping' || feStatus === 'completed',
+            description: 'Đơn hàng đang trên đường giao đến bạn',
+          },
+          {
+            label: 'Đã giao hàng',
+            time: '',
+            completed: feStatus === 'completed',
+            description: 'Giao hàng thành công',
+          },
+        ];
+
+        // Map data để đẩy lên UI
+        const mappedOrder: OrderDetail = {
+          id: beOrder.id.toString(),
+          orderNumber: `ORD${beOrder.id}`,
+          sellerName: beOrder.seller?.login || 'Người bán',
+          sellerUniversity: 'Đại học FPT', // Fix cứng hoặc lấy từ beOrder.seller.university
+          sellerPhone: beOrder.seller?.phone || 'Đang cập nhật',
+          status: feStatus,
+          statusText: getStatusText(beOrder.status),
+          orderDate: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleDateString('vi-VN') : '',
+          deliveryAddress: deliveryInfo.address,
+          deliveryPhone: deliveryInfo.phone,
+          receiverName: deliveryInfo.name,
+          paymentMethod: 'Thanh toán trực tiếp',
+          subtotal: beOrder.totalAmount,
+          shippingFee: 0,
+          total: beOrder.totalAmount,
+          trackingSteps,
+          items: (beOrder.items || []).map((beItem: any) => ({
+            id: beItem.id.toString(),
+            productImage: beItem.productMainImage || 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad',
+            productTitle: beItem.product?.name || 'Sản phẩm',
+            variation: beItem.product?.condition || '',
+            quantity: beItem.quantity,
+            unitPrice: beItem.price,
+          })),
+        };
+
+        // Nếu trạng thái đổi khác so với trước đó, có thể bắn notification (tùy chọn)
+        setOrder(prevOrder => {
+          if (prevOrder && prevOrder.status !== mappedOrder.status) {
+            addNotification({
+              type: 'order',
+              title: 'Cập nhật trạng thái!',
+              message: `Đơn hàng #${mappedOrder.orderNumber} vừa chuyển sang: ${mappedOrder.statusText}`,
+              actionUrl: `/orders/${mappedOrder.id}`,
+            });
+          }
+          return mappedOrder;
+        });
+
+        setIsRealtimeConnected(true);
+      } catch (error1: any) {
+        console.error('Lỗi khi tải chi tiết đơn hàng:', error1);
+        if (isMounted) {
+          setError('Không thể tải chi tiết đơn hàng.');
+          toast.error('Không thể tải chi tiết đơn hàng.');
+        }
+        setIsRealtimeConnected(false);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    // Gọi lần 1 ngay khi vào trang
+    fetchOrderDetail();
+
+    // CƠ CHẾ POLLING: Thiết lập vòng lặp gọi lại API mỗi 3 giây
+    // Việc này sẽ tạo ra cảm giác "Real-time" tuyệt đối khi bạn sửa tay trong Database
+    const intervalId = setInterval(() => {
+      fetchOrderDetail();
+    }, 3000);
+
+    // Clear vòng lặp khi user chuyển sang trang khác
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [id, addNotification]);
+
+  // // Mock order data based on ID
+  // // const orderData: Record<string, OrderDetail> = {
+  // // '1': {
+  // //   id: '1',
+  // //   orderNumber: 'UM2024032301',
+  // //   sellerName: 'Nam Nguyễn',
+  // //   sellerUniversity: 'ĐH Bách Khoa HN',
+  // //   sellerPhone: '0912 345 678',
+  // //   status: 'pending',
+  // //   statusText: 'CHỜ XÁC NHẬN',
+  // //   orderDate: '23/03/2024 14:30',
+  // //   estimatedDelivery: '25/03/2024',
+  // //   deliveryAddress: 'Ký túc xá A, Phòng 305, ĐH Bách Khoa Hà Nội',
+  // //   deliveryPhone: '0987 654 321',
+  // //   receiverName: 'Minh Hoàng',
+  // //   paymentMethod: 'Thanh toán khi nhận hàng (COD)',
+  // //   items: [
+  // //     {
+  // //       id: '1',
+  // //       productImage:
+  // //         'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+  // //       productTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
+  // //       variation: 'Màu bạc',
+  // //       quantity: 1,
+  // //       unitPrice: 12500000,
+  // //     },
+  // //   ],
+  // //   subtotal: 12500000,
+  // //   shippingFee: 0,
+  // //   total: 12500000,
+  // //   trackingSteps: [
+  // //     {
+  // //       label: 'Đơn hàng đã được đặt',
+  // //       time: '23/03/2024 14:30',
+  // //       completed: true,
+  // //       description: 'Đơn hàng của bạn đã được tạo thành công',
+  // //     },
+  // //     {
+  // //       label: 'Người bán đang chuẩn bị hàng',
+  // //       time: '',
+  // //       completed: false,
+  // //       description: 'Chờ người bán xác nhận và chuẩn bị sản phẩm',
+  // //     },
+  // //     {
+  // //       label: 'Đang giao hàng',
+  // //       time: '',
+  // //       completed: false,
+  // //       description: 'Đơn hàng đang trên đường giao đến bạn',
+  // //     },
+  // //     {
+  // //       label: 'Đã giao hàng',
+  // //       time: '',
+  // //       completed: false,
+  // //       description: 'Giao hàng thành công',
+  // //     },
+  // //   ],
+  // // },
+  // // };
+
+  // // Initialize order from mock data
+  // useEffect(() => {
+  //   const initialOrder = orderData[id || '1'] || orderData['1'];
+  //   setOrder(initialOrder);
+  // }, [id]);
+
+  // // NEW FEATURE: Real-time Status Updates - Connect to WebSocket for live updates
+  // const { isConnected: isRealtimeConnected } = useOrderRealtime({
+  //   orderId: id || '1',
+  //   onStatusChange(update) {
+  //     console.warn('[OrderDetail] Status changed:', update);
+  //     setOrder(prev =>
+  //       prev
+  //         ? {
+  //             ...prev,
+  //             status: update.status || prev.status,
+  //             statusText: update.statusText || prev.statusText,
+  //           }
+  //         : null,
+  //     );
+
+  //     // Show notification
+  //     addNotification({
+  //       type: 'order',
+  //       title: 'Cập nhật đơn hàng',
+  //       message: `Đơn hàng #${order?.orderNumber} ${update.statusText}`,
+  //       actionUrl: `/orders/${id}`,
+  //     });
+  //   },
+  //   onTrackingUpdate(update) {
+  //     console.warn('[OrderDetail] Tracking updated:', update);
+  //     setOrder(prev =>
+  //       prev
+  //         ? {
+  //             ...prev,
+  //             trackingSteps: update.trackingSteps || prev.trackingSteps,
+  //           }
+  //         : null,
+  //     );
+  //   },
+  //   onMessage(update) {
+  //     console.warn('[OrderDetail] Message from seller:', update);
+  //     addNotification({
+  //       type: 'message',
+  //       title: 'Tin nhắn mới từ người bán',
+  //       message: update.message || 'Bạn có tin nhắn mới về đơn hàng này',
+  //       actionUrl: `/messages?seller=${order?.sellerName}&order=${id}`,
+  //     });
+  //   },
+  // });
+
+  // if (!order) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+  //         <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -346,7 +408,16 @@ export function OrderDetailPage() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Update order status
-      setOrder({ ...order, status: 'cancelled', statusText: 'ĐÃ HỦY' });
+      setOrder(prev => {
+        // Nếu chưa có dữ liệu order cũ, trả về null luôn để tránh lỗi id bị undefined
+        if (!prev) return null;
+
+        return {
+          ...prev,
+          status: 'cancelled',
+          statusText: 'ĐÃ HỦY',
+        };
+      });
 
       // Show success notification
       addNotification({
@@ -358,31 +429,33 @@ export function OrderDetailPage() {
 
       // Navigate back to orders after short delay
       setTimeout(() => navigate('/orders'), 2000);
-    } catch (error) {
-      console.error('[OrderDetail] Failed to cancel order:', error);
-      alert('Không thể hủy đơn hàng. Vui lòng thử lại.');
+    } catch (error1) {
+      console.error('[OrderDetail] Failed to cancel order:', error1);
+      toast.error('Không thể hủy đơn hàng. Vui lòng thử lại.');
     }
   };
 
   // NEW FEATURE: Confirm Received - Handle order confirmation
   const handleConfirmReceived = async () => {
-    // Confirmation dialog
-    const confirmed = window.confirm(
-      'Xác nhận bạn đã nhận được hàng và hài lòng với sản phẩm?\n\n' +
-        'Sau khi xác nhận, đơn hàng sẽ được chuyển sang trạng thái "Hoàn thành" và bạn không thể yêu cầu trả hàng nữa.',
-    );
+    if (!order) return;
 
-    if (!confirmed) return;
+    setShowConfirmModal(false);
 
     try {
       // TODO: Replace with actual API call to backend
-      // await api.post(`/api/orders/${order.id}/confirm-received`);
-
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await axios.put(`/api/orders/${order.id}/confirm-received`);
 
       // Update order status
-      setOrder({ ...order, status: 'completed', statusText: 'ĐÃ GIAO' });
+      setOrder(prev => {
+        // Nếu chưa có dữ liệu order cũ, trả về null luôn để tránh lỗi id bị undefined
+        if (!prev) return null;
+
+        return {
+          ...prev,
+          status: 'completed',
+          statusText: 'ĐÃ GIAO',
+        };
+      });
 
       // Show success notification
       addNotification({
@@ -392,11 +465,10 @@ export function OrderDetailPage() {
         actionUrl: `/orders/${id}`,
       });
 
-      // Prompt review modal after short delay
-      setTimeout(() => setShowRatingModal(true), 1500);
-    } catch (error) {
-      console.error('[OrderDetail] Failed to confirm received:', error);
-      alert('Không thể xác nhận. Vui lòng thử lại.');
+      // setTimeout(() => setShowRatingModal(true), 1500);
+    } catch (error1) {
+      console.error('[OrderDetail] Failed to confirm received:', error1);
+      toast.error('Không thể xác nhận. Vui lòng thử lại');
     }
   };
 
@@ -412,7 +484,7 @@ export function OrderDetailPage() {
 
       // Mock: assume all available
       const unavailableItems: string[] = [];
-
+      if (!order) return;
       // Add items to cart
       order.items.forEach(item => {
         // TODO: Use cart context or API to add items
@@ -437,14 +509,15 @@ export function OrderDetailPage() {
 
       // Navigate to cart
       navigate('/cart');
-    } catch (error) {
-      console.error('[OrderDetail] Failed to reorder:', error);
-      alert('Không thể mua lại đơn hàng. Vui lòng thử lại.');
+    } catch (error1) {
+      console.error('[OrderDetail] Failed to reorder:', error1);
+      toast.error('Không thể mua lại đơn hàng. Vui lòng thử lại.');
     }
   };
 
   // NEW FEATURE: Order Notes - Save notes to backend
   const handleSaveNotes = async (notes: string) => {
+    if (!order) return;
     await new Promise(resolve => setTimeout(resolve, 0));
     console.warn(`[OrderDetail] Saving notes for order ${order.id}:`, notes);
     // TODO: API call handled in OrderNotes component
@@ -486,6 +559,37 @@ export function OrderDetailPage() {
   //   }
   //   return <div className="w-3 h-3 rounded-full bg-current" />;
   // };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-[#FF6B35] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-gray-500 font-medium">Đang tải chi tiết đơn hàng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center max-w-md mx-auto">
+          <div className="w-16 h-16 bg-[#FF6B35]/10 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-[#FF6B35]">
+            ⚠️
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Không thể hiển thị đơn hàng</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{error || 'Đơn hàng này không tồn tại hoặc đã xảy ra lỗi.'}</p>
+          <Link
+            to="/orders"
+            className="inline-block px-6 py-3 bg-[#FF6B35] text-white font-medium rounded-lg hover:bg-[#FF5722] transition-colors"
+          >
+            Quay lại danh sách đơn hàng
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -654,7 +758,7 @@ export function OrderDetailPage() {
                   </div>
                 </div>
                 <button
-                  onClick={handleConfirmReceived}
+                  onClick={() => setShowConfirmModal(true)}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-colors shadow-md"
                 >
                   Xác nhận đã nhận hàng
@@ -870,6 +974,17 @@ export function OrderDetailPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={showConfirmModal}
+        type="success"
+        title="Đã nhận được hàng?"
+        message="Xác nhận bạn đã nhận được hàng và hài lòng với sản phẩm?"
+        note="Sau khi xác nhận, đơn hàng sẽ chuyển sang trạng thái Hoàn thành."
+        confirmText="Đã nhận hàng"
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmReceived} // 🔴 BƯỚC 2: Gọi hàm API ở đây!
+      />
     </div>
   );
 }
