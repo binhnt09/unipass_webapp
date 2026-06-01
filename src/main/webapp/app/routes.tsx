@@ -181,7 +181,7 @@ export const router = createBrowserRouter([
       },
       {
         element: (
-          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+          <PrivateRoute hasAnyAuthorities={[Authority.SELLER, Authority.MANAGER]}>
             <Outlet />
           </PrivateRoute>
         ),

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 
 import {
@@ -100,7 +101,13 @@ export function CheckoutPage() {
 
   // NEW FEATURE: Order preview modal - show order summary before final confirmation
   const [showOrderPreviewModal, setShowOrderPreviewModal] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Show toast notification
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
   // NEW FEATURE: Delivery time estimate - calculate based on delivery method
   const getDeliveryEstimate = () => {
     if (!checkoutGroup?.deliveryMethod) {
@@ -218,12 +225,31 @@ export function CheckoutPage() {
   };
 
   // NEW FEATURE: Order preview confirmed - proceed with placing the order
-  const handleConfirmOrder = () => {
-    // Generate order ID
-    const newOrderId = `ORD${Date.now()}`;
-    setOrderId(newOrderId);
-    setShowOrderPreviewModal(false);
-    setShowSuccessModal(true);
+  const handleConfirmOrder = async () => {
+    try {
+      if (!checkoutGroup) return;
+
+      const payload = {
+        cartItemIds: checkoutGroup.items.map(item => Number(item.id)),
+        shippingAddress: shippingInfo.address,
+        receiverName: shippingInfo.name,
+        receiverPhone: shippingInfo.phone,
+        buyerNote: checkoutGroup.messageToSeller || '',
+      };
+
+      const response = await axios.post('/api/orders/checkout', payload);
+
+      if (response.data && response.data.id) {
+        setOrderId(`ORD${response.data.id}`);
+        window.dispatchEvent(new Event('cartUpdated'));
+        setShowOrderPreviewModal(false);
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
+      console.error('Lỗi khi đặt hàng:', error);
+      const errorMessage = 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!';
+      showToast(errorMessage, 'error');
+    }
   };
 
   return (
@@ -820,6 +846,20 @@ export function CheckoutPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className="fixed bottom-20 md:bottom-6 right-6 z-50 animate-slideUp">
+            <div
+              className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+                toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}
+            >
+              <BadgeCheck className="w-5 h-5" />
+              <span className="font-medium">{toast.message}</span>
             </div>
           </div>
         )}

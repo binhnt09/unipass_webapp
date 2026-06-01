@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, BadgeCheck, MessageCircle, Eye, Package, Copy, Check, ShoppingBag, Star, RotateCcw, SortAsc } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
 import { Link } from 'react-router';
 import { RatingModal } from '../components/ratingModal';
+import axios from 'axios';
 
 type OrderStatus = 'all' | 'pending' | 'shipping' | 'completed' | 'cancelled';
 type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc';
@@ -36,6 +37,9 @@ export function MyOrdersPage() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [selectedOrderForRating, setSelectedOrderForRating] = useState<Order | null>(null);
 
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const tabs = [
     { id: 'all' as OrderStatus, label: 'Tất cả' },
     { id: 'pending' as OrderStatus, label: 'Chờ xác nhận' },
@@ -44,80 +48,27 @@ export function MyOrdersPage() {
     { id: 'cancelled' as OrderStatus, label: 'Đã hủy' },
   ];
 
-  // Sample orders
-  const orders: Order[] = [
-    {
-      id: '1',
-      orderNumber: 'UM2024032301',
-      sellerName: 'Nam Nguyễn',
-      sellerUniversity: 'ĐH Bách Khoa HN',
-      status: 'pending',
-      statusText: 'CHỜ XÁC NHẬN',
-      orderDate: '23/03/2024',
-      items: [
-        {
-          id: '1',
-          productImage:
-            'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
-          variation: 'Màu bạc',
-          quantity: 1,
-          unitPrice: 12500000,
-        },
-      ],
-      total: 12500000,
-    },
-    {
-      id: '2',
-      orderNumber: 'UM2024032202',
-      sellerName: 'Minh Trần',
-      sellerUniversity: 'ĐH Kinh tế Quốc dân',
-      status: 'completed',
-      statusText: 'ĐÃ GIAO',
-      orderDate: '22/03/2024',
-      items: [
-        {
-          id: '2',
-          productImage:
-            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aXJlbGVzcyUyMGhlYWRwaG9uZXN8ZW58MXx8fHwxNzczODkwMDY0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Tai nghe Sony WH-1000XM4 - Chống ồn',
-          variation: 'Màu đen',
-          quantity: 1,
-          unitPrice: 4500000,
-        },
-        {
-          id: '3',
-          productImage:
-            'https://images.unsplash.com/photo-1766411503488-f90eef1124bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNrJTIwbGFtcCUyMG1vZGVybnxlbnwxfHx8fDE3NzM4MTc0Njl8MA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Đèn bàn LED thông minh - 3 chế độ ánh sáng',
-          quantity: 2,
-          unitPrice: 450000,
-        },
-      ],
-      total: 5400000,
-    },
-    {
-      id: '3',
-      orderNumber: 'UM2024032103',
-      sellerName: 'Hương Lê',
-      sellerUniversity: 'ĐH Ngoại thương',
-      status: 'shipping',
-      statusText: 'ĐANG GIAO HÀNG',
-      orderDate: '21/03/2024',
-      items: [
-        {
-          id: '4',
-          productImage:
-            'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBiYWNrcGFja3xlbnwxfHx8fDE3NzM4OTAwNjR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-          productTitle: 'Balo laptop chống nước - Nhiều ngăn tiện lợi',
-          variation: 'Màu xám',
-          quantity: 1,
-          unitPrice: 850000,
-        },
-      ],
-      total: 850000,
-    },
-  ];
+  // order {
+  //     id: '1',
+  //     orderNumber: 'UM2024032301',
+  //     sellerName: 'Nam Nguyễn',
+  //     sellerUniversity: 'ĐH Bách Khoa HN',
+  //     status: 'pending',
+  //     statusText: 'CHỜ XÁC NHẬN',
+  //     orderDate: '23/03/2024',
+  //     items: [
+  //       {
+  //         id: '1',
+  //         productImage:
+  //           'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+  //         productTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
+  //         variation: 'Màu bạc',
+  //         quantity: 1,
+  //         unitPrice: 12500000,
+  //       },
+  //     ],
+  //     total: 12500000,
+  //   },
 
   const copyOrderNumber = (orderNumber: string) => {
     navigator.clipboard.writeText(orderNumber);
@@ -169,6 +120,109 @@ export function MyOrdersPage() {
         return 'text-gray-600';
     }
   };
+
+  // Hàm bổ trợ map trạng thái BE -> FE
+  const mapBEStatusToFEStatus = (status: string): 'pending' | 'shipping' | 'completed' | 'cancelled' => {
+    if (!status) return 'pending';
+    switch (status.toUpperCase()) {
+      case 'PENDING_CONFIRM':
+        return 'pending';
+      case 'SHIPPING':
+        return 'shipping';
+      case 'COMPLETED':
+        return 'completed';
+      case 'CANCELLED':
+        return 'cancelled';
+      default:
+        return 'pending';
+    }
+  };
+
+  // Hàm hiển thị chữ Tiếng Việt tương ứng
+  const getStatusText = (status: string): string => {
+    if (!status) return 'CHỜ XÁC NHẬN';
+    switch (status.toUpperCase()) {
+      case 'PENDING_CONFIRM':
+        return 'CHỜ XÁC NHẬN';
+      case 'SHIPPING':
+        return 'ĐANG GIAO HÀNG';
+      case 'COMPLETED':
+        return 'ĐÃ GIAO';
+      case 'CANCELLED':
+        return 'ĐÃ HỦY';
+      default:
+        return 'CHỜ XÁC NHẬN';
+    }
+  };
+
+  //  GỌI API KHI TRANG ĐƯỢC TẢI LÊN
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('/api/orders/current-user');
+
+        // logic lấy iamge product bằng FE
+        // const beOrdersData = response.data || [];
+        // const productIds: number[] = [];
+        // beOrdersData.forEach((order: any) => {
+        //   (order.items || []).forEach((item: any) => {
+        //     if (item.product?.id) {
+        //       productIds.push(item.product.id);
+        //     }
+        //   });
+        // });
+        // const uniqueProductIds = Array.from(new Set(productIds));
+        // let allImages: any[] = [];
+        // if (uniqueProductIds.length > 0) {
+        //   const resImages = await axios.get(`/api/product-images?productId.in=${uniqueProductIds.join(',')}`);
+        //   allImages = resImages.data || [];
+        // }
+
+        // Convert cấu trúc DTO từ BE sang cấu trúc Object mà Giao diện FE đang cần dùng [cite: 3-6]
+        const formattedOrders: Order[] = response.data.map((beOrder: any) => ({
+          id: beOrder.id.toString(),
+          orderNumber: `ORD${beOrder.id}`,
+          sellerName: beOrder.seller?.login || 'Người bán',
+          sellerUniversity: 'Đại học FPT',
+          status: mapBEStatusToFEStatus(beOrder.status),
+          statusText: getStatusText(beOrder.status),
+          orderDate: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleDateString('vi-VN') : 'Vừa xong',
+          total: beOrder.totalAmount,
+          items: (beOrder.items || []).map((beItem: any) => {
+            // logic lấy iamge product bằng FE
+            // const prod = beItem.product;
+            // const productImages = allImages.filter(img => img.product?.id === prod?.id);
+            // const primaryImage = productImages.find(img => img.isPrimary) || productImages[0];
+            return {
+              id: beItem.id.toString(),
+              productImage: beItem.productMainImage,
+              productTitle: beItem.product?.name || 'Sản phẩm',
+              variation: beItem.product?.condition || '',
+              quantity: beItem.quantity,
+              unitPrice: beItem.price,
+            };
+          }),
+        }));
+
+        setOrders(formattedOrders);
+      } catch (error) {
+        console.error('Lỗi khi tải đơn hàng:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500 font-medium">Đang tải danh sách đơn mua của bạn...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
