@@ -28,9 +28,20 @@ const SkeletonCard = () => (
 export function ProductGrid({ products, loading }: ProductGridProps) {
   // Map IProduct to the UI Card format
   const mappedProducts = products.map(prod => {
-    const imageUrl =
-      (prod as any).imageUrl ||
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080';
+    const primaryImageObj =
+      (prod as any).productImages && (prod as any).productImages.length > 0
+        ? (prod as any).productImages.find((img: any) => img.isPrimary) || (prod as any).productImages[0]
+        : null;
+
+    let imageUrl = primaryImageObj?.imageUrl || (prod as any).imageUrl;
+    if (imageUrl && imageUrl.startsWith('uploads/')) {
+      imageUrl = '/' + imageUrl;
+    }
+
+    if (!imageUrl) {
+      imageUrl =
+        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080';
+    }
 
     const conditionDisplay = (() => {
       switch (prod.condition) {
@@ -60,6 +71,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
       rating: 4.8,
       reviews: 12,
       condition: conditionDisplay,
+      stock: prod.stock,
     };
   });
 

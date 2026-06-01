@@ -28,7 +28,7 @@ export const ChatRoomUpdate = () => {
   const updateSuccess = useAppSelector(state => state.chatRoom.updateSuccess);
 
   const handleClose = () => {
-    navigate('/chat-room');
+    navigate(`/chat-room${location.search}`);
   };
 
   useEffect(() => {

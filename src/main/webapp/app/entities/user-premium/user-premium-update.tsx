@@ -28,7 +28,7 @@ export const UserPremiumUpdate = () => {
   const updateSuccess = useAppSelector(state => state.userPremium.updateSuccess);
 
   const handleClose = () => {
-    navigate('/user-premium');
+    navigate(`/user-premium${location.search}`);
   };
 
   useEffect(() => {

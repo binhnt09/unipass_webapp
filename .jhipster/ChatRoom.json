@@ -12,6 +12,7 @@
   ],
   "jpaMetamodelFiltering": true,
   "name": "ChatRoom",
+  "pagination": "pagination",
   "relationships": [
     {
       "otherEntityField": "name",

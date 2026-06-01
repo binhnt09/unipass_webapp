@@ -12,6 +12,7 @@ import {
   Shield,
   Clock,
   Flag,
+  Edit,
 } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
 import { Link, useParams } from 'react-router';
@@ -19,9 +20,69 @@ import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
 import { IProductImage } from 'app/shared/model/product-image.model';
 import { ReportModal } from './reportModal';
+import { useAuth } from '../../../contexts/AuthContext';
 
+interface ProductActionButtonsProps {
+  isOwner: boolean;
+  stock?: number;
+  productId?: number;
+}
+
+function ProductActionButtons({ isOwner, stock, productId }: ProductActionButtonsProps) {
+  if (isOwner) {
+    return (
+      <Link
+        to={`/listings/edit/${productId}`}
+        className="col-span-2 flex items-center justify-center gap-2 px-6 py-4 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-bold transition-colors shadow-md"
+      >
+        <Edit className="w-5 h-5" />
+        Chỉnh sửa bài đăng
+      </Link>
+    );
+  }
+
+  if (stock === 0) {
+    return (
+      <>
+        <button
+          disabled
+          className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-300 text-gray-500 rounded-lg font-bold cursor-not-allowed shadow-none"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          Hết hàng
+        </button>
+        <button
+          disabled
+          className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-200 text-gray-400 rounded-lg font-bold cursor-not-allowed shadow-none"
+        >
+          <MessageCircle className="w-5 h-5" />
+          Liên hệ người bán
+        </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Link
+        to="/cart"
+        className="flex items-center justify-center gap-2 px-6 py-4 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-bold transition-colors shadow-md"
+      >
+        <ShoppingCart className="w-5 h-5" />
+        Đặt mua ngay
+      </Link>
+      <button className="flex items-center justify-center gap-2 px-6 py-4 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-bold transition-colors shadow-md">
+        <MessageCircle className="w-5 h-5" />
+        Liên hệ người bán
+      </button>
+    </>
+  );
+}
+
+// eslint-disable-next-line complexity
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [images, setImages] = useState<IProductImage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -65,11 +126,29 @@ export function ProductDetailPage() {
   }, [id]);
 
   const imageUrls =
-    images.length > 0
-      ? images.map(img => img.imageUrl).filter(Boolean)
-      : [
-          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-        ];
+    product && (product as any).productImages && (product as any).productImages.length > 0
+      ? (product as any).productImages
+          .map((img: any) => {
+            let url = img.imageUrl;
+            if (url && url.startsWith('uploads/')) {
+              url = '/' + url;
+            }
+            return url;
+          })
+          .filter(Boolean)
+      : images.length > 0
+        ? images
+            .map(img => {
+              let url = img.imageUrl;
+              if (url && url.startsWith('uploads/')) {
+                url = '/' + url;
+              }
+              return url;
+            })
+            .filter(Boolean)
+        : [
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
+          ];
 
   const nextImage = () => {
     setCurrentImageIndex(prev => (prev + 1) % imageUrls.length);
@@ -134,6 +213,14 @@ export function ProductDetailPage() {
   const sellerName = product.seller?.login || 'Thành viên';
   const universityName = (product.seller as any)?.university?.name || 'Đại học Quốc gia';
   const postedDate = product.createdAt ? new Date(product.createdAt as any).toLocaleDateString('vi-VN') : 'Mới đăng';
+  const isOwner = !!(
+    user &&
+    product?.seller &&
+    (String(user.id) === String(product.seller.id) ||
+      user.email?.toLowerCase() === product.seller.email?.toLowerCase() ||
+      (user as any).login?.toLowerCase() === product.seller.login?.toLowerCase() ||
+      user.name?.toLowerCase() === product.seller.login?.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -250,27 +337,34 @@ export function ProductDetailPage() {
                     <p className="text-sm text-gray-500 line-through">Giá gốc: {discountPrice.toLocaleString('vi-VN')} đ</p>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end gap-2">
                   <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200">
                     <Shield className="w-4 h-4" />
                     <span className="font-semibold">{getConditionLabel(product.condition)}</span>
                   </div>
+                  {product.stock !== undefined &&
+                    (product.stock === 0 ? (
+                      <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                        Hết hàng (Out of Stock)
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-600">
+                        Kho: <strong className="text-[#0A2647]">{product.stock}</strong> sản phẩm
+                      </span>
+                    ))}
                 </div>
               </div>
 
+              {/* Seller Notification Banner */}
+              {isOwner && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-medium">
+                  💡 Bạn là người bán sản phẩm này. Bạn có thể chỉnh sửa tin đăng từ bảng điều khiển của người bán.
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
-                <Link
-                  to="/cart"
-                  className="flex items-center justify-center gap-2 px-6 py-4 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-bold transition-colors shadow-md"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  Đặt mua ngay
-                </Link>
-                <button className="flex items-center justify-center gap-2 px-6 py-4 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-bold transition-colors shadow-md">
-                  <MessageCircle className="w-5 h-5" />
-                  Liên hệ người bán
-                </button>
+                <ProductActionButtons isOwner={isOwner} stock={product.stock} productId={product.id} />
               </div>
 
               {/* Trust Badge */}

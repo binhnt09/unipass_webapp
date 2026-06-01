@@ -28,6 +28,8 @@ import { CreateListingPage } from './modules/listing/create-listing/createListin
 import { LoginInfoPage } from './modules/login/LoginInfoPage';
 import { ChatPage } from './modules/chat/chatPage';
 import { SellerDashboardPage } from './modules/seller/dashboard/sellerDashboardPage';
+import { SellerRegistrationSuccessPage } from './modules/seller/registration/SellerRegistrationSuccessPage';
+import { SellerRequestsAdminPage } from './modules/seller/admin/SellerRequestsAdminPage';
 import { MyOrdersPage } from './modules/order/pages/myOrdersPage';
 import { ShoppingCartPage } from './modules/cart/shoppingCartPage';
 import { NotificationsPage } from './modules/notifications/notificationsPage';
@@ -177,11 +179,12 @@ export const router = createBrowserRouter([
           { path: 'payment/momo', element: <MoMoQRPage /> },
           { path: 'payment/vnpay', element: <VNPayQRPage /> },
           { path: 'payment/bank-transfer', element: <BankTransferQRPage /> },
+          { path: 'seller-success', element: <SellerRegistrationSuccessPage /> },
         ],
       },
       {
         element: (
-          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+          <PrivateRoute hasAnyAuthorities={[Authority.SELLER]}>
             <Outlet />
           </PrivateRoute>
         ),
@@ -265,6 +268,14 @@ export const router = createBrowserRouter([
             ),
           },
         ],
+      },
+      {
+        element: (
+          <PrivateRoute hasAnyAuthorities={[Authority.ADMIN]}>
+            <Outlet />
+          </PrivateRoute>
+        ),
+        children: [{ path: 'admin/seller-requests', element: <SellerRequestsAdminPage /> }],
       },
       {
         path: 'admin/*',

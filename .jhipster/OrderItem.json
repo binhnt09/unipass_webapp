@@ -18,6 +18,7 @@
   ],
   "jpaMetamodelFiltering": true,
   "name": "OrderItem",
+  "pagination": "pagination",
   "relationships": [
     {
       "otherEntityName": "orders",

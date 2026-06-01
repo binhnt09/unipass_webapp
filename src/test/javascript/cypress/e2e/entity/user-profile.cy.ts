@@ -36,7 +36,7 @@ describe('UserProfile e2e test', () => {
     cy.authenticatedRequest({
       method: 'POST',
       url: '/api/users',
-      body: {"login":"Wilfred_Beier","firstName":"Cecelia","lastName":"Jakubowski","email":"Gwen_Von@hotmail.com","langKey":"agile sequ","imageUrl":"where shy after"},
+      body: {"login":"Wilbur_Beier","firstName":"Catherine","lastName":"Jakubowski","email":"Gloria_Von@hotmail.com","langKey":"agile sequ","imageUrl":"where shy after"},
     }).then(({ body }) => {
       user = body;
     });
@@ -104,6 +104,11 @@ describe('UserProfile e2e test', () => {
   });
 
   describe('UserProfile page', () => {
+    it('should have translated page title', () => {
+      cy.visit(userProfilePageUrl);
+      cy.getEntityHeading('UserProfile').should('not.contain', 'unipassWebApp.userProfile.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(userProfilePageUrl);

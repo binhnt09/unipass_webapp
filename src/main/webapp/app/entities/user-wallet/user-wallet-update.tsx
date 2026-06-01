@@ -26,7 +26,7 @@ export const UserWalletUpdate = () => {
   const updateSuccess = useAppSelector(state => state.userWallet.updateSuccess);
 
   const handleClose = () => {
-    navigate('/user-wallet');
+    navigate(`/user-wallet${location.search}`);
   };
 
   useEffect(() => {

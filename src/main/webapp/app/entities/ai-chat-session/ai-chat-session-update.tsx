@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getUsers } from 'app/modules/administration/user-management/user-management.reducer';
 import { convertDateTimeFromServer, convertDateTimeToServer, displayDefaultDateTime } from 'app/shared/util/date-utils';
 
-import { createEntity, getEntity, reset, updateEntity } from './ai-chat-session.reducer';
+import { createEntity, getEntity, updateEntity } from './ai-chat-session.reducer';
 
 export const AiChatSessionUpdate = () => {
   const dispatch = useAppDispatch();
@@ -30,9 +30,7 @@ export const AiChatSessionUpdate = () => {
   };
 
   useEffect(() => {
-    if (isNew) {
-      dispatch(reset());
-    } else {
+    if (!isNew) {
       dispatch(getEntity(id));
     }
 

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Nav, Navbar } from 'react-bootstrap';
 import { Storage } from 'react-jhipster';
-import { NavLink as Link } from 'react-router';
-import { Search, Bell, ShoppingCart, Plus, Crown, MessageCircle, ChevronDown } from 'lucide-react';
+import { NavLink as Link, useNavigate } from 'react-router';
+import { Search, Bell, ShoppingCart, Plus, Crown, MessageCircle, ChevronDown, Shield, Loader2 } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 import LoadingBar from 'react-redux-loading-bar';
 
-import { useAppDispatch } from 'app/config/store';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
 import { AccountMenu, LocaleMenu, AdminMenu, EntitiesMenu } from '../menus';
 import { AuthModal } from 'app/modules/login/AuthModal';
+import { SellerRegistrationModal } from 'app/modules/seller/registration/SellerRegistrationModal';
 
 import { Brand, Home } from './header-components';
 import { useAuth } from 'app/contexts/AuthContext';
@@ -30,13 +33,49 @@ const Header = (props: IHeaderProps) => {
   const { isAuthenticated: isDemoAuth, isSeller: isDemoSeller, isAdmin: isDemoAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSellerRegModal, setShowSellerRegModal] = useState(false);
   const [authModalDefaultTab, setAuthModalDefaultTab] = useState<'login' | 'register'>('login');
   const [cartCount, setCartCount] = useState(0);
 
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSellerButtonClick = async () => {
+    if (isCheckingStatus) return;
+    setIsCheckingStatus(true);
+    try {
+      const response = await axios.get('/api/seller-requests/my-status');
+      const status = response.data?.status || response.data;
+
+      if (status === 'PENDING' || status === 'REJECTED') {
+        setShowSellerRegModal(false);
+        navigate('/seller-success');
+      } else if (status === 'APPROVED') {
+        toast.info('Tài khoản của bạn đã được phê duyệt làm Người bán.');
+        navigate('/seller-dashboard');
+      } else {
+        setShowSellerRegModal(true);
+      }
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        setShowSellerRegModal(true);
+      } else {
+        console.error('Lỗi kiểm tra trạng thái đăng ký:', err);
+        const serverMsg = err.response?.data?.title || err.response?.data?.message;
+        toast.error(serverMsg || 'Không thể kiểm tra trạng thái đăng ký. Vui lòng thử lại!');
+      }
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
+  const realUser = useAppSelector(state => state.authentication.account);
+  const authorities = realUser?.authorities || [];
+
   const isUserLoggedIn = props.isAuthenticated || isDemoAuth;
-  const isUserSeller = isDemoSeller;
-  const isUserAdmin = isDemoAdmin;
-  const isAdmin = props.isAdmin;
+  const isUserSeller = isDemoAuth ? isDemoSeller : authorities.includes('ROLE_SELLER');
+  const isUserAdmin = isDemoAuth ? isDemoAdmin : authorities.includes('ROLE_ADMIN');
+  const isAdmin = props.isAdmin || isUserAdmin;
 
   const handleLocaleChange = langKey => {
     Storage.session.set('locale', langKey);
@@ -120,25 +159,49 @@ const Header = (props: IHeaderProps) => {
             <Navbar.Collapse id="header-tabs" className="w-full md:w-auto">
               <Nav className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3 mt-3 md:mt-0">
                 <Home />
-                {isUserSeller && (
-                  <Link
-                    to="/create-listing"
-                    className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
+                {isUserLoggedIn && isUserSeller && (
+                  <>
+                    <Link
+                      to="/seller-dashboard"
+                      className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
+                    >
+                      <span>Kênh Người bán</span>
+                    </Link>
+                    <Link
+                      to="/create-listing"
+                      className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Bán hàng</span>
+                    </Link>
+                  </>
+                )}
+                {isUserLoggedIn && !isUserSeller && (
+                  <button
+                    type="button"
+                    onClick={handleSellerButtonClick}
+                    disabled={isCheckingStatus}
+                    className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#FF5722] text-[#0A2647] rounded-2xl transition-colors text-sm font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>Bán hàng</span>
+                    {isCheckingStatus ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-[#0A2647]" />
+                        <span>Đang kiểm tra...</span>
+                      </>
+                    ) : (
+                      <span>Trở thành Người bán</span>
+                    )}
+                  </button>
+                )}
+                {isUserLoggedIn && isAdmin && (
+                  <Link
+                    to="/admin/seller-requests"
+                    className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl transition-colors text-sm font-medium"
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>Duyệt Người bán</span>
                   </Link>
                 )}
-                {/* {isUserAdmin ||
-                  (isAdmin && (
-                    <Link
-                      to="/admin"
-                      className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-2xl transition-colors text-sm font-medium"
-                    >
-                      <Shield className="w-4 h-4" />
-                      <span>Quản trị</span>
-                    </Link>
-                  ))} */}
                 {props.isAuthenticated && (isAdmin || isUserAdmin) && <EntitiesMenu />}
                 {props.isAuthenticated && props.isAdmin && <AdminMenu showOpenAPI={props.isOpenAPIEnabled} />}
                 <Link
@@ -180,6 +243,7 @@ const Header = (props: IHeaderProps) => {
         </div>
       </Navbar>
       {showAuthModal && <AuthModal onClose={closeAuthModal} defaultTab={authModalDefaultTab} />}
+      <SellerRegistrationModal isOpen={showSellerRegModal} onClose={() => setShowSellerRegModal(false)} />
       <AIChatButton />
     </div>
   );

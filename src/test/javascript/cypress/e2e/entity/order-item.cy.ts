@@ -61,6 +61,11 @@ describe('OrderItem e2e test', () => {
   });
 
   describe('OrderItem page', () => {
+    it('should have translated page title', () => {
+      cy.visit(orderItemPageUrl);
+      cy.getEntityHeading('OrderItem').should('not.contain', 'unipassWebApp.orderItem.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(orderItemPageUrl);
@@ -97,6 +102,9 @@ describe('OrderItem e2e test', () => {
             },
             {
               statusCode: 200,
+              headers: {
+                link: '<http://localhost/api/order-items?page=0&size=20>; rel="last",<http://localhost/api/order-items?page=0&size=20>; rel="first"',
+              },
               body: [orderItem],
             },
           ).as('entitiesRequestInternal');

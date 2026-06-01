@@ -95,7 +95,7 @@ export const WalletTransaction = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const order = paginationState.order;
+    const { order } = paginationState;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -220,7 +220,7 @@ export const WalletTransaction = () => {
                           </span>
                         </Button>
                         <Button
-                          onClick={() => (window.location.href = `/wallet-transaction/${walletTransaction.id}/delete`)}
+                          onClick={() => (globalThis.location.href = `/wallet-transaction/${walletTransaction.id}/delete`)}
                           variant="danger"
                           size="sm"
                           data-cy="entityDeleteButton"

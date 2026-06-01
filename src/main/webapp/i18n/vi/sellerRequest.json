@@ -1,0 +1,33 @@
+{
+  "unipassWebApp": {
+    "sellerRequest": {
+      "home": {
+        "title": "Seller Requests",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Seller Request",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Seller Request",
+        "notFound": "No Seller Requests found"
+      },
+      "created": "Một Seller Request mới được tạo với định danh {{ param }}",
+      "updated": "Một Seller Request cập nhật với định danh {{ param }}",
+      "deleted": "Một Seller Request đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Seller Request {{ id }}?"
+      },
+      "detail": {
+        "title": "Seller Request"
+      },
+      "id": "ID",
+      "phoneNumber": "Phone Number",
+      "hostelLocation": "Hostel Location",
+      "bio": "Bio",
+      "idCardUrl": "Id Card Url",
+      "status": "Status",
+      "rejectionReason": "Rejection Reason",
+      "submittedAt": "Submitted At",
+      "reviewedAt": "Reviewed At",
+      "reviewedBy": "Reviewed By",
+      "user": "User"
+    }
+  }
+}

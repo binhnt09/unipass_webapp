@@ -61,6 +61,11 @@ describe('AiChatMessage e2e test', () => {
   });
 
   describe('AiChatMessage page', () => {
+    it('should have translated page title', () => {
+      cy.visit(aiChatMessagePageUrl);
+      cy.getEntityHeading('AiChatMessage').should('not.contain', 'unipassWebApp.aiChatMessage.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(aiChatMessagePageUrl);

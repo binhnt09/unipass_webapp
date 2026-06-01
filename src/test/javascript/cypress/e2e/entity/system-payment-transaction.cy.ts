@@ -67,6 +67,11 @@ describe('SystemPaymentTransaction e2e test', () => {
   });
 
   describe('SystemPaymentTransaction page', () => {
+    it('should have translated page title', () => {
+      cy.visit(systemPaymentTransactionPageUrl);
+      cy.getEntityHeading('SystemPaymentTransaction').should('not.contain', 'unipassWebApp.systemPaymentTransaction.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(systemPaymentTransactionPageUrl);

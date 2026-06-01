@@ -61,6 +61,11 @@ describe('Invoice e2e test', () => {
   });
 
   describe('Invoice page', () => {
+    it('should have translated page title', () => {
+      cy.visit(invoicePageUrl);
+      cy.getEntityHeading('Invoice').should('not.contain', 'unipassWebApp.invoice.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(invoicePageUrl);

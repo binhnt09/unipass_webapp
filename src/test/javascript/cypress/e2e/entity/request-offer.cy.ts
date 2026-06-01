@@ -61,6 +61,11 @@ describe('RequestOffer e2e test', () => {
   });
 
   describe('RequestOffer page', () => {
+    it('should have translated page title', () => {
+      cy.visit(requestOfferPageUrl);
+      cy.getEntityHeading('RequestOffer').should('not.contain', 'unipassWebApp.requestOffer.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(requestOfferPageUrl);

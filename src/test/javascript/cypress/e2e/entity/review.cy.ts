@@ -61,6 +61,11 @@ describe('Review e2e test', () => {
   });
 
   describe('Review page', () => {
+    it('should have translated page title', () => {
+      cy.visit(reviewPageUrl);
+      cy.getEntityHeading('Review').should('not.contain', 'unipassWebApp.review.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(reviewPageUrl);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
-import { TextFormat, Translate, getSortState } from 'react-jhipster';
+import { JhiItemCount, JhiPagination, TextFormat, Translate, getPaginationState } from 'react-jhipster';
 import { Link, useLocation, useNavigate } from 'react-router';
 
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
@@ -8,8 +8,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { overrideSortStateWithQueryParams } from 'app/shared/util/entity-utils';
-import { ASC, DESC } from 'app/shared/util/pagination.constants';
+import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
+import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 
 import { getEntities } from './cart-item.reducer';
 
@@ -19,22 +19,27 @@ export const CartItem = () => {
   const pageLocation = useLocation();
   const navigate = useNavigate();
 
-  const [sortState, setSortState] = useState(overrideSortStateWithQueryParams(getSortState(pageLocation, 'id'), pageLocation.search));
+  const [paginationState, setPaginationState] = useState(
+    overridePaginationStateWithQueryParams(getPaginationState(pageLocation, ITEMS_PER_PAGE, 'id'), pageLocation.search),
+  );
 
   const cartItemList = useAppSelector(state => state.cartItem.entities);
   const loading = useAppSelector(state => state.cartItem.loading);
+  const totalItems = useAppSelector(state => state.cartItem.totalItems);
 
   const getAllEntities = () => {
     dispatch(
       getEntities({
-        sort: `${sortState.sort},${sortState.order}`,
+        page: paginationState.activePage - 1,
+        size: paginationState.itemsPerPage,
+        sort: `${paginationState.sort},${paginationState.order}`,
       }),
     );
   };
 
   const sortEntities = () => {
     getAllEntities();
-    const endURL = `?sort=${sortState.sort},${sortState.order}`;
+    const endURL = `?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`;
     if (pageLocation.search !== endURL) {
       navigate(`${pageLocation.pathname}${endURL}`);
     }
@@ -42,23 +47,44 @@ export const CartItem = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [sortState.order, sortState.sort]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(pageLocation.search);
+    const page = params.get('page');
+    const sort = params.get(SORT);
+    if (page && sort) {
+      const sortSplit = sort.split(',');
+      setPaginationState({
+        ...paginationState,
+        activePage: +page,
+        sort: sortSplit[0],
+        order: sortSplit[1],
+      });
+    }
+  }, [pageLocation.search]);
 
   const sort = p => () => {
-    setSortState({
-      ...sortState,
-      order: sortState.order === ASC ? DESC : ASC,
+    setPaginationState({
+      ...paginationState,
+      order: paginationState.order === ASC ? DESC : ASC,
       sort: p,
     });
   };
+
+  const handlePagination = currentPage =>
+    setPaginationState({
+      ...paginationState,
+      activePage: currentPage,
+    });
 
   const handleSyncList = () => {
     sortEntities();
   };
 
   const getSortIconByFieldName = (fieldName: string) => {
-    const sortFieldName = sortState.sort;
-    const order = sortState.order;
+    const sortFieldName = paginationState.sort;
+    const { order } = paginationState;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -126,14 +152,22 @@ export const CartItem = () => {
                           <Translate contentKey="entity.action.view">View</Translate>
                         </span>
                       </Button>
-                      <Button as={Link as any} to={`/cart-item/${cartItem.id}/edit`} variant="primary" size="sm" data-cy="entityEditButton">
+                      <Button
+                        as={Link as any}
+                        to={`/cart-item/${cartItem.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        variant="primary"
+                        size="sm"
+                        data-cy="entityEditButton"
+                      >
                         <FontAwesomeIcon icon="pencil-alt" />{' '}
                         <span className="d-none d-md-inline">
                           <Translate contentKey="entity.action.edit">Edit</Translate>
                         </span>
                       </Button>
                       <Button
-                        onClick={() => (window.location.href = `/cart-item/${cartItem.id}/delete`)}
+                        onClick={() =>
+                          (globalThis.location.href = `/cart-item/${cartItem.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                        }
                         variant="danger"
                         size="sm"
                         data-cy="entityDeleteButton"
@@ -157,6 +191,24 @@ export const CartItem = () => {
           )
         )}
       </div>
+      {totalItems ? (
+        <div className={cartItemList && cartItemList.length > 0 ? '' : 'd-none'}>
+          <div className="justify-content-center d-flex">
+            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
+          </div>
+          <div className="justify-content-center d-flex">
+            <JhiPagination
+              activePage={paginationState.activePage}
+              onSelect={handlePagination}
+              maxButtons={5}
+              itemsPerPage={paginationState.itemsPerPage}
+              totalItems={totalItems}
+            />
+          </div>
+        </div>
+      ) : (
+        ''
+      )}
     </div>
   );
 };

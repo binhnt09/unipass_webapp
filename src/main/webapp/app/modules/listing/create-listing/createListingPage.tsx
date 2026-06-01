@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
-import { Upload, X, Image as ImageIcon, Package, DollarSign, Tag, FileText, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Package, DollarSign, Tag, FileText, Loader2, Link as LinkIcon } from 'lucide-react';
 import { ICategory } from 'app/shared/model/category.model';
+import { useAppSelector } from 'app/config/store';
+import { useAuth } from 'app/contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 type ExistingImage = {
   id: number;
   imageUrl: string;
+};
+
+type ImageItem = {
+  previewUrl: string;
+  file?: File;
 };
 
 export function CreateListingPage() {
@@ -14,9 +22,12 @@ export function CreateListingPage() {
   const { id } = useParams();
   const isEditMode = Boolean(id);
 
+  const account = useAppSelector(state => state.authentication.account);
+  const { user } = useAuth();
+
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [rawFiles, setRawFiles] = useState<File[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<ImageItem[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState('');
   const [categories, setCategories] = useState<ICategory[]>([]);
 
   const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
@@ -33,6 +44,7 @@ export function CreateListingPage() {
     category: '',
     condition: '',
     description: '',
+    stock: '1',
   });
 
   // Fetch categories dynamically on component mount
@@ -67,11 +79,12 @@ export function CreateListingPage() {
             category: product.category?.id ? String(product.category.id) : '',
             condition: product.condition || '',
             description: product.description || '',
+            stock: product.stock !== undefined && product.stock !== null ? String(product.stock) : '1',
           });
         })
         .catch(err => {
           console.error('Error fetching product details:', err);
-          setErrorMessage('Failed to load product details.');
+          setErrorMessage('Tải chi tiết sản phẩm thất bại.');
         });
 
       axios
@@ -89,12 +102,12 @@ export function CreateListingPage() {
     }
   }, [id, isEditMode]);
 
-  // Cleanup object URLs on unmount to prevent browser memory leaks
+  // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
-      uploadedImages.forEach(url => {
-        if (url.startsWith('blob:')) {
-          URL.revokeObjectURL(url);
+      uploadedImages.forEach(img => {
+        if (img.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(img.previewUrl);
         }
       });
     };
@@ -129,26 +142,37 @@ export function CreateListingPage() {
   const handleFiles = (files: FileList) => {
     const fileList = Array.from(files);
 
-    // Check if adding files exceeds max 5 images limit
     const totalCount = existingImages.length + uploadedImages.length + fileList.length;
     if (totalCount > 5) {
-      alert('You can only upload a maximum of 5 images.');
+      toast.error('Bạn chỉ có thể tải lên tối đa 5 hình ảnh.');
       return;
     }
 
-    const newImages = fileList.map(file => URL.createObjectURL(file));
-    setUploadedImages(prev => [...prev, ...newImages]);
-    setRawFiles(prev => [...prev, ...fileList]);
+    const newItems = fileList.map(file => ({
+      previewUrl: URL.createObjectURL(file),
+      file,
+    }));
+
+    setUploadedImages(prev => [...prev, ...newItems]);
+  };
+
+  const handleAddImageUrl = () => {
+    if (imageUrlInput.trim() !== '') {
+      if (existingImages.length + uploadedImages.length >= 5) {
+        toast.error('Bạn chỉ có thể đăng tối đa 5 hình ảnh.');
+        return;
+      }
+      setUploadedImages(prev => [...prev, { previewUrl: imageUrlInput.trim() }]);
+      setImageUrlInput('');
+    }
   };
 
   const removeImage = (index: number) => {
-    // Revoke the object URL to avoid memory leaks
-    const urlToRemove = uploadedImages[index];
-    if (urlToRemove && urlToRemove.startsWith('blob:')) {
-      URL.revokeObjectURL(urlToRemove);
+    const itemToRemove = uploadedImages[index];
+    if (itemToRemove && itemToRemove.previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(itemToRemove.previewUrl);
     }
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
-    setRawFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const removeExistingImage = (imageId: number) => {
@@ -156,14 +180,57 @@ export function CreateListingPage() {
     setExistingImages(prev => prev.filter(img => img.id !== imageId));
   };
 
+  // eslint-disable-next-line complexity
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
+    // Form validations
+    if (!formData.title || formData.title.trim() === '') {
+      setErrorMessage('Vui lòng nhập tên sản phẩm');
+      toast.error('Vui lòng nhập tên sản phẩm');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.price || formData.price.trim() === '' || Number(formData.price) < 0) {
+      setErrorMessage('Giá bán không được để trống hoặc âm');
+      toast.error('Giá bán không được để trống hoặc âm');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.stock || formData.stock.trim() === '' || Number(formData.stock) < 0) {
+      setErrorMessage('Số lượng không được để trống hoặc âm');
+      toast.error('Số lượng không được để trống hoặc âm');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.category) {
+      setErrorMessage('Vui lòng chọn danh mục sản phẩm');
+      toast.error('Vui lòng chọn danh mục sản phẩm');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.condition) {
+      setErrorMessage('Vui lòng chọn tình trạng sản phẩm');
+      toast.error('Vui lòng chọn tình trạng sản phẩm');
+      setIsSubmitting(false);
+      return;
+    }
+
+    let productId = isEditMode ? Number(id) : null;
+
+    // STEP 1: Create or Update Product with standard JSON request
     try {
-      // Step 1: Create or Update Product with standard JSON request
+      const sellerId = isEditMode
+        ? productData?.seller?.id || account?.id || (user?.id ? Number(user.id) : undefined)
+        : account?.id || (user?.id ? Number(user.id) : undefined);
+
       const payload = {
         id: isEditMode ? Number(id) : undefined,
         name: formData.title,
@@ -171,10 +238,10 @@ export function CreateListingPage() {
         description: formData.description,
         condition: formData.condition,
         category: formData.category ? { id: Number(formData.category) } : null,
+        seller: sellerId ? { id: Number(sellerId) } : null,
         status: productData?.status || 'AVAILABLE',
+        stock: Number(formData.stock),
       };
-
-      let productId = isEditMode ? Number(id) : null;
 
       if (isEditMode) {
         await axios.put(`/api/products/${id}`, payload);
@@ -185,44 +252,73 @@ export function CreateListingPage() {
       }
 
       if (!productId) {
-        throw new Error('Product operation completed, but no Product ID was resolved.');
+        throw new Error('Không nhận được ID sản phẩm từ server');
       }
+    } catch (productError) {
+      console.error('Step 1 (Product Creation) failed:', productError);
+      setIsSubmitting(false);
+      setErrorMessage('Tạo bài đăng thất bại, vui lòng kiểm tra lại thông tin!');
+      toast.error('Tạo bài đăng thất bại, vui lòng kiểm tra lại thông tin!');
+      return; // HALT IMMEDIATELY
+    }
 
-      // Step 2: Handle deletions of removed existing images (only in Edit mode)
-      if (isEditMode && deletedImageIds.length > 0) {
+    // Step 2: Handle deletions of removed existing images (only in Edit mode)
+    if (isEditMode && deletedImageIds.length > 0) {
+      try {
         for (const imageId of deletedImageIds) {
           await axios.delete(`/api/product-images/${imageId}`);
         }
+      } catch (deleteError) {
+        console.error('Failed to delete existing images:', deleteError);
       }
-
-      // Step 3: Upload Associated NEW Images sequentially
-      if (rawFiles.length > 0) {
-        for (const file of rawFiles) {
-          const imageFormData = new FormData();
-          imageFormData.append('file', file);
-
-          await axios.post(`/api/products/${productId}/images`, imageFormData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-        }
-      }
-
-      setSuccessMessage(isEditMode ? 'Your listing has been successfully updated!' : 'Your listing has been successfully published!');
-
-      // Delay navigation to dashboard so the user gets smooth feedback
-      setTimeout(() => {
-        navigate('/seller-dashboard');
-      }, 1500);
-    } catch (error: any) {
-      console.error('Error during listing submission flow:', error);
-      const detail =
-        error.response?.data?.detail || error.response?.data?.title || error.message || 'An unexpected error occurred during submission.';
-      setErrorMessage(`Failed to submit listing: ${detail}`);
-    } finally {
-      setIsSubmitting(false);
     }
+
+    // STEP 2: Process Real Image Upload & Association
+    try {
+      if (uploadedImages.length > 0) {
+        const imageRequests = uploadedImages.map(async (item, idx) => {
+          let finalImageUrl = item.previewUrl;
+
+          // If the item has a real browser File, upload it first to the endpoint /api/product-images/upload
+          if (item.file) {
+            const imageFormData = new FormData();
+            imageFormData.append('file', item.file);
+
+            const uploadRes = await axios.post<string>('/api/product-images/upload', imageFormData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            finalImageUrl = uploadRes.data; // e.g., "/uploads/uuid.png"
+          }
+
+          // Create the JSON metadata request payload
+          // If there are no existing images, the first newly uploaded image is primary.
+          const isPrimary = existingImages.length === 0 && idx === 0;
+          const imagePayload = {
+            imageUrl: finalImageUrl,
+            isPrimary,
+            product: { id: productId },
+          };
+
+          return axios.post('/api/product-images', imagePayload);
+        });
+
+        await Promise.all(imageRequests);
+      }
+    } catch (imageError) {
+      console.error('Step 2 (Image Association) failed:', imageError);
+      setIsSubmitting(false);
+      setErrorMessage('Tải ảnh hoặc liên kết hình ảnh thất bại. Vui lòng thử lại!');
+      toast.error('Tải ảnh hoặc liên kết hình ảnh thất bại. Vui lòng thử lại!');
+      return; // HALT IMMEDIATELY: prevent success and redirection, keep form intact
+    }
+
+    setSuccessMessage(isEditMode ? 'Bài đăng của bạn đã được cập nhật thành công!' : 'Bài đăng của bạn đã được đăng thành công!');
+    toast.success(isEditMode ? 'Bài đăng đã được cập nhật!' : 'Bài đăng đã được tạo thành công!');
+
+    // Delay navigation to dashboard so the user gets smooth feedback
+    setTimeout(() => {
+      navigate('/seller-dashboard');
+    }, 1500);
   };
 
   return (
@@ -232,7 +328,9 @@ export function CreateListingPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#0A2647] mb-2">{isEditMode ? 'Chỉnh sửa bài đăng' : 'Đăng tin mới'}</h1>
           <p className="text-gray-600">
-            {isEditMode ? 'Cập nhật thông tin chi tiết sản phẩm của bạn' : 'List your item and reach verified students across your campus'}
+            {isEditMode
+              ? 'Cập nhật thông tin chi tiết sản phẩm của bạn'
+              : 'Đăng bán sản phẩm của bạn và tiếp cận các sinh viên đã được xác thực trên toàn trường.'}
           </p>
         </div>
 
@@ -241,7 +339,7 @@ export function CreateListingPage() {
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-start gap-3 transition-all duration-300">
             <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 font-bold text-sm">!</span>
             <div>
-              <h3 className="font-semibold">Submission Error</h3>
+              <h3 className="font-semibold">Lỗi gửi thông tin</h3>
               <p className="text-sm text-red-600">{errorMessage}</p>
             </div>
           </div>
@@ -251,7 +349,7 @@ export function CreateListingPage() {
           <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-start gap-3 transition-all duration-300">
             <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 font-bold text-sm">✓</span>
             <div>
-              <h3 className="font-semibold">Success</h3>
+              <h3 className="font-semibold">Thành công</h3>
               <p className="text-sm text-green-600">{successMessage}</p>
             </div>
           </div>
@@ -260,7 +358,7 @@ export function CreateListingPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload Section */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <label className="block text-gray-900 font-medium mb-4">Product Images</label>
+            <label className="block text-gray-900 font-medium mb-4">Hình ảnh sản phẩm</label>
 
             {/* Drag and Drop Area */}
             <div
@@ -277,8 +375,8 @@ export function CreateListingPage() {
                   <Upload className="w-8 h-8 text-[#FF6B35]" />
                 </div>
                 <div>
-                  <p className="text-gray-900 font-medium mb-1">Drag & drop your images here</p>
-                  <p className="text-sm text-gray-500">or click to browse</p>
+                  <p className="text-gray-900 font-medium mb-1">Kéo & thả hình ảnh của bạn vào đây</p>
+                  <p className="text-sm text-gray-500">hoặc click để duyệt tìm</p>
                 </div>
                 <input
                   type="file"
@@ -295,9 +393,37 @@ export function CreateListingPage() {
                     isSubmitting ? 'pointer-events-none opacity-50' : ''
                   }`}
                 >
-                  Select Files
+                  Chọn tệp
                 </label>
-                <p className="text-xs text-gray-500">PNG, JPG up to 10MB each (max 5 images)</p>
+                <p className="text-xs text-gray-500">PNG, JPG tối đa 10MB mỗi hình (tối đa 5 hình)</p>
+              </div>
+            </div>
+
+            {/* Direct Image URL Input */}
+            <div className="mt-4 p-4 border border-gray-100 rounded-xl bg-gray-50 space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4 text-[#FF6B35]" />
+                  Hoặc nhập link ảnh trực tiếp (Cloudinary, Imgur, Unsplash...)
+                </div>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={imageUrlInput}
+                  onChange={e => setImageUrlInput(e.target.value)}
+                  placeholder="Ví dụ: https://res.cloudinary.com/demo/image/upload/sample.jpg"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddImageUrl}
+                  disabled={isSubmitting}
+                  className="px-6 py-3 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50"
+                >
+                  Thêm URL
+                </button>
               </div>
             </div>
 
@@ -308,7 +434,9 @@ export function CreateListingPage() {
                 {existingImages.map((image, index) => (
                   <div key={`existing-${image.id}`} className="relative group">
                     <img
-                      src={image.imageUrl}
+                      src={
+                        image.imageUrl && image.imageUrl.startsWith('/uploads/') ? `http://localhost:8080${image.imageUrl}` : image.imageUrl
+                      }
                       alt={`Existing ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg border border-gray-200"
                     />
@@ -320,7 +448,9 @@ export function CreateListingPage() {
                     >
                       <X className="w-4 h-4" />
                     </button>
-                    {index === 0 && <div className="absolute top-2 left-2 bg-[#FF6B35] text-white text-xs px-2 py-1 rounded">Primary</div>}
+                    {index === 0 && (
+                      <div className="absolute top-2 left-2 bg-[#FF6B35] text-white text-xs px-2 py-1 rounded">Ảnh chính</div>
+                    )}
                   </div>
                 ))}
 
@@ -329,7 +459,11 @@ export function CreateListingPage() {
                   const displayIndex = existingImages.length + index;
                   return (
                     <div key={`new-${index}`} className="relative group">
-                      <img src={image} alt={`Upload ${index + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                      <img
+                        src={image.previewUrl}
+                        alt={`Upload ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
@@ -339,7 +473,7 @@ export function CreateListingPage() {
                         <X className="w-4 h-4" />
                       </button>
                       {displayIndex === 0 && (
-                        <div className="absolute top-2 left-2 bg-[#FF6B35] text-white text-xs px-2 py-1 rounded">Primary</div>
+                        <div className="absolute top-2 left-2 bg-[#FF6B35] text-white text-xs px-2 py-1 rounded">Ảnh chính</div>
                       )}
                     </div>
                   );
@@ -350,43 +484,65 @@ export function CreateListingPage() {
 
           {/* Product Details Section */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-5">
-            <h2 className="text-lg font-medium text-[#0A2647] mb-4">Product Details</h2>
+            <h2 className="text-lg font-medium text-[#0A2647] mb-4">Chi tiết sản phẩm</h2>
 
             {/* Product Title */}
             <div>
               <label className="block text-gray-900 font-medium mb-2">
                 <div className="flex items-center gap-2">
                   <Package className="w-4 h-4 text-[#FF6B35]" />
-                  Product Title
+                  Tên sản phẩm <span className="text-red-500">*</span>
                 </div>
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
-                placeholder="e.g., Calculus Textbook 8th Edition"
+                placeholder="Ví dụ: Quạt điện, Nồi cơm điện,..."
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
                 required
                 disabled={isSubmitting}
               />
             </div>
 
-            {/* Price and Category Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Price, Stock and Category Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {/* Price */}
               <div>
                 <label className="block text-gray-900 font-medium mb-2">
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-[#FF6B35]" />
-                    Price (USD)
+                    Giá bán (VND) <span className="text-red-500">*</span>
                   </div>
                 </label>
                 <input
                   type="number"
+                  min="0"
                   step="0.01"
                   value={formData.price}
                   onChange={e => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
+                  placeholder="Nhập giá bán"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              {/* Stock */}
+              <div>
+                <label className="block text-gray-900 font-medium mb-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-[#FF6B35]" />
+                    Số lượng <span className="text-red-500">*</span>
+                  </div>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.stock}
+                  onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                  placeholder="Nhập số lượng"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
                   required
                   disabled={isSubmitting}
@@ -398,7 +554,7 @@ export function CreateListingPage() {
                 <label className="block text-gray-900 font-medium mb-2">
                   <div className="flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-[#FF6B35]" />
-                    Category
+                    Danh mục sản phẩm <span className="text-red-500">*</span>
                   </div>
                 </label>
                 <select
@@ -408,7 +564,7 @@ export function CreateListingPage() {
                   required
                   disabled={isSubmitting}
                 >
-                  <option value="">Select a category</option>
+                  <option value="">Chọn danh mục sản phẩm</option>
                   {categories && categories.length > 0 ? (
                     categories.map(cat => (
                       <option key={cat.id} value={cat.id}>
@@ -417,13 +573,13 @@ export function CreateListingPage() {
                     ))
                   ) : (
                     <>
-                      <option value="1">Textbooks</option>
-                      <option value="2">Electronics</option>
-                      <option value="3">Dorm Essentials</option>
-                      <option value="4">Vehicles</option>
-                      <option value="5">Furniture</option>
-                      <option value="6">Clothing</option>
-                      <option value="7">Other</option>
+                      <option value="1">Sách giáo khoa</option>
+                      <option value="2">Đồ điện tử</option>
+                      <option value="3">Đồ dùng ký túc xá</option>
+                      <option value="4">Phương tiện</option>
+                      <option value="5">Đồ nội thất</option>
+                      <option value="6">Quần áo</option>
+                      <option value="7">Khác</option>
                     </>
                   )}
                 </select>
@@ -435,23 +591,41 @@ export function CreateListingPage() {
               <label className="block text-gray-900 font-medium mb-2">
                 <div className="flex items-center gap-2">
                   <Tag className="w-4 h-4 text-[#FF6B35]" />
-                  Condition
+                  Tình trạng <span className="text-red-500">*</span>
                 </div>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {['Brand New', 'Like New', 'Excellent', 'Good', 'Fair'].map(cond => (
-                  <button
-                    key={cond}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, condition: cond })}
-                    disabled={isSubmitting}
-                    className={`px-4 py-3 rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                      formData.condition === cond ? 'bg-[#FF6B35] text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {cond}
-                  </button>
-                ))}
+                {['Brand New', 'Like New', 'Excellent', 'Good', 'Fair'].map(cond => {
+                  const condLabel = (() => {
+                    switch (cond) {
+                      case 'Brand New':
+                        return 'Mới (100%)';
+                      case 'Like New':
+                        return 'Như mới (99%)';
+                      case 'Excellent':
+                        return 'Rất tốt';
+                      case 'Good':
+                        return 'Tốt';
+                      case 'Fair':
+                        return 'Đã qua sử dụng';
+                      default:
+                        return cond;
+                    }
+                  })();
+                  return (
+                    <button
+                      key={cond}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, condition: cond })}
+                      disabled={isSubmitting}
+                      className={`px-4 py-3 rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                        formData.condition === cond ? 'bg-[#FF6B35] text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {condLabel}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -460,19 +634,18 @@ export function CreateListingPage() {
               <label className="block text-gray-900 font-medium mb-2">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-[#FF6B35]" />
-                  Description
+                  Mô tả chi tiết
                 </div>
               </label>
               <textarea
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Provide detailed information about your item (condition, features, reason for selling, etc.)"
+                placeholder="Cung cấp thông tin chi tiết về sản phẩm của bạn (tình trạng, tính năng, lý do bán, v.v.)"
                 rows={6}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent resize-none disabled:bg-gray-100 disabled:text-gray-500"
-                required
                 disabled={isSubmitting}
               />
-              <p className="mt-2 text-sm text-gray-500">{formData.description.length}/500 characters</p>
+              <p className="mt-2 text-sm text-gray-500">{(formData.description || '').length}/500 ký tự</p>
             </div>
           </div>
 
@@ -483,30 +656,40 @@ export function CreateListingPage() {
                 <Package className="w-5 h-5 text-[#0A2647]" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900 mb-1">{isEditMode ? 'Sẵn sàng lưu thay đổi?' : 'Ready to publish?'}</h3>
+                <h3 className="font-medium text-gray-900 mb-1">{isEditMode ? 'Sẵn sàng lưu thay đổi?' : 'Sẵn sàng đăng tin?'}</h3>
                 <p className="text-sm text-gray-600">
                   {isEditMode
                     ? 'Thông tin sản phẩm sẽ được cập nhật ngay lập tức trên hệ thống'
-                    : 'Your listing will be visible to all verified students on your campus'}
+                    : 'Sản phẩm của bạn sẽ được hiển thị tới tất cả các sinh viên đã được xác thực trong trường.'}
                 </p>
               </div>
             </div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-8 py-3 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium transition-colors shadow-md whitespace-nowrap disabled:bg-orange-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {isEditMode ? 'Đang lưu...' : 'Publishing...'}
-                </>
-              ) : isEditMode ? (
-                'Lưu thay đổi'
-              ) : (
-                'Publish Listing'
-              )}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/seller-dashboard')}
+                disabled={isSubmitting}
+                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-8 py-3 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium transition-colors shadow-md whitespace-nowrap disabled:bg-orange-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {isEditMode ? 'Đang lưu...' : 'Đang tạo bài đăng...'}
+                  </>
+                ) : isEditMode ? (
+                  'Lưu thay đổi'
+                ) : (
+                  'Tạo bài đăng'
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>

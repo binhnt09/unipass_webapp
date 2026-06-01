@@ -61,6 +61,11 @@ describe('PremiumHistory e2e test', () => {
   });
 
   describe('PremiumHistory page', () => {
+    it('should have translated page title', () => {
+      cy.visit(premiumHistoryPageUrl);
+      cy.getEntityHeading('PremiumHistory').should('not.contain', 'unipassWebApp.premiumHistory.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(premiumHistoryPageUrl);
@@ -97,6 +102,9 @@ describe('PremiumHistory e2e test', () => {
             },
             {
               statusCode: 200,
+              headers: {
+                link: '<http://localhost/api/premium-histories?page=0&size=20>; rel="last",<http://localhost/api/premium-histories?page=0&size=20>; rel="first"',
+              },
               body: [premiumHistory],
             },
           ).as('entitiesRequestInternal');

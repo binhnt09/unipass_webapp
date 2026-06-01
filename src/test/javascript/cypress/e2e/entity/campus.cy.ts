@@ -61,6 +61,11 @@ describe('Campus e2e test', () => {
   });
 
   describe('Campus page', () => {
+    it('should have translated page title', () => {
+      cy.visit(campusPageUrl);
+      cy.getEntityHeading('Campus').should('not.contain', 'unipassWebApp.campus.home.title');
+    });
+
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(campusPageUrl);

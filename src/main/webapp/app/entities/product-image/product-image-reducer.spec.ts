@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
+
 import { configureStore } from '@reduxjs/toolkit';
 import axios from 'axios';
-import sinon from 'sinon';
 
 import { IProductImage, defaultValue } from 'app/shared/model/product-image.model';
 import { EntityState } from 'app/shared/reducers/reducer.utils';
@@ -28,6 +29,7 @@ describe('Entities reducer tests', () => {
     errorMessage: null,
     entities: [],
     entity: defaultValue,
+    totalItems: 0,
     updating: false,
     updateSuccess: false,
   };
@@ -115,7 +117,7 @@ describe('Entities reducer tests', () => {
 
   describe('Successes', () => {
     it('should fetch all entities', () => {
-      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }] };
+      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }], headers: { 'x-total-count': 123 } };
       expect(
         reducer(undefined, {
           type: getEntities.fulfilled.type,
@@ -124,6 +126,7 @@ describe('Entities reducer tests', () => {
       ).toEqual({
         ...initialState,
         loading: false,
+        totalItems: payload.headers['x-total-count'],
         entities: payload.data,
       });
     });
@@ -174,18 +177,18 @@ describe('Entities reducer tests', () => {
     let store;
 
     const resolvedObject = { value: 'whatever' };
-    const getState = jest.fn();
-    const dispatch = jest.fn();
+    const getState = vi.fn();
+    const dispatch = vi.fn();
     const extra = {};
     beforeEach(() => {
       store = configureStore({
         reducer: (state = [], action) => [...state, action],
       });
-      axios.get = sinon.stub().returns(Promise.resolve(resolvedObject));
-      axios.post = sinon.stub().returns(Promise.resolve(resolvedObject));
-      axios.put = sinon.stub().returns(Promise.resolve(resolvedObject));
-      axios.patch = sinon.stub().returns(Promise.resolve(resolvedObject));
-      axios.delete = sinon.stub().returns(Promise.resolve(resolvedObject));
+      axios.get = vi.fn().mockResolvedValue(resolvedObject);
+      axios.post = vi.fn().mockResolvedValue(resolvedObject);
+      axios.put = vi.fn().mockResolvedValue(resolvedObject);
+      axios.patch = vi.fn().mockResolvedValue(resolvedObject);
+      axios.delete = vi.fn().mockResolvedValue(resolvedObject);
     });
 
     it('dispatches FETCH_PRODUCTIMAGE_LIST actions', async () => {

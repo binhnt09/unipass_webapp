@@ -15,6 +15,7 @@ interface Product {
   rating: number;
   reviews: number;
   condition: string;
+  stock?: number;
 }
 
 interface ProductCardProps {
@@ -74,7 +75,12 @@ export function ProductCard({ product }: ProductCardProps) {
           {discount && (
             <div className="absolute top-2 left-2 bg-[#FF6B35] text-white px-2 py-1 rounded-md text-xs font-medium">{discount}% OFF</div>
           )}
-          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-gray-700">
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm tracking-wider z-10">
+              HẾT HÀNG
+            </div>
+          )}
+          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-gray-700 z-10">
             {product.condition}
           </div>
         </div>
