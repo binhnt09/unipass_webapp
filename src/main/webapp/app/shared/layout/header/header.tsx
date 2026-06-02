@@ -17,7 +17,6 @@ import { SellerRegistrationModal } from 'app/modules/seller/registration/SellerR
 import { Brand, Home } from './header-components';
 import { useAuth } from 'app/contexts/AuthContext';
 import { AIChatButton } from 'app/modules/chatboxAI/AIChatButton';
-import axios from 'axios';
 
 export interface IHeaderProps {
   isAuthenticated: boolean;

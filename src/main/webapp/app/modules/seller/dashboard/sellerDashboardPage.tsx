@@ -4,8 +4,6 @@ import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
-import { useAppSelector } from 'app/config/store';
-import { useAuth } from '../../../contexts/AuthContext';
 
 interface PurchaseRequest {
   id: string;
@@ -25,16 +23,17 @@ export function SellerDashboardPage() {
   const [currentRequests, setCurrentRequests] = useState<PurchaseRequest[]>([]);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
 
-  const account = useAppSelector(state => state.authentication.account);
-  const { user } = useAuth();
-
   // Optimized Fetch Lifecycle to completely eliminate N+1 requests
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
       // 1. Fetch all listings of the seller (single call)
-      const sellerLogin = account?.login || user?.email || 'seller';
-      const listingsRes = await axios.get<IProduct[]>(`/api/products?sellerLogin.equals=${encodeURIComponent(sellerLogin)}&page=0&size=20`);
+      const listingsRes = await axios.get<IProduct[]>('/api/products/my-products', {
+        params: {
+          page: 0,
+          size: 20,
+        },
+      });
       const products = listingsRes.data || [];
 
       // 2. Fetch all images and order items in parallel single-batch requests (eliminating parallel loops)
