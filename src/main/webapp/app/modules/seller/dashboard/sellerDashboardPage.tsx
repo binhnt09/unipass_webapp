@@ -93,7 +93,7 @@ export function SellerDashboardPage() {
         id: item.order?.id?.toString() || item.id?.toString(),
         buyerName: item.order?.buyer?.login || 'Người mua ẩn danh',
         buyerEmail: item.order?.buyer?.email || 'no-email@unipass.edu.vn',
-        university: item.order?.buyer?.university?.name || 'Đại học Quốc gia',
+        university: item.order?.buyer?.university?.name || 'Đại học FPT Hà Nội',
         requestDate: item.order?.createdAt ? new Date(item.order.createdAt).toLocaleString('vi-VN') : '19/03/2026 14:30',
       }));
 

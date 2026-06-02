@@ -155,14 +155,14 @@ export const router = createBrowserRouter([
       {
         path: 'entities',
         element: (
-          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+          <PrivateRoute hasAnyAuthorities={[Authority.USER, Authority.SELLER, Authority.ADMIN, Authority.MANAGER, Authority.BUYER]}>
             <Navigate to="/university" replace />
           </PrivateRoute>
         ),
       },
       {
         element: (
-          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+          <PrivateRoute hasAnyAuthorities={[Authority.USER, Authority.SELLER, Authority.ADMIN, Authority.MANAGER, Authority.BUYER]}>
             <Outlet />
           </PrivateRoute>
         ),
@@ -184,7 +184,7 @@ export const router = createBrowserRouter([
       },
       {
         element: (
-          <PrivateRoute hasAnyAuthorities={[Authority.SELLER, Authority.MANAGER]}>
+          <PrivateRoute hasAnyAuthorities={[Authority.SELLER, Authority.MANAGER, Authority.ADMIN]}>
             <Outlet />
           </PrivateRoute>
         ),
@@ -196,7 +196,7 @@ export const router = createBrowserRouter([
       },
       {
         element: (
-          <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+          <PrivateRoute hasAnyAuthorities={[Authority.USER, Authority.SELLER, Authority.ADMIN, Authority.MANAGER, Authority.BUYER]}>
             <EntitiesLayout />
           </PrivateRoute>
         ),
