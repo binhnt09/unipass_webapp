@@ -1,27 +1,92 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, Bell, X, BadgeCheck, Mail, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Plus, Bell, BadgeCheck, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
 
-interface PurchaseRequest {
-  id: string;
-  buyerName: string;
-  buyerEmail: string;
-  university: string;
-  requestDate: string;
-}
+// interface PurchaseRequest {
+//   id: string;
+//   buyerName: string;
+//   buyerEmail: string;
+//   university: string;
+//   requestDate: string;
+// }
+
+// const mockRequests: Record<string, PurchaseRequest[]> = {
+//   '1': [
+//     {
+//       id: 'req1',
+//       buyerName: 'Trần Thị Mai',
+//       buyerEmail: 'mai.tran@student.hust.edu.vn',
+//       university: 'ĐH Bách Khoa Hà Nội',
+//       requestDate: '19/03/2026 14:30',
+//     },
+//     {
+//       id: 'req2',
+//       buyerName: 'Lê Hoàng Nam',
+//       buyerEmail: 'nam.le@student.hust.edu.vn',
+//       university: 'ĐH Bách Khoa Hà Nội',
+//       requestDate: '19/03/2026 10:15',
+//     },
+//     {
+//       id: 'req3',
+//       buyerName: 'Phạm Minh Quân',
+//       buyerEmail: 'quan.pham@student.neu.edu.vn',
+//       university: 'ĐH Kinh tế Quốc dân',
+//       requestDate: '18/03/2026 16:45',
+//     },
+//   ],
+//   '2': [
+//     {
+//       id: 'req4',
+//       buyerName: 'Nguyễn Thu Hà',
+//       buyerEmail: 'ha.nguyen@student.vnu.edu.vn',
+//       university: 'ĐH Quốc gia Hà Nội',
+//       requestDate: '19/03/2026 09:20',
+//     },
+//     {
+//       id: 'req5',
+//       buyerName: 'Đỗ Văn Hưng',
+//       buyerEmail: 'hung.do@student.hust.edu.vn',
+//       university: 'ĐH Bách Khoa Hà Nội',
+//       requestDate: '18/03/2026 20:10',
+//     },
+//   ],
+//   '3': [
+//     {
+//       id: 'req6',
+//       buyerName: 'Vũ Thị Lan',
+//       buyerEmail: 'lan.vu@student.ueh.edu.vn',
+//       university: 'ĐH Kinh tế TP.HCM',
+//       requestDate: '19/03/2026 15:00',
+//     },
+//     {
+//       id: 'req7',
+//       buyerName: 'Hoàng Minh Tuấn',
+//       buyerEmail: 'tuan.hoang@student.neu.edu.vn',
+//       university: 'ĐH Kinh tế Quốc dân',
+//       requestDate: '19/03/2026 11:30',
+//     },
+//     {
+//       id: 'req8',
+//       buyerName: 'Bùi Thị Hương',
+//       buyerEmail: 'huong.bui@student.hust.edu.vn',
+//       university: 'ĐH Bách Khoa Hà Nội',
+//       requestDate: '19/03/2026 08:45',
+//     },
+//   ],
+// };
 
 export function SellerDashboardPage() {
   const navigate = useNavigate();
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const [selectedListing, setSelectedListing] = useState<number | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [currentRequests, setCurrentRequests] = useState<PurchaseRequest[]>([]);
-  const [modalLoading, setModalLoading] = useState<boolean>(false);
+  // const [selectedListing, setSelectedListing] = useState<number | null>(null);
+  // const [showModal, setShowModal] = useState(false);
+  // const [currentRequests, setCurrentRequests] = useState<PurchaseRequest[]>([]);
+  // const [modalLoading, setModalLoading] = useState<boolean>(false);
 
   // Optimized Fetch Lifecycle to completely eliminate N+1 requests
   const fetchDashboardData = async () => {
@@ -78,32 +143,36 @@ export function SellerDashboardPage() {
     fetchDashboardData();
   }, []);
 
-  // Lazy load purchase requests for modal upon click (protecting mount performance)
-  const handleViewRequests = async (productId: number) => {
-    setSelectedListing(productId);
-    setShowModal(true);
-    setModalLoading(true);
-    setCurrentRequests([]);
-
-    try {
-      const res = await axios.get<any[]>(`/api/order-items?productId.equals=${productId}`);
-      const orderItems = res.data || [];
-
-      const mappedRequests = orderItems.map((item: any) => ({
-        id: item.order?.id?.toString() || item.id?.toString(),
-        buyerName: item.order?.buyer?.login || 'Người mua ẩn danh',
-        buyerEmail: item.order?.buyer?.email || 'no-email@unipass.edu.vn',
-        university: item.order?.buyer?.university?.name || 'Đại học FPT Hà Nội',
-        requestDate: item.order?.createdAt ? new Date(item.order.createdAt).toLocaleString('vi-VN') : '19/03/2026 14:30',
-      }));
-
-      setCurrentRequests(mappedRequests);
-    } catch (err) {
-      console.error('Failed to lazy load buy requests for product:', err);
-    } finally {
-      setModalLoading(false);
-    }
+  const handleViewRequests = (listingId: string | number | undefined) => {
+    if (!listingId) return;
+    navigate(`/seller/products/${String(listingId)}/orders`);
   };
+  // Lazy load purchase requests for modal upon click (protecting mount performance)
+  // const handleViewRequests = async (productId: number) => {
+  //   setSelectedListing(productId);
+  //   setShowModal(true);
+  //   setModalLoading(true);
+  // setCurrentRequests([]);
+
+  //   try {
+  //     const res = await axios.get<any[]>(`/api/order-items?productId.equals=${productId}`);
+  //     const orderItems = res.data || [];
+
+  //     const mappedRequests = orderItems.map((item: any) => ({
+  //       id: item.order?.id?.toString() || item.id?.toString(),
+  //       buyerName: item.order?.buyer?.login || 'Người mua ẩn danh',
+  //       buyerEmail: item.order?.buyer?.email || 'no-email@unipass.edu.vn',
+  //       university: item.order?.buyer?.university?.name || 'Đại học FPT Hà Nội',
+  //       requestDate: item.order?.createdAt ? new Date(item.order.createdAt).toLocaleString('vi-VN') : '19/03/2026 14:30',
+  //     }));
+
+  // setCurrentRequests(mappedRequests);
+  //   } catch (err) {
+  //     console.error('Failed to lazy load buy requests for product:', err);
+  //   } finally {
+  //     setModalLoading(false);
+  //   }
+  // };
 
   // Secure Product Deletion (Trash2)
   const handleDelete = async (productId: number) => {
@@ -122,34 +191,34 @@ export function SellerDashboardPage() {
   };
 
   // Status alteration API: Accept request
-  const handleAccept = async () => {
-    if (!selectedListing) return;
-    try {
-      await axios.patch(`/api/products/${selectedListing}/status?status=PENDING_DEAL`);
-      // Update local state directly so color shift reflects instantly
-      setListings(prev => prev.map(p => (p.id === selectedListing ? { ...p, status: 'PENDING_DEAL' } : p)));
-      setShowModal(false);
-      alert('Yêu cầu mua hàng đã được chấp nhận!');
-    } catch (err: any) {
-      console.error('Failed to accept purchase request:', err);
-      alert('Lỗi khi chấp nhận yêu cầu: ' + (err.response?.data?.title || err.message));
-    }
-  };
+  // const handleAccept = async () => {
+  //   if (!selectedListing) return;
+  //   try {
+  //     await axios.patch(`/api/products/${selectedListing}/status?status=PENDING_DEAL`);
+  //     // Update local state directly so color shift reflects instantly
+  //     setListings(prev => prev.map(p => (p.id === selectedListing ? { ...p, status: 'PENDING_DEAL' } : p)));
+  //     setShowModal(false);
+  //     alert('Yêu cầu mua hàng đã được chấp nhận!');
+  //   } catch (err: any) {
+  //     console.error('Failed to accept purchase request:', err);
+  //     alert('Lỗi khi chấp nhận yêu cầu: ' + (err.response?.data?.title || err.message));
+  //   }
+  // };
 
-  // Status alteration API: Decline request
-  const handleDecline = async () => {
-    if (!selectedListing) return;
-    try {
-      await axios.patch(`/api/products/${selectedListing}/status?status=AVAILABLE`);
-      // Update local state directly so color shift reflects instantly
-      setListings(prev => prev.map(p => (p.id === selectedListing ? { ...p, status: 'AVAILABLE' } : p)));
-      setShowModal(false);
-      alert('Yêu cầu mua hàng đã bị từ chối.');
-    } catch (err: any) {
-      console.error('Failed to decline purchase request:', err);
-      alert('Lỗi khi từ chối yêu cầu: ' + (err.response?.data?.title || err.message));
-    }
-  };
+  // // Status alteration API: Decline request
+  // const handleDecline = async () => {
+  //   if (!selectedListing) return;
+  //   try {
+  //     await axios.patch(`/api/products/${selectedListing}/status?status=AVAILABLE`);
+  //     // Update local state directly so color shift reflects instantly
+  //     setListings(prev => prev.map(p => (p.id === selectedListing ? { ...p, status: 'AVAILABLE' } : p)));
+  //     setShowModal(false);
+  //     alert('Yêu cầu mua hàng đã bị từ chối.');
+  //   } catch (err: any) {
+  //     console.error('Failed to decline purchase request:', err);
+  //     alert('Lỗi khi từ chối yêu cầu: ' + (err.response?.data?.title || err.message));
+  //   }
+  // };
 
   // Dynamic Header Stats Calculation
   const totalPendingRequests = listings.reduce((sum, item: any) => sum + (item.pendingRequests || 0), 0);
@@ -347,95 +416,6 @@ export function SellerDashboardPage() {
       </div>
 
       {/* Purchase Requests Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#0A2647] to-[#144272] text-white p-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-1">Danh sách yêu cầu mua</h2>
-                <p className="text-white/80 text-sm">
-                  {modalLoading ? 'Đang tải...' : `${currentRequests.length} người muốn mua sản phẩm này`}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {modalLoading ? (
-                <div className="py-12 flex flex-col items-center justify-center gap-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
-                  <p className="text-gray-500 font-medium text-sm">Đang tải danh sách yêu cầu mua...</p>
-                </div>
-              ) : currentRequests.length === 0 ? (
-                <div className="py-12 text-center text-gray-500 font-medium">Chưa có yêu cầu mua nào cho sản phẩm này.</div>
-              ) : (
-                <div className="space-y-4">
-                  {currentRequests.map(request => (
-                    <div
-                      key={request.id}
-                      className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-5 border-2 border-gray-200 hover:border-[#FF6B35] transition-all"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        {/* Buyer Info */}
-                        <div className="flex items-start gap-4 flex-1">
-                          <div className="w-14 h-14 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-                            {request.buyerName.charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-bold text-gray-900 text-lg">{request.buyerName}</h3>
-                              <BadgeCheck className="w-5 h-5 text-[#FF6B35] flex-shrink-0" />
-                            </div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Mail className="w-4 h-4 text-gray-500" />
-                              <span className="text-sm text-gray-700 font-mono">{request.buyerEmail}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm text-gray-600">
-                              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">{request.university}</span>
-                              <span>• {request.requestDate}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex flex-col gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => handleAccept()}
-                            className="px-6 py-2.5 bg-gradient-to-r from-[#FF6B35] to-[#FF5722] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-bold text-sm transition-all shadow-lg whitespace-nowrap"
-                          >
-                            Chấp nhận
-                          </button>
-                          <button
-                            onClick={() => handleDecline()}
-                            className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium text-sm transition-colors whitespace-nowrap"
-                          >
-                            Từ chối
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Info Box */}
-              <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <p className="text-sm text-yellow-800">
-                  <strong>⚠️ Lưu ý:</strong> Sau khi chấp nhận yêu cầu, người mua sẽ nhận được thông báo và có thể tiến hành thanh toán. Bạn
-                  chỉ nên chấp nhận một người mua cho mỗi sản phẩm.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

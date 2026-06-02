@@ -72,6 +72,8 @@ import AiChatMessage from './entities/ai-chat-message/ai-chat-message';
 import UserSearchHistory from './entities/user-search-history/user-search-history';
 import Notification from './entities/notification/notification';
 import UserManagement from './modules/administration/user-management/user-management';
+import { ProductOrderManagementPage } from './modules/seller/dashboard/components/productOrderManagement';
+import { SellerOrderDetailPage } from './modules/seller/dashboard/components/sellerOrderDetail';
 
 const loading = <div>loading ...</div>;
 
@@ -192,6 +194,8 @@ export const router = createBrowserRouter([
           { path: 'create-listing', element: <CreateListingPage /> },
           { path: 'listings/edit/:id', element: <CreateListingPage /> },
           { path: 'seller-dashboard', element: <SellerDashboardPage /> },
+          { path: 'seller/orders/:id', element: <SellerOrderDetailPage /> },
+          { path: 'seller/products/:productId/orders', element: <ProductOrderManagementPage /> },
         ],
       },
       {
@@ -239,7 +243,7 @@ export const router = createBrowserRouter([
           {
             path: 'settings',
             element: (
-              <PrivateRoute hasAnyAuthorities={[Authority.USER]}>
+              <PrivateRoute hasAnyAuthorities={[Authority.USER, Authority.SELLER, Authority.ADMIN, Authority.MANAGER, Authority.BUYER]}>
                 <SettingsPage /> {/* Import trực tiếp Settings từ account module */}
               </PrivateRoute>
             ),
