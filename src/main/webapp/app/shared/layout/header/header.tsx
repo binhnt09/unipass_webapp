@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Nav, Navbar } from 'react-bootstrap';
 import { Storage } from 'react-jhipster';
 import { NavLink as Link, useNavigate } from 'react-router';
-import { Search, Bell, ShoppingCart, Plus, Crown, MessageCircle, ChevronDown, Shield, Loader2 } from 'lucide-react';
+import { Search, Bell, ShoppingCart, Crown, MessageCircle, ChevronDown, Shield, Loader2, Plus } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -17,7 +17,6 @@ import { SellerRegistrationModal } from 'app/modules/seller/registration/SellerR
 import { Brand, Home } from './header-components';
 import { useAuth } from 'app/contexts/AuthContext';
 import { AIChatButton } from 'app/modules/chatboxAI/AIChatButton';
-import axios from 'axios';
 
 export interface IHeaderProps {
   isAuthenticated: boolean;
@@ -161,12 +160,12 @@ const Header = (props: IHeaderProps) => {
                 <Home />
                 {isUserLoggedIn && isUserSeller && (
                   <>
-                    <Link
+                    {/* <Link
                       to="/seller-dashboard"
                       className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
                     >
                       <span>Kênh Người bán</span>
-                    </Link>
+                    </Link> */}
                     <Link
                       to="/create-listing"
                       className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
