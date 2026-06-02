@@ -210,8 +210,11 @@ export function ProductDetailPage() {
   }
 
   const discountPrice = product.price ? Math.round(product.price * 1.15) : null;
-  const sellerName = product.seller?.login || 'Thành viên';
+  const rawLogin = product.seller?.login || 'Thành viên';
+  const sellerName = rawLogin.includes('@') ? rawLogin.split('@')[0] : rawLogin;
+  const sellerImageUrl = (product?.seller as any)?.imageUrl;
   const universityName = (product.seller as any)?.university?.name || 'Đại học Quốc gia';
+  const studentId = (product?.seller as any)?.studentIdNumber || product?.seller?.login || '';
   const postedDate = product.createdAt ? new Date(product.createdAt as any).toLocaleDateString('vi-VN') : 'Mới đăng';
   const isOwner = !!(
     user &&
@@ -385,13 +388,24 @@ export function ProductDetailPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-[#0A2647] mb-4">Thông tin người bán</h3>
 
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
-                  {sellerName.substring(0, 2).toUpperCase()}
-                </div>
+              <Link
+                to={`/profile/${(product?.seller as any)?.studentIdNumber || studentId}`}
+                className="flex items-start gap-4 mb-4 group hover:text-[#FF6B35] cursor-pointer transition-colors duration-200"
+              >
+                {sellerImageUrl ? (
+                  <img
+                    src={sellerImageUrl.startsWith('uploads/') ? `/${sellerImageUrl}` : sellerImageUrl}
+                    alt={sellerName}
+                    className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-gray-150 group-hover:border-[#FF6B35] transition-colors"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 group-hover:from-[#FF6B35] group-hover:to-[#FF5722] transition-colors">
+                    {sellerName.substring(0, 2).toUpperCase()}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-bold text-gray-900">{sellerName}</h4>
+                    <h4 className="font-bold text-gray-900 group-hover:text-[#FF6B35] transition-colors">{sellerName}</h4>
                     <BadgeCheck className="w-5 h-5 text-[#FF6B35]" />
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
@@ -409,7 +423,7 @@ export function ProductDetailPage() {
                     <span className="text-sm text-gray-500">(15 giao dịch)</span>
                   </div>
                 </div>
-              </div>
+              </Link>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
                 <div>
