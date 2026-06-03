@@ -74,6 +74,7 @@ import Notification from './entities/notification/notification';
 import UserManagement from './modules/administration/user-management/user-management';
 import { ProductOrderManagementPage } from './modules/seller/dashboard/components/productOrderManagement';
 import { SellerOrderDetailPage } from './modules/seller/dashboard/components/sellerOrderDetail';
+import { SellerOrderManagementPage } from './modules/seller/dashboard/components/sellerOrderManagementPage';
 
 const loading = <div>loading ...</div>;
 
@@ -196,6 +197,7 @@ export const router = createBrowserRouter([
           { path: 'seller-dashboard', element: <SellerDashboardPage /> },
           { path: 'seller/orders/:id', element: <SellerOrderDetailPage /> },
           { path: 'seller/products/:productId/orders', element: <ProductOrderManagementPage /> },
+          { path: 'seller/orders', element: <SellerOrderManagementPage /> },
         ],
       },
       {

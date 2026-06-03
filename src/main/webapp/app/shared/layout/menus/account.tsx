@@ -151,14 +151,24 @@ export const AccountMenu = ({
             </Link>
 
             {isSeller && (
-              <Link
-                to="seller-dashboard"
-                onClick={() => setShowUserMenu(false)}
-                className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
-              >
-                <Package size={16} />
-                Seller Dashboard
-              </Link>
+              <>
+                <Link
+                  to="seller-dashboard"
+                  onClick={() => setShowUserMenu(false)}
+                  className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
+                >
+                  <Package size={16} />
+                  Seller Dashboard
+                </Link>
+                <Link
+                  to="/seller/orders"
+                  onClick={() => setShowUserMenu(false)}
+                  className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
+                >
+                  <ShoppingBag size={16} />
+                  My Pending Orders
+                </Link>
+              </>
             )}
 
             {isBuyer && (

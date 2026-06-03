@@ -31,7 +31,16 @@ export function OrderStatusTabs({ activeTab, onTabChange, counts }: OrderStatusT
       <div className="flex flex-wrap gap-2">
         {TABS.map(tab => {
           const Icon = tab.icon;
-          const count = counts[tab.key];
+          let count = 0;
+          if (tab.key === 'accepted') {
+            count = counts.accepted; // Sẽ bao gồm cả accepted lẫn confirmed ở trang cha truyền vào
+          } else if (tab.key === 'declined') {
+            count = counts.declined; // Bao gồm cả từ chối và huỷ đơn
+          } else {
+            count = (counts as any)[tab.key] || 0;
+          }
+
+          // Kiểm tra xem Tab có đang được kích hoạt hay không
           const isActive = activeTab === tab.key;
 
           const colorClasses = {

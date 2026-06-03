@@ -11,6 +11,16 @@ import { CancelSellerOrderModal } from './cancelSellerOrderModal';
 
 import { ImageWithFallback } from '../../../../shared/figma/ImageWithFallback';
 import { useNotifications } from '../../../../contexts/notificationContext';
+import { toast } from 'react-toastify';
+
+interface OrderItem {
+  id: string;
+  productId: string;
+  productTitle: string;
+  productImage: string;
+  productPrice: number;
+  quantity: number;
+}
 
 interface OrderRequest {
   id: string;
@@ -21,11 +31,10 @@ interface OrderRequest {
   buyerPhone?: string;
   university: string;
   requestDate: string;
+  requestDateRaw: Date | null;
   acceptedDate?: string;
-  productId: string;
-  productTitle: string;
-  productImage: string;
-  productPrice: number;
+  items: OrderItem[];
+  productPrice: number; // Tổng số tiền của đơn hàng
   deliveryAddress?: string;
   paymentStatus?: 'unpaid' | 'paid';
   declineReason?: string;
@@ -39,14 +48,6 @@ interface Product {
   price: number;
   views: number;
   status: 'active' | 'pending' | 'sold';
-}
-
-interface IOrderItemResponse {
-  id?: number;
-  price?: number;
-  quantity?: number;
-  order?: any;
-  product?: any;
 }
 
 interface IProductResponse {
@@ -72,12 +73,23 @@ export function ProductOrderManagementPage() {
   const [selectedOrderForDecline, setSelectedOrderForDecline] = useState<OrderRequest | null>(null);
   const [selectedOrderForCancel, setSelectedOrderForCancel] = useState<OrderRequest | null>(null);
 
+  const parseMeetupLocation = (meetupLocation?: string) => {
+    if (!meetupLocation) return { name: '', phone: '', address: '' };
+    const parts = meetupLocation.split('|').map(p => p.trim());
+    return {
+      name: parts[0]?.replace('Người nhận:', '').trim() || '',
+      phone: parts[1]?.replace('SĐT:', '').trim() || '',
+      address: parts[2]?.replace('Địa chỉ:', '').trim() || meetupLocation,
+    };
+  };
+
   // Calculate counts
   const mapBackendStatus = (status?: string): OrderRequestStatus => {
     const normalized = String(status || '').toUpperCase();
     switch (normalized) {
       case 'PENDING':
       case 'WAITING':
+      case 'PENDING_CONFIRM':
         return 'pending';
       case 'ACCEPTED':
       case 'CONFIRMED':
@@ -114,10 +126,10 @@ export function ProductOrderManagementPage() {
     setError(null);
 
     try {
-      const [productRes, itemsRes, imagesRes] = await Promise.all([
+      const [productRes, ordersRes, imagesRes] = await Promise.all([
         axios.get<IProductResponse>(`/api/products/${productId}`),
-        axios.get<IOrderItemResponse[]>(`/api/order-items?productId.equals=${productId}`),
-        axios.get<any[]>(`/api/product-images?productId.equals=${productId}`),
+        axios.get<any[]>(`/api/orders/seller`),
+        axios.get<any[]>(`/api/product-images?productId=${productId}`).catch(() => ({ data: [] })),
       ]);
 
       const productData = productRes.data;
@@ -136,33 +148,57 @@ export function ProductOrderManagementPage() {
         status: (productData?.status || 'active').toLowerCase() as 'active' | 'pending' | 'sold',
       });
 
-      const mappedOrders = (itemsRes.data || []).map(item => {
-        const order = item.order || {};
-        const buyer = order.buyer || {};
-        const productInfo = item.product || {};
-        const status = mapBackendStatus(order.status);
+      const orderMap = new Map<string, any>();
+      (ordersRes.data || []).forEach(order => {
+        const itemsWithProduct = (order.items || []).filter((item: any) => String(item.product?.id ?? item.productId ?? '') === productId);
 
-        return {
-          id: String(item.id ?? order.id ?? 'unknown'),
-          orderId: String(order.id ?? item.id ?? 'unknown'),
-          status,
-          buyerName: buyer.login || `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || 'Người mua ẩn danh',
-          buyerEmail: buyer.email || 'Không có email',
-          buyerPhone: buyer.phone || undefined,
-          university: buyer.university?.name || 'Không rõ',
-          requestDate: formatOrderDate(order.createdAt || order.createdDate || new Date()),
-          acceptedDate: order.acceptedDate ? formatOrderDate(order.acceptedDate) : undefined,
-          productId: String(productId),
-          productTitle: productInfo.name || productData?.name || 'Sản phẩm không rõ',
-          productImage: imageUrl,
-          productPrice: item.price ?? productInfo.price ?? productData?.price ?? 0,
-          deliveryAddress: order.meetupLocation || order.deliveryAddress || '',
-          paymentStatus: ['CONFIRMED', 'PAID'].includes(String(order.status || '').toUpperCase()) ? 'paid' : 'unpaid',
-          declineReason: order.cancelReason || order.declineReason || undefined,
-          cancelReason: order.cancelReason || undefined,
-        } as OrderRequest;
+        if (itemsWithProduct.length > 0) {
+          const buyer = order.buyer || {};
+          const buyerDetails = parseMeetupLocation(order.meetupLocation);
+          const status = mapBackendStatus(order.status);
+          const rawCreatedDate = order.createdAt ? new Date(order.createdAt) : null;
+
+          orderMap.set(String(order.id), {
+            id: String(order.id),
+            orderId: String(order.id),
+            status,
+            buyerName: buyerDetails.name || buyer.login || `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || 'Người mua ẩn danh',
+            buyerEmail: buyer.email || 'Không có email',
+            buyerPhone: buyerDetails.phone || buyer.phone || undefined,
+            university: buyer.university?.name || 'Không rõ',
+            requestDate: rawCreatedDate
+              ? dayjs(rawCreatedDate).format('DD/MM/YYYY HH:mm')
+              : formatOrderDate(order.createdAt || order.createdDate || new Date()),
+            requestDateRaw: rawCreatedDate,
+            acceptedDate: order.acceptedDate ? formatOrderDate(order.acceptedDate) : undefined,
+            items: (order.items || []).map((item: any) => {
+              const itemImages = imageData.filter(
+                (img: any) => String(img.product?.id ?? img.productId ?? '') === String(item.product?.id ?? item.productId ?? ''),
+              );
+              const itemPrimaryImage = itemImages.find((img: any) => img.isPrimary) || itemImages[0];
+              let itemImageUrl = itemPrimaryImage?.imageUrl || '';
+              if (itemImageUrl && itemImageUrl.startsWith('uploads/')) {
+                itemImageUrl = '/' + itemImageUrl;
+              }
+
+              return {
+                id: String(item.id ?? 'unknown'),
+                productId: String(item.product?.id ?? item.productId ?? 'unknown'),
+                productTitle: item.product?.name || 'Sản phẩm không rõ',
+                productImage: itemImageUrl || imageUrl || '/content/images/default-product.png',
+                productPrice: item.price ?? item.product?.price ?? 0,
+                quantity: item.quantity ?? 1,
+              };
+            }),
+            deliveryAddress: buyerDetails.address || order.meetupLocation || order.deliveryAddress || '',
+            paymentStatus: ['CONFIRMED', 'PAID'].includes(String(order.status || '').toUpperCase()) ? 'paid' : 'unpaid',
+            declineReason: order.cancelReason || order.declineReason || undefined,
+            cancelReason: order.cancelReason || undefined,
+          });
+        }
       });
 
+      const mappedOrders = Array.from(orderMap.values()) as OrderRequest[];
       setOrders(mappedOrders);
     } catch (loadError: any) {
       console.error('Failed to load product order list:', loadError);
@@ -216,7 +252,9 @@ export function ProductOrderManagementPage() {
       if (sortBy === 'date') {
         return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
       }
-      return b.productPrice - a.productPrice;
+      const aTotalPrice = a.items?.reduce((sum, item) => sum + item.productPrice * item.quantity, 0) ?? 0;
+      const bTotalPrice = b.items?.reduce((sum, item) => sum + item.productPrice * item.quantity, 0) ?? 0;
+      return bTotalPrice - aTotalPrice;
     });
 
     return filtered;
@@ -226,32 +264,49 @@ export function ProductOrderManagementPage() {
   const handleAccept = async (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const existingAccepted = orders.find(o => o.productId === order.productId && ['accepted', 'confirmed', 'shipping'].includes(o.status));
 
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const existingAccepted = orders.find(
+      o => o.orderId === order.orderId && o.id !== order.id && ['accepted', 'confirmed', 'shipping'].includes(o.status),
+    );
     if (existingAccepted) {
-      alert('Sản phẩm này đã có người mua. Vui lòng từ chối các yêu cầu khác.');
+      toast.warning('Đơn hàng này đã được xác nhận. Vui lòng từ chối các yêu cầu khác.');
       return;
     }
+    try {
+      // Gọi API chấp nhận đơn hàng lên Backend
+      await axios.put(`/api/orders/${order.orderId || orderId}/accept`);
 
-    setOrders(
-      orders.map(o =>
-        o.id === orderId
-          ? {
-              ...o,
-              status: 'accepted' as OrderRequestStatus,
-              acceptedDate: new Date().toLocaleString('vi-VN'),
-              paymentStatus: 'unpaid' as const,
-            }
-          : o,
-      ),
-    );
+      toast.success('Đã chấp nhận yêu cầu của người mua!');
+      addNotification({
+        type: 'order',
+        title: 'Đã chấp nhận yêu cầu!',
+        message: `Người mua ${order.buyerName} sẽ nhận thông báo và chuẩn bị giao nhận.`,
+      });
 
-    addNotification({
-      type: 'order',
-      title: 'Đã chấp nhận yêu cầu!',
-      message: `Người mua ${order.buyerName} sẽ nhận thông báo và có 24h để thanh toán.`,
-    });
+      loadProductOrders(); // Tải lại dữ liệu mới nhất từ DB
+    } catch (err) {
+      console.error('Lỗi khi chấp nhận đơn hàng:', err);
+      toast.error('Không thể chấp nhận đơn hàng. Vui lòng thử lại.');
+    }
+    // setOrders(
+    //   orders.map(o =>
+    //     o.id === orderId
+    //       ? {
+    //           ...o,
+    //           status: 'accepted' as OrderRequestStatus,
+    //           acceptedDate: new Date().toLocaleString('vi-VN'),
+    //           paymentStatus: 'unpaid' as const,
+    //         }
+    //       : o,
+    //   ),
+    // );
+
+    // addNotification({
+    //   type: 'order',
+    //   title: 'Đã chấp nhận yêu cầu!',
+    //   message: `Người mua ${order.buyerName} sẽ nhận thông báo và có 24h để thanh toán.`,
+    // });
   };
 
   const handleDecline = (orderId: string) => {
@@ -273,19 +328,39 @@ export function ProductOrderManagementPage() {
         other: notes || 'Lý do khác',
       }[reason] || reason;
 
-    setOrders(
-      orders.map(o =>
-        o.id === selectedOrderForDecline.id ? { ...o, status: 'declined' as OrderRequestStatus, declineReason: reasonLabel } : o,
-      ),
-    );
+    try {
+      // Gọi API từ chối kèm theo lý do cụ thể gửi lên Backend
+      await axios.put(`/api/orders/${selectedOrderForDecline.orderId}/decline`, {
+        reason: reasonLabel,
+      });
 
-    addNotification({
-      type: 'order',
-      title: 'Đã từ chối yêu cầu',
-      message: `Người mua ${selectedOrderForDecline.buyerName} sẽ nhận được thông báo.`,
-    });
+      toast.success('Đã từ chối đơn hàng thành công.');
+      addNotification({
+        type: 'order',
+        title: 'Đã từ chối yêu cầu',
+        message: `Người mua ${selectedOrderForDecline.buyerName} sẽ nhận được thông báo kèm lý do.`,
+      });
 
-    setSelectedOrderForDecline(null);
+      setSelectedOrderForDecline(null);
+      loadProductOrders(); // Cập nhật lại danh sách thực tế
+    } catch (err) {
+      console.error('Lỗi khi từ chối đơn hàng:', err);
+      toast.error('Gặp lỗi khi xử lý từ chối đơn hàng.');
+    }
+
+    // setOrders(
+    //   orders.map(o =>
+    //     o.id === selectedOrderForDecline.id ? { ...o, status: 'declined' as OrderRequestStatus, declineReason: reasonLabel } : o,
+    //   ),
+    // );
+
+    // addNotification({
+    //   type: 'order',
+    //   title: 'Đã từ chối yêu cầu',
+    //   message: `Người mua ${selectedOrderForDecline.buyerName} sẽ nhận được thông báo.`,
+    // });
+
+    // setSelectedOrderForDecline(null);
   };
 
   const handleCancel = (orderId: string) => {
@@ -296,18 +371,38 @@ export function ProductOrderManagementPage() {
   const handleCancelConfirm = async (reason: string, notes: string) => {
     if (!selectedOrderForCancel) return;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setOrders(
-      orders.map(o => (o.id === selectedOrderForCancel.id ? { ...o, status: 'cancelled' as OrderRequestStatus, cancelReason: notes } : o)),
-    );
+    try {
+      // Tái sử dụng endpoint decline/cancel của Backend cùng với lý do hủy từ Modal lý do
+      await axios.put(`/api/orders/${selectedOrderForCancel.orderId}/decline`, {
+        reason: notes || reason || 'Hủy đơn hàng',
+      });
 
-    addNotification({
-      type: 'order',
-      title: 'Đơn hàng đã được hủy',
-      message: 'Người mua sẽ nhận được thông báo và lý do hủy.',
-    });
+      toast.success('Đã hủy đơn hàng thành công.');
+      addNotification({
+        type: 'order',
+        title: 'Đơn hàng đã được hủy',
+        message: 'Người mua sẽ nhận được thông báo và lý do hủy.',
+      });
 
-    setSelectedOrderForCancel(null);
+      setSelectedOrderForCancel(null); // [cite: 58]
+      loadProductOrders();
+    } catch (err) {
+      console.error('Lỗi khi hủy đơn hàng:', err);
+      toast.error('Gặp lỗi khi hủy đơn hàng.');
+    }
+
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    // setOrders(
+    //   orders.map(o => (o.id === selectedOrderForCancel.id ? { ...o, status: 'cancelled' as OrderRequestStatus, cancelReason: notes } : o)),
+    // );
+
+    // addNotification({
+    //   type: 'order',
+    //   title: 'Đơn hàng đã được hủy',
+    //   message: 'Người mua sẽ nhận được thông báo và lý do hủy.',
+    // });
+
+    // setSelectedOrderForCancel(null);
   };
 
   const handleContact = (orderId: string) => {
@@ -315,31 +410,66 @@ export function ProductOrderManagementPage() {
     if (order) navigate(`/messages?buyer=${order.buyerName}&order=${order.orderId || orderId}`);
   };
 
-  const handleMarkShipping = (orderId: string) => {
-    setOrders(orders.map(o => (o.id === orderId ? { ...o, status: 'shipping' as OrderRequestStatus } : o)));
-    addNotification({
-      type: 'order',
-      title: 'Đã cập nhật trạng thái',
-      message: 'Đơn hàng đang được giao.',
-    });
+  const handleMarkShipping = async (orderId: string) => {
+    try {
+      // Cập nhật trạng thái SHIPPING trực tiếp lên DB
+      await axios.put(`/api/orders/${orderId}/accept`); // Đổi endpoint tương ứng nếu BE chia riêng phương thức giao hàng
+      toast.success('Trạng thái: Đang giao hàng.');
+      addNotification({
+        type: 'order',
+        title: 'Đã cập nhật trạng thái',
+        message: 'Đơn hàng đang được giao.',
+      });
+      loadProductOrders();
+    } catch (err) {
+      console.error(err);
+      toast.error('Không thể cập nhật trạng thái giao hàng.');
+    }
+
+    // setOrders(orders.map(o => (o.id === orderId ? { ...o, status: 'shipping' as OrderRequestStatus } : o)));
+    // addNotification({
+    //   type: 'order',
+    //   title: 'Đã cập nhật trạng thái',
+    //   message: 'Đơn hàng đang được giao.',
+    // });
   };
 
-  const handleMarkCompleted = (orderId: string) => {
-    setOrders(orders.map(o => (o.id === orderId ? { ...o, status: 'completed' as OrderRequestStatus } : o)));
-    addNotification({
-      type: 'order',
-      title: 'Đơn hàng hoàn thành!',
-      message: 'Giao dịch đã hoàn tất.',
-    });
+  const handleMarkCompleted = async (orderId: string) => {
+    try {
+      // Cập nhật trạng thái thành công lên Database
+      await axios.put(`/api/orders/${orderId}/confirm-received`);
+      toast.success('Chúc mừng! Đơn hàng đã hoàn thành thành công.');
+      addNotification({
+        type: 'order',
+        title: 'Đơn hàng hoàn thành!',
+        message: 'Giao dịch đã hoàn tất.',
+      });
+      loadProductOrders();
+    } catch (err) {
+      console.error(err);
+      toast.error('Không thể xác nhận hoàn thành đơn hàng.');
+    }
+    // setOrders(orders.map(o => (o.id === orderId ? { ...o, status: 'completed' as OrderRequestStatus } : o)));
+    // addNotification({
+    //   type: 'order',
+    //   title: 'Đơn hàng hoàn thành!',
+    //   message: 'Giao dịch đã hoàn tất.',
+    // });
   };
 
   const handleExportOrders = () => {
-    const csv = filteredOrders.map(o => `${o.id},${o.buyerName},${o.productTitle},${o.productPrice},${o.status}`).join('\n');
+    const csv = filteredOrders
+      .map(o => {
+        const itemsText = o.items?.map(item => `${item.productTitle}(x${item.quantity})`).join(';') || '';
+        const totalPrice = o.items?.reduce((sum, item) => sum + item.productPrice * item.quantity, 0) ?? 0;
+        return `${o.id},${o.buyerName},${itemsText},${totalPrice},${o.status}`;
+      })
+      .join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `orders-product-${productId}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `orders-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
 
     addNotification({
@@ -368,7 +498,7 @@ export function ProductOrderManagementPage() {
           <h2 className="text-2xl font-bold text-[#0A2647] dark:text-white mb-2">Có lỗi khi tải đơn hàng</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
           <button
-            onClick={() => navigate('/seller/dashboard')}
+            onClick={() => navigate('/seller-dashboard')}
             className="px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF5722] text-white rounded-lg font-medium transition-all"
           >
             Quay lại Dashboard
@@ -394,7 +524,7 @@ export function ProductOrderManagementPage() {
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <Link
-          to="/seller/dashboard"
+          to="/seller-dashboard"
           className="inline-flex items-center gap-2 text-[#0A2647] dark:text-white hover:text-[#FF6B35] mb-6 font-medium transition-colors group"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -455,7 +585,7 @@ export function ProductOrderManagementPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                to="/seller/dashboard"
+                to="/seller-dashboard"
                 className="px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF5722] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-medium transition-all shadow-lg"
               >
                 Quay lại Dashboard
@@ -517,7 +647,7 @@ export function ProductOrderManagementPage() {
               ) : (
                 filteredOrders.map(order => (
                   <SellerOrderCard
-                    key={order.id}
+                    key={`${order.orderId}-${order.requestDateRaw?.getTime() ?? 0}`}
                     order={order}
                     onAccept={handleAccept}
                     onDecline={handleDecline}
@@ -538,7 +668,7 @@ export function ProductOrderManagementPage() {
         <DeclineReasonModal
           isOpen={true}
           buyerName={selectedOrderForDecline.buyerName}
-          productTitle={selectedOrderForDecline.productTitle}
+          productTitle={selectedOrderForDecline.items?.[0]?.productTitle || 'Sản phẩm'}
           onClose={() => setSelectedOrderForDecline(null)}
           onConfirm={handleDeclineConfirm}
         />
@@ -549,7 +679,7 @@ export function ProductOrderManagementPage() {
           isOpen={true}
           orderNumber={selectedOrderForCancel.id}
           buyerName={selectedOrderForCancel.buyerName}
-          productTitle={selectedOrderForCancel.productTitle}
+          productTitle={selectedOrderForCancel.items?.[0]?.productTitle || 'Sản phẩm'}
           orderStatus={selectedOrderForCancel.status as any}
           onClose={() => setSelectedOrderForCancel(null)}
           onConfirm={handleCancelConfirm}

@@ -219,34 +219,6 @@ const mockOrderData: Record<string, SellerOrderDetail> = {
       { label: 'Hoàn thành', time: '', completed: false, description: 'Người mua xác nhận đã nhận hàng' },
     ],
   },
-  '2': {
-    id: 'ord2',
-    orderNumber: 'UM2024060102',
-    status: 'shipping',
-    statusText: 'ĐANG GIAO HÀNG',
-    buyerName: 'Lê Hoàng Nam',
-    buyerEmail: 'nam.le@student.hust.edu.vn',
-    buyerPhone: '0923 456 789',
-    buyerUniversity: 'ĐH Bách Khoa Hà Nội',
-    productId: 'p2',
-    productTitle: 'Tai nghe Sony WH-1000XM4 - Chống ồn',
-    productImage:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aXJlbGVzcyUyMGhlYWRwaG9uZXN8ZW58MXx8fHwxNzczODkwMDY0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    productPrice: 4500000,
-    requestDate: '31/05/2026 10:00',
-    acceptedDate: '31/05/2026 10:30',
-    confirmedDate: '31/05/2026 14:00',
-    deliveryAddress: 'Ký túc xá B2, Phòng 201, ĐH Bách Khoa Hà Nội',
-    paymentMethod: 'Ví MoMo',
-    paymentStatus: 'paid',
-    trackingSteps: [
-      { label: 'Nhận yêu cầu mua', time: '31/05/2026 10:00', completed: true },
-      { label: 'Đã chấp nhận', time: '31/05/2026 10:30', completed: true },
-      { label: 'Đã thanh toán', time: '31/05/2026 14:00', completed: true },
-      { label: 'Đang giao hàng', time: '02/06/2026 09:00', completed: true, description: 'Đang trên đường giao' },
-      { label: 'Hoàn thành', time: '', completed: false },
-    ],
-  },
 };
 
 export function SellerOrderDetailPage() {
@@ -436,7 +408,7 @@ export function SellerOrderDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link
-          to="/seller/dashboard"
+          to="/seller-dashboard"
           className="inline-flex items-center gap-2 text-[#0A2647] dark:text-white hover:text-[#FF6B35] mb-6 font-medium transition-colors group"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
