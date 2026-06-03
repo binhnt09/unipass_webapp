@@ -67,6 +67,11 @@ export const PremiumPlansPage = () => (
 
           <Link
             to="/payment"
+            state={{
+              itemName: 'Gói Cơ bản',
+              price: 0,
+              description: 'Hoàn hảo để bắt đầu',
+            }}
             className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors text-center block"
           >
             Chọn gói này
@@ -141,6 +146,11 @@ export const PremiumPlansPage = () => (
 
           <Link
             to="/payment"
+            state={{
+              itemName: 'Gói Tiêu chuẩn',
+              price: 49000,
+              description: 'Hiển thị tốt hơn',
+            }}
             className="w-full py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF5722] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-medium transition-all shadow-lg text-center block"
           >
             Chọn gói này
@@ -232,6 +242,11 @@ export const PremiumPlansPage = () => (
 
           <Link
             to="/payment"
+            state={{
+              itemName: 'Gói VIP Pro',
+              price: 99000,
+              description: 'Cấp độ cao nhất',
+            }}
             className="w-full py-3 bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFC700] hover:to-[#FF9500] text-[#0A2647] rounded-lg font-medium transition-all shadow-lg text-center block"
           >
             Chọn gói này

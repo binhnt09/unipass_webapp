@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Wallet, CreditCard, Banknote, CheckCircle, ArrowLeft, Shield } from 'lucide-react';
-import { Link, useNavigate } from 'react-router';
+import { Wallet, CheckCircle, ArrowLeft, Shield } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router';
 
 export function PaymentPage() {
   const navigate = useNavigate();
-  const [selectedMethod, setSelectedMethod] = useState<'momo' | 'vnpay' | 'cash' | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<'momo' | null>('momo');
 
-  // Example order data
-  const orderData = {
+  const location = useLocation();
+  const orderData = location.state || {
     itemName: 'Gói người bán cao cấp - Hàng tháng',
     price: 99000,
     description: 'Truy cập đầy đủ vào tính năng Premium trong 30 ngày',
@@ -21,11 +21,7 @@ export function PaymentPage() {
 
     // Navigate to the corresponding QR page
     if (selectedMethod === 'momo') {
-      navigate('/payment/momo');
-    } else if (selectedMethod === 'vnpay') {
-      navigate('/payment/vnpay');
-    } else if (selectedMethod === 'cash') {
-      navigate('/payment/bank-transfer');
+      navigate('/payment/momo', { state: orderData });
     }
   };
 
@@ -70,50 +66,6 @@ export function PaymentPage() {
                       <p className="text-sm text-gray-600">Thanh toán nhanh chóng, bảo mật với ví MoMo</p>
                     </div>
                     {selectedMethod === 'momo' && <CheckCircle className="w-6 h-6 text-[#FF6B35] flex-shrink-0" />}
-                  </div>
-                </button>
-
-                {/* VNPay Option */}
-                <button
-                  type="button"
-                  className={`block w-full p-5 border-2 rounded-xl transition-all text-left ${
-                    selectedMethod === 'vnpay'
-                      ? 'border-[#FF6B35] bg-orange-50 shadow-md'
-                      : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
-                  }`}
-                  onClick={() => setSelectedMethod('vnpay')}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <CreditCard className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h3 className="font-bold text-gray-900 text-lg mb-1">Cổng thanh toán VNPay</h3>
-                      <p className="text-sm text-gray-600">Thanh toán qua thẻ ATM, Visa, MasterCard</p>
-                    </div>
-                    {selectedMethod === 'vnpay' && <CheckCircle className="w-6 h-6 text-[#FF6B35] flex-shrink-0" />}
-                  </div>
-                </button>
-
-                {/* Cash Option */}
-                <button
-                  type="button"
-                  className={`w-full p-5 border-2 rounded-xl transition-all text-left ${
-                    selectedMethod === 'cash'
-                      ? 'border-[#FF6B35] bg-orange-50 shadow-md'
-                      : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
-                  }`}
-                  onClick={() => setSelectedMethod('cash')}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Banknote className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h3 className="font-bold text-gray-900 text-lg mb-1">Thanh toán khi gặp mặt</h3>
-                      <p className="text-sm text-gray-600">Thanh toán bằng tiền mặt trực tiếp</p>
-                    </div>
-                    {selectedMethod === 'cash' && <CheckCircle className="w-6 h-6 text-[#FF6B35] flex-shrink-0" />}
                   </div>
                 </button>
               </div>

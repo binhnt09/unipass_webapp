@@ -1,13 +1,14 @@
 import { ArrowLeft, CheckCircle, X, Clock, Copy, Check, Smartphone, Wallet, QrCode, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import React, { useState, useEffect } from 'react';
 
 export function MoMoQRPage() {
+  const location = useLocation();
   const [isPaid, setIsPaid] = useState(false);
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutes in seconds
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const orderDetails = {
+  const orderDetails = location.state || {
     orderId: 'UM2024032301',
     amount: 12500000,
     itemName: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
@@ -83,19 +84,15 @@ export function MoMoQRPage() {
 
             {/* QR Code Section */}
             <div className="mb-8">
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border-2 border-dashed border-gray-300 hover:border-[#A50064] transition-colors">
-                <div className="bg-white rounded-2xl p-6 shadow-xl">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-2 sm:p-4 border-2 border-dashed border-gray-300 hover:border-[#A50064] transition-colors">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                   {/* QR Code */}
-                  <div className="aspect-square max-w-xs mx-auto bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl flex items-center justify-center p-8 border-4 border-[#A50064]">
-                    <div className="w-full h-full bg-white rounded-xl grid grid-cols-10 gap-1 p-4">
-                      {[...Array(100)].map((_, i) => (
-                        <div key={i} className={`${Math.random() > 0.5 ? 'bg-[#0A2647]' : 'bg-white'} rounded-sm`} />
-                      ))}
-                    </div>
+                  <div className="w-full mx-auto">
+                    <img src="/content/images/momo-qr.png" alt="MoMo QR Code" className="w-full h-auto object-cover" />
                   </div>
 
                   {/* QR Label */}
-                  <div className="text-center mt-4">
+                  <div className="text-center p-4 bg-white border-t border-gray-100">
                     <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-100 to-purple-100 px-4 py-2 rounded-full">
                       <QrCode className="w-4 h-4 text-[#A50064]" />
                       <span className="text-sm font-bold text-[#A50064]">Mã QR MoMo</span>
@@ -165,7 +162,9 @@ export function MoMoQRPage() {
                 <div className="bg-gradient-to-r from-[#A50064] to-[#D82D8B] rounded-xl p-6 shadow-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-white text-lg">Tổng thanh toán</span>
-                    <span className="text-3xl font-bold text-white">{orderDetails.amount.toLocaleString('vi-VN')}đ</span>
+                    <span className="text-3xl font-bold text-white">
+                      {Number(orderDetails.amount || orderDetails.price || 0).toLocaleString('vi-VN')}đ
+                    </span>
                   </div>
                 </div>
               </div>

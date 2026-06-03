@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import { getConditionLabel } from '../../../shared/util/condition-util';
 import {
   ShoppingCart,
   MessageCircle,
@@ -177,26 +179,6 @@ export function ProductDetailPage() {
     setCurrentImageIndex(prev => (prev - 1 + imageUrls.length) % imageUrls.length);
   };
 
-  const getConditionLabel = (cond: string | null | undefined): string => {
-    if (!cond) return 'Như mới (99%)';
-    const upper = cond.toUpperCase().replace(/\s+/g, '_');
-    switch (upper) {
-      case 'NEW':
-      case 'BRAND_NEW':
-        return 'Mới tinh (100%)';
-      case 'LIKE_NEW':
-        return 'Như mới (99%)';
-      case 'EXCELLENT':
-        return 'Rất tốt';
-      case 'GOOD':
-        return 'Tốt';
-      case 'FAIR':
-        return 'Trung bình';
-      default:
-        return cond;
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
@@ -228,13 +210,12 @@ export function ProductDetailPage() {
     );
   }
 
-  const discountPrice = product.price ? Math.round(product.price * 1.15) : null;
   const rawLogin = product.seller?.login || 'Thành viên';
   const sellerName = rawLogin.includes('@') ? rawLogin.split('@')[0] : rawLogin;
   const sellerImageUrl = (product?.seller as any)?.imageUrl;
-  const universityName = (product.seller as any)?.university?.name || 'Đại học Quốc gia';
+  const universityName = (product.seller as any)?.universityName || 'Đại học FPT';
   const studentId = (product?.seller as any)?.studentIdNumber || product?.seller?.login || '';
-  const postedDate = product.createdAt ? new Date(product.createdAt as any).toLocaleDateString('vi-VN') : 'Mới đăng';
+  const postedDate = product.createdAt ? dayjs(product.createdAt).format('DD/MM/YYYY') : 'Mới đăng';
   const isOwner = !!(
     user &&
     product?.seller &&
@@ -348,16 +329,13 @@ export function ProductDetailPage() {
                   <MapPin className="w-4 h-4" />
                   <span>Khuôn viên trường</span>
                 </div>
-                <span>• 88 lượt xem</span>
+                <span>88 lượt xem</span>
               </div>
 
               {/* Price and Condition */}
               <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
                 <div>
                   <div className="text-3xl font-bold text-[#FF6B35] mb-1">{(product.price || 0).toLocaleString('vi-VN')} đ</div>
-                  {discountPrice && (
-                    <p className="text-sm text-gray-500 line-through">Giá gốc: {discountPrice.toLocaleString('vi-VN')} đ</p>
-                  )}
                 </div>
                 <div className="text-right flex flex-col items-end gap-2">
                   <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200">

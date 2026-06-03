@@ -17,6 +17,7 @@ import {
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
+import { getConditionLabel } from '../../shared/util/condition-util';
 
 interface CartItem {
   id: string;
@@ -452,7 +453,7 @@ export function ShoppingCartPage() {
                             </Link>
                             <div className="flex items-center gap-2 mb-2">
                               <Tag className="w-3 h-3 text-gray-400" />
-                              <span className="text-xs text-gray-600">{item.condition}</span>
+                              <span className="text-xs text-gray-600">{getConditionLabel(item.condition)}</span>
                             </div>
 
                             {item.inStock ? (

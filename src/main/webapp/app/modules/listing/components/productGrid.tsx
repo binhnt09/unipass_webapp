@@ -1,6 +1,7 @@
 import { ProductCard } from './productCard';
 import React from 'react';
 import { IProduct } from 'app/shared/model/product.model';
+import { getConditionLabel } from '../../../shared/util/condition-util';
 
 interface ProductGridProps {
   products: IProduct[];
@@ -43,22 +44,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
         'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080';
     }
 
-    const conditionDisplay = (() => {
-      switch (prod.condition) {
-        case 'Brand New':
-          return 'Mới tinh (100%)';
-        case 'Like New':
-          return 'Như mới (99%)';
-        case 'Excellent':
-          return 'Rất tốt';
-        case 'Good':
-          return 'Tốt';
-        case 'Fair':
-          return 'Trung bình';
-        default:
-          return prod.condition || 'Như mới';
-      }
-    })();
+    const conditionDisplay = getConditionLabel(prod.condition);
 
     return {
       id: prod.id?.toString() || '',
