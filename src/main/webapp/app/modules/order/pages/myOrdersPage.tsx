@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, BadgeCheck, MessageCircle, Eye, Package, Copy, Check, ShoppingBag, Star, RotateCcw, SortAsc } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
 import { Link } from 'react-router';
 import { RatingModal } from '../components/ratingModal';
 import axios from 'axios';
+// Removed OrderTrackingTimeline usage here — using polling-based realtime updates instead
 
 type OrderStatus = 'all' | 'pending' | 'shipping' | 'completed' | 'cancelled';
 type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc';
@@ -39,6 +40,8 @@ export function MyOrdersPage() {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [recentlyUpdatedOrderId, setRecentlyUpdatedOrderId] = useState<string | null>(null);
+  const prevOrdersRef = useRef<Order[] | null>(null);
 
   const tabs = [
     { id: 'all' as OrderStatus, label: 'Tất cả' },
@@ -155,65 +158,68 @@ export function MyOrdersPage() {
     }
   };
 
-  //  GỌI API KHI TRANG ĐƯỢC TẢI LÊN
+  //  GỌI API KHI TRANG ĐƯỢC TẢI LÊN + polling để mô phỏng realtime
   useEffect(() => {
-    const fetchOrders = async () => {
+    let isMounted = true;
+
+    const mapBEToFE = (beOrders: any[]): Order[] =>
+      beOrders.map((beOrder: any) => ({
+        id: beOrder.id.toString(),
+        orderNumber: `ORD${beOrder.id}`,
+        sellerName: beOrder.seller?.login || 'Người bán',
+        sellerUniversity: 'Đại học FPT',
+        status: mapBEStatusToFEStatus(beOrder.status),
+        statusText: getStatusText(beOrder.status),
+        orderDate: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleDateString('vi-VN') : 'Vừa xong',
+        total: beOrder.totalAmount,
+        items: (beOrder.items || []).map((beItem: any) => ({
+          id: beItem.id.toString(),
+          productImage: beItem.productMainImage,
+          productTitle: beItem.product?.name || 'Sản phẩm',
+          variation: beItem.product?.condition || '',
+          quantity: beItem.quantity,
+          unitPrice: beItem.price,
+        })),
+      }));
+
+    const fetchAndUpdate = async (initial = false) => {
       try {
-        setLoading(true);
+        if (initial) setLoading(true);
         const response = await axios.get('/api/orders/current-user');
+        const formattedOrders: Order[] = mapBEToFE(response.data || []);
 
-        // logic lấy iamge product bằng FE
-        // const beOrdersData = response.data || [];
-        // const productIds: number[] = [];
-        // beOrdersData.forEach((order: any) => {
-        //   (order.items || []).forEach((item: any) => {
-        //     if (item.product?.id) {
-        //       productIds.push(item.product.id);
-        //     }
-        //   });
-        // });
-        // const uniqueProductIds = Array.from(new Set(productIds));
-        // let allImages: any[] = [];
-        // if (uniqueProductIds.length > 0) {
-        //   const resImages = await axios.get(`/api/product-images?productId.in=${uniqueProductIds.join(',')}`);
-        //   allImages = resImages.data || [];
-        // }
+        if (!isMounted) return;
 
-        // Convert cấu trúc DTO từ BE sang cấu trúc Object mà Giao diện FE đang cần dùng [cite: 3-6]
-        const formattedOrders: Order[] = response.data.map((beOrder: any) => ({
-          id: beOrder.id.toString(),
-          orderNumber: `ORD${beOrder.id}`,
-          sellerName: beOrder.seller?.login || 'Người bán',
-          sellerUniversity: 'Đại học FPT',
-          status: mapBEStatusToFEStatus(beOrder.status),
-          statusText: getStatusText(beOrder.status),
-          orderDate: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleDateString('vi-VN') : 'Vừa xong',
-          total: beOrder.totalAmount,
-          items: (beOrder.items || []).map((beItem: any) => {
-            // logic lấy iamge product bằng FE
-            // const prod = beItem.product;
-            // const productImages = allImages.filter(img => img.product?.id === prod?.id);
-            // const primaryImage = productImages.find(img => img.isPrimary) || productImages[0];
-            return {
-              id: beItem.id.toString(),
-              productImage: beItem.productMainImage,
-              productTitle: beItem.product?.name || 'Sản phẩm',
-              variation: beItem.product?.condition || '',
-              quantity: beItem.quantity,
-              unitPrice: beItem.price,
-            };
-          }),
-        }));
-
-        setOrders(formattedOrders);
+        setOrders(prev => {
+          // detect status change for any order
+          const prevMap = new Map(prev.map(o => [o.id, o]));
+          for (const o of formattedOrders) {
+            const p = prevMap.get(o.id);
+            if (p && p.status !== o.status) {
+              setRecentlyUpdatedOrderId(o.id);
+              // clear highlight shortly after
+              setTimeout(() => setRecentlyUpdatedOrderId(null), 3000);
+              break;
+            }
+          }
+          prevOrdersRef.current = formattedOrders;
+          return formattedOrders;
+        });
       } catch (error) {
         console.error('Lỗi khi tải đơn hàng:', error);
       } finally {
-        setLoading(false);
+        if (initial) setLoading(false);
       }
     };
 
-    fetchOrders();
+    // initial fetch
+    fetchAndUpdate(true);
+
+    const intervalId = setInterval(() => fetchAndUpdate(false), 3000);
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, []);
 
   if (loading) {
@@ -239,6 +245,7 @@ export function MyOrdersPage() {
         {/* Sticky Tab Navigation */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 sticky top-20 z-10">
           {/* Tabs */}
+          {/* Real-time updates handled via polling; timeline removed */}
           <div className="border-b border-gray-200">
             <div className="flex overflow-x-auto scrollbar-hide">
               {tabs.map(tab => (
@@ -347,7 +354,9 @@ export function MyOrdersPage() {
             filteredOrders.map(order => (
               <div
                 key={order.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-[#FF6B35]/30 transition-all duration-300 group"
+                className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-[#FF6B35]/30 transition-all duration-300 group ${
+                  recentlyUpdatedOrderId === order.id ? 'ring-2 ring-yellow-300 animate-pulse' : ''
+                }`}
               >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-50 via-white to-gray-50 border-b border-gray-200">

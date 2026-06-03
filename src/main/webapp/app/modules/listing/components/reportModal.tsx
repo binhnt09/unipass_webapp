@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { X, AlertTriangle, Upload, Shield, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 
 interface ReportModalProps {
   onClose: () => void;
   itemTitle?: string;
   sellerName?: string;
+  targetId?: number;
+  reportedLogin?: string;
 }
 
-export function ReportModal({ onClose, itemTitle }: ReportModalProps) {
+export function ReportModal({ onClose, itemTitle, targetId, reportedLogin }: ReportModalProps) {
   const [reason, setReason] = useState('');
   const [details, setDetails] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const reasons = [
     { value: '', label: 'Chọn lý do...' },
@@ -31,19 +35,34 @@ export function ReportModal({ onClose, itemTitle }: ReportModalProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason || !details.trim()) {
       return;
     }
 
-    // Simulate submission
-    setIsSubmitted(true);
+    try {
+      setLoading(true);
+      const reportPayload = {
+        targetType: 'PRODUCT',
+        targetId: targetId || 0,
+        reason: `[${reason}] ${details}`,
+        reported: reportedLogin ? { login: reportedLogin } : null,
+      };
 
-    // Close modal after showing success message
-    setTimeout(() => {
-      onClose();
-    }, 2000);
+      await axios.post('/api/reports', reportPayload);
+      setIsSubmitted(true);
+
+      // Close modal after showing success message
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error('Lỗi khi gửi báo cáo:', error);
+      alert('Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (isSubmitted) {
@@ -179,14 +198,14 @@ export function ReportModal({ onClose, itemTitle }: ReportModalProps) {
             </button>
             <button
               type="submit"
-              disabled={!reason || !details.trim()}
+              disabled={!reason || !details.trim() || loading}
               className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all shadow-md ${
-                !reason || !details.trim()
+                !reason || !details.trim() || loading
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-gradient-to-r from-red-500 to-[#FF6B35] hover:from-red-600 hover:to-[#FF5722] text-white'
               }`}
             >
-              Gửi báo cáo
+              {loading ? 'Đang gửi...' : 'Gửi báo cáo'}
             </button>
           </div>
 

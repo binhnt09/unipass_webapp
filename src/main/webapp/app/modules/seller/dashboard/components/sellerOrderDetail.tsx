@@ -125,6 +125,45 @@ const getSellerProductImage = (firstItem: any) =>
 const getSellerProductPrice = (firstItem: any, beOrder: any) => firstItem.price ?? firstItem.unitPrice ?? beOrder.totalAmount ?? 0;
 
 const getSellerTrackingSteps = (status: string, beOrder: any) => {
+  if (beOrder.statusHistories && beOrder.statusHistories.length > 0) {
+    const sortedHistories = [...beOrder.statusHistories].sort(
+      (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+    const trackingSteps = sortedHistories.map((h: any) => {
+      let label = '';
+      if (h.status === 'PENDING_CONFIRM') label = 'Nhận yêu cầu mua';
+      else if (h.status === 'ACCEPTED') label = 'Đã chấp nhận yêu cầu';
+      else if (h.status === 'SHIPPING') label = 'Giao hàng';
+      else if (h.status === 'COMPLETED') label = 'Hoàn thành';
+      else if (h.status === 'CANCELLED') label = 'Đã hủy đơn hàng';
+      else label = h.status;
+
+      return {
+        label,
+        time: h.createdAt ? new Date(h.createdAt).toLocaleString('vi-VN') : '',
+        completed: true,
+        description: h.note || '',
+      };
+    });
+
+    const lastStatus = sortedHistories[sortedHistories.length - 1].status;
+    if (lastStatus !== 'COMPLETED' && lastStatus !== 'CANCELLED') {
+      if (lastStatus === 'PENDING_CONFIRM') {
+        trackingSteps.push({ label: 'Đã chấp nhận yêu cầu', time: '', completed: false, description: 'Chờ bạn chấp nhận yêu cầu mua' });
+        trackingSteps.push({ label: 'Chờ thanh toán', time: '', completed: false, description: 'Người mua có 24h để thanh toán' });
+        trackingSteps.push({ label: 'Giao hàng', time: '', completed: false, description: 'Giao sản phẩm cho người mua' });
+        trackingSteps.push({ label: 'Hoàn thành', time: '', completed: false, description: 'Người mua xác nhận đã nhận hàng' });
+      } else if (lastStatus === 'ACCEPTED') {
+        trackingSteps.push({ label: 'Chờ thanh toán', time: '', completed: false, description: 'Người mua có 24h để thanh toán' });
+        trackingSteps.push({ label: 'Giao hàng', time: '', completed: false, description: 'Giao sản phẩm cho người mua' });
+        trackingSteps.push({ label: 'Hoàn thành', time: '', completed: false, description: 'Người mua xác nhận đã nhận hàng' });
+      } else if (lastStatus === 'SHIPPING') {
+        trackingSteps.push({ label: 'Hoàn thành', time: '', completed: false, description: 'Người mua xác nhận đã nhận hàng' });
+      }
+    }
+    return trackingSteps;
+  }
+
   const shipmentDate = beOrder.shippedDate || beOrder.shippingDate;
 
   return [
@@ -313,10 +352,8 @@ export function SellerOrderDetailPage() {
 
   const handleCancelOrder = async (reason: string, notes: string) => {
     try {
-      // TODO: API call
-      console.warn('[SellerOrderDetail] Cancelling order:', { reason, notes });
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const finalReason = notes ? `${reason} - ${notes}` : reason;
+      await axios.put(`/api/orders/${order.id}/decline`, { reason: finalReason });
 
       setOrder({ ...order, status: 'cancelled', statusText: 'ĐÃ HỦY' });
 
@@ -332,18 +369,23 @@ export function SellerOrderDetailPage() {
     }
   };
 
-  const handleMarkShipping = () => {
-    setOrder({
-      ...order,
-      status: 'shipping',
-      statusText: 'ĐANG GIAO HÀNG',
-    });
+  const handleMarkShipping = async () => {
+    try {
+      await axios.put(`/api/orders/${order.id}/shipping`);
+      setOrder({
+        ...order,
+        status: 'shipping',
+        statusText: 'ĐANG GIAO HÀNG',
+      });
 
-    addNotification({
-      type: 'order',
-      title: 'Đã cập nhật trạng thái',
-      message: 'Đơn hàng đang được giao. Người mua sẽ nhận được thông báo.',
-    });
+      addNotification({
+        type: 'order',
+        title: 'Đã cập nhật trạng thái',
+        message: 'Đơn hàng đang được giao. Người mua sẽ nhận được thông báo.',
+      });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleMarkCompleted = () => {
@@ -361,8 +403,13 @@ export function SellerOrderDetailPage() {
     });
   };
 
-  const handleSaveNotes = (notes: string) => {
-    console.warn('[SellerOrderDetail] Saving notes:', notes);
+  const handleSaveNotes = async (notes: string) => {
+    if (!order) return;
+    try {
+      await axios.put(`/api/orders/${order.id}/notes`, { note: notes });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const getStatusColor = (status: string) => {

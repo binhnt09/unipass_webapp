@@ -5,6 +5,7 @@
 // TODO: Backend API to save notes to database
 
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { StickyNote, Save, Check } from 'lucide-react';
 
 interface OrderNotesProps {
@@ -37,11 +38,8 @@ export function OrderNotes({ orderId, initialNotes = '', onSave }: OrderNotesPro
     setIsSaving(true);
 
     try {
-      // TODO: Replace with actual API call to backend
-      // await api.patch(`/api/orders/${orderId}/notes`, { notes });
-
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Actual API call to backend
+      await axios.put(`/api/orders/${orderId}/notes`, { note: notes });
 
       setLastSaved(new Date());
       onSave?.(notes);

@@ -62,7 +62,10 @@ export function CancelOrderModal({ isOpen, orderNumber, onClose, onConfirm }: Ca
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full" onClick={e => e.stopPropagation()}>
+      <div
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 flex items-center justify-between">
           <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import dayjs from 'dayjs';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Package, Search, Loader2 } from 'lucide-react';
 
@@ -87,9 +87,12 @@ export function SellerOrderManagementPage() {
     return dayjs(value).isValid() ? dayjs(value).format('DD/MM/YYYY HH:mm') : String(value);
   };
 
-  const loadAllOrders = async () => {
-    setLoading(true);
-    setError(null);
+  const loadAllOrders = useCallback(async (showLoader = true) => {
+    if (showLoader) {
+      setLoading(true);
+      setError(null);
+    }
+
     try {
       const response = await axios.get(`/api/orders/seller`);
       const beOrders = response.data || [];
@@ -121,11 +124,11 @@ export function SellerOrderManagementPage() {
           buyerName: buyerDetails.name || buyer.login || 'Người mua',
           buyerEmail: buyer.email || 'Không có email',
           buyerPhone: buyerDetails.phone || undefined,
-          university: buyer.university?.name || buyerDetails.name || 'Đại học FPT', // Lấy tạm nếu DB chưa có
+          university: buyer.university?.name || buyerDetails.name || 'Đại học FPT',
           requestDate: formatOrderDate(order.createdAt),
           acceptedDate: order.acceptedDate ? formatOrderDate(order.acceptedDate) : undefined,
-          items, // Truyền thẳng cục items xịn vào đây!
-          productPrice: order.totalAmount, // Tổng tiền Backend tính sẵn
+          items,
+          productPrice: order.totalAmount,
           deliveryAddress: buyerDetails.address || '',
           paymentStatus: 'unpaid',
           declineReason: order.cancelReason,
@@ -135,13 +138,16 @@ export function SellerOrderManagementPage() {
       setOrders(mappedOrders);
     } catch (err) {
       console.error(err);
+      if (showLoader) setError('Không thể tải danh sách đơn hàng. Vui lòng thử lại.');
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadAllOrders();
+    const refreshInterval = setInterval(() => loadAllOrders(false), 5000);
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const orderCounts = useMemo(
@@ -179,16 +185,25 @@ export function SellerOrderManagementPage() {
   }, [orders, activeTab, searchQuery, sortBy]);
 
   // --- HANDLERS (Gọi API) ---
+  const updateOrderStatus = useCallback(
+    async (orderId: string, action: 'accept' | 'shipping' | 'confirm-received' | 'decline', payload?: object) => {
+      try {
+        await axios.put(`/api/orders/${orderId}/${action}`, payload || {});
+        await loadAllOrders(false);
+        return true;
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
+    },
+    [loadAllOrders],
+  );
+
   const handleAccept = async (orderId: string) => {
-    try {
-      await axios.put(`/api/orders/${orderId}/accept`);
+    const success = await updateOrderStatus(orderId, 'accept');
+    if (success) {
       toast.success('Đã chấp nhận yêu cầu của người mua!');
-      const currentFormattedTime = dayjs().format('DD/MM/YYYY HH:mm');
-      setOrders(prevOrders =>
-        prevOrders.map(o => (o.id === orderId ? { ...o, status: 'accepted', acceptedDate: currentFormattedTime } : o)),
-      );
-    } catch (err) {
-      console.error(err);
+    } else {
       toast.error('Không thể chấp nhận đơn hàng. Vui lòng thử lại.');
     }
   };
@@ -206,48 +221,42 @@ export function SellerOrderManagementPage() {
         other: notes || 'Lý do khác',
       }[reason] || reason;
 
-    try {
-      await axios.put(`/api/orders/${selectedOrderForDecline.orderId}/decline`, { reason: reasonLabel });
+    const success = await updateOrderStatus(selectedOrderForDecline.orderId, 'decline', { reason: reasonLabel });
+    if (success) {
       toast.success('Đã từ chối đơn hàng thành công.');
       setSelectedOrderForDecline(null);
-      loadAllOrders();
-    } catch (err) {
-      console.error(err);
+    } else {
       toast.error('Gặp lỗi khi xử lý từ chối đơn hàng.');
     }
   };
 
   const handleCancelConfirm = async (reason: string, notes: string) => {
     if (!selectedOrderForCancel) return;
-    try {
-      await axios.put(`/api/orders/${selectedOrderForCancel.orderId}/decline`, { reason: notes || reason || 'Hủy đơn hàng' });
+    const success = await updateOrderStatus(selectedOrderForCancel.orderId, 'decline', {
+      reason: notes || reason || 'Hủy đơn hàng',
+    });
+    if (success) {
       toast.success('Đã hủy đơn hàng thành công.');
       setSelectedOrderForCancel(null);
-      loadAllOrders();
-    } catch (err) {
-      console.error(err);
+    } else {
       toast.error('Gặp lỗi khi hủy đơn hàng.');
     }
   };
 
   const handleMarkShipping = async (orderId: string) => {
-    try {
-      await axios.put(`/api/orders/${orderId}/accept`); // Sửa endpoint nếu cần
+    const success = await updateOrderStatus(orderId, 'shipping');
+    if (success) {
       toast.success('Đã chuyển sang trạng thái đang giao hàng.');
-      loadAllOrders();
-    } catch (err) {
-      console.error(err);
+    } else {
       toast.error('Lỗi cập nhật trạng thái.');
     }
   };
 
   const handleMarkCompleted = async (orderId: string) => {
-    try {
-      await axios.put(`/api/orders/${orderId}/confirm-received`); // Tuỳ chọn theo BE
+    const success = await updateOrderStatus(orderId, 'confirm-received');
+    if (success) {
       toast.success('Đơn hàng đã hoàn thành thành công.');
-      loadAllOrders();
-    } catch (err) {
-      console.error(err);
+    } else {
       toast.error('Lỗi xác nhận hoàn thành.');
     }
   };

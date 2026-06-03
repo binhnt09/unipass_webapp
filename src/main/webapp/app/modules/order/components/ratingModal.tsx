@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, Camera, Image as CheckCircle } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
+import axios from 'axios';
 
 interface RatingModalProps {
   order: {
@@ -34,6 +35,7 @@ export function RatingModal({ order, onClose }: RatingModalProps) {
     Object.fromEntries(order.items.map(item => [item.id, { productId: item.id, rating: 5, comment: '', tags: [], images: [] }])),
   );
   const [hoveredStars, setHoveredStars] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(false);
 
   const qualityTags = [
     '📦 Đúng như mô tả',
@@ -93,10 +95,34 @@ export function RatingModal({ order, onClose }: RatingModalProps) {
     }));
   };
 
-  const handleSubmit = () => {
-    // Here you would submit the ratings to your backend
-    console.warn('Submitting ratings:', ratings);
-    setCurrentStep('success');
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      const ratingValues = Object.values(ratings);
+      const avgRating = Math.round(ratingValues.reduce((sum, r) => sum + r.rating, 0) / ratingValues.length);
+      const combinedComment = ratingValues
+        .filter(r => r.comment.trim() || r.tags.length > 0)
+        .map(r => {
+          const item = order.items.find(i => i.id === r.productId);
+          let text = item ? `[${item.productTitle}] ` : '';
+          if (r.tags.length > 0) text += r.tags.join(', ') + '. ';
+          if (r.comment) text += r.comment;
+          return text;
+        })
+        .join('\n');
+
+      await axios.post(`/api/orders/${order.id}/review`, {
+        rating: avgRating,
+        comment: combinedComment,
+      });
+
+      setCurrentStep('success');
+    } catch (error: any) {
+      console.error('Lỗi khi gửi đánh giá:', error);
+      alert(error.response?.data?.title || 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getRatingText = (rating: number) => {
@@ -312,14 +338,18 @@ export function RatingModal({ order, onClose }: RatingModalProps) {
             <button
               onClick={onClose}
               className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 hover:border-gray-400 rounded-lg font-medium transition-colors"
+              disabled={loading}
             >
               Để sau
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8C5A] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
+              disabled={loading}
+              className={`flex-1 px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8C5A] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg ${
+                loading ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
-              Gửi đánh giá
+              {loading ? 'Đang gửi...' : 'Gửi đánh giá'}
             </button>
           </div>
         </div>

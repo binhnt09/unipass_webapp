@@ -442,7 +442,15 @@ export function ProductDetailPage() {
       </div>
 
       {/* Report Modal */}
-      {showReportModal && <ReportModal onClose={() => setShowReportModal(false)} itemTitle={product.name} />}
+      {showReportModal && (
+        <ReportModal
+          onClose={() => setShowReportModal(false)}
+          itemTitle={product.name}
+          targetId={product.id}
+          reportedLogin={product.seller?.login}
+          sellerName={product.seller?.login}
+        />
+      )}
     </div>
   );
 }

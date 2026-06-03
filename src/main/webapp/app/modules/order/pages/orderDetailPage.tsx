@@ -44,6 +44,17 @@ interface OrderItem {
   unitPrice: number;
 }
 
+interface StatusHistory {
+  id: string;
+  referenceId: string;
+  referenceType: string;
+  status: string;
+  previousStatus: string;
+  note: string;
+  createdAt: string;
+  actor: string;
+}
+
 interface OrderDetail {
   id: string;
   orderNumber: string;
@@ -70,6 +81,7 @@ interface OrderDetail {
   }[];
   notes?: string; // NEW FEATURE: Order Notes
   sellerId?: string; // NEW FEATURE: For contact seller link
+  statusHistories?: StatusHistory[];
 }
 
 export function OrderDetailPage() {
@@ -169,32 +181,69 @@ export function OrderDetailPage() {
         const deliveryInfo = parseDeliveryInfo(beOrder.meetupLocation);
 
         // Xây dựng Tracking Timeline động dựa trên trạng thái thật
-        const trackingSteps = [
-          {
-            label: 'Đơn hàng đã được đặt',
-            time: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleString('vi-VN') : '',
-            completed: true,
-            description: 'Đơn hàng của bạn đã được tạo thành công',
-          },
-          {
-            label: 'Người bán đã xác nhận',
-            time: '',
-            completed: feStatus === 'shipping' || feStatus === 'completed',
-            description: 'Người bán đã xác nhận và đang đóng gói',
-          },
-          {
-            label: 'Đang giao hàng',
-            time: '',
-            completed: feStatus === 'shipping' || feStatus === 'completed',
-            description: 'Đơn hàng đang trên đường giao đến bạn',
-          },
-          {
-            label: 'Đã giao hàng',
-            time: '',
-            completed: feStatus === 'completed',
-            description: 'Giao hàng thành công',
-          },
-        ];
+        let trackingSteps: any[] = [];
+        if (beOrder.statusHistories && beOrder.statusHistories.length > 0) {
+          const sortedHistories = [...beOrder.statusHistories].sort(
+            (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+          trackingSteps = sortedHistories.map((h: any) => {
+            let label = '';
+            if (h.status === 'PENDING_CONFIRM') label = 'Đơn hàng đã được đặt';
+            else if (h.status === 'ACCEPTED') label = 'Người bán đã xác nhận';
+            else if (h.status === 'SHIPPING') label = 'Đang giao hàng';
+            else if (h.status === 'COMPLETED') label = 'Đã giao hàng';
+            else if (h.status === 'CANCELLED') label = 'Đã hủy đơn hàng';
+            else label = h.status;
+
+            return {
+              label,
+              time: h.createdAt ? new Date(h.createdAt).toLocaleString('vi-VN') : '',
+              completed: true,
+              description: h.note || '',
+            };
+          });
+
+          const lastStatus = sortedHistories[sortedHistories.length - 1].status;
+          if (lastStatus !== 'COMPLETED' && lastStatus !== 'CANCELLED') {
+            if (lastStatus === 'PENDING_CONFIRM') {
+              trackingSteps.push({ label: 'Người bán đã xác nhận', time: '', completed: false, description: 'Chờ người bán xác nhận' });
+              trackingSteps.push({ label: 'Đang giao hàng', time: '', completed: false, description: 'Chờ giao hàng' });
+              trackingSteps.push({ label: 'Đã giao hàng', time: '', completed: false, description: 'Chờ nhận hàng' });
+            } else if (lastStatus === 'ACCEPTED') {
+              trackingSteps.push({ label: 'Đang giao hàng', time: '', completed: false, description: 'Chờ giao hàng' });
+              trackingSteps.push({ label: 'Đã giao hàng', time: '', completed: false, description: 'Chờ nhận hàng' });
+            } else if (lastStatus === 'SHIPPING') {
+              trackingSteps.push({ label: 'Đã giao hàng', time: '', completed: false, description: 'Chờ nhận hàng' });
+            }
+          }
+        } else {
+          trackingSteps = [
+            {
+              label: 'Đơn hàng đã được đặt',
+              time: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleString('vi-VN') : '',
+              completed: true,
+              description: 'Đơn hàng của bạn đã được tạo thành công',
+            },
+            {
+              label: 'Người bán đã xác nhận',
+              time: '',
+              completed: feStatus === 'shipping' || feStatus === 'completed',
+              description: 'Người bán đã xác nhận và đang đóng gói',
+            },
+            {
+              label: 'Đang giao hàng',
+              time: '',
+              completed: feStatus === 'shipping' || feStatus === 'completed',
+              description: 'Đơn hàng đang trên đường giao đến bạn',
+            },
+            {
+              label: 'Đã giao hàng',
+              time: '',
+              completed: feStatus === 'completed',
+              description: 'Giao hàng thành công',
+            },
+          ];
+        }
 
         // Map data để đẩy lên UI
         const mappedOrder: OrderDetail = {
@@ -214,6 +263,7 @@ export function OrderDetailPage() {
           shippingFee: 0,
           total: beOrder.totalAmount,
           trackingSteps,
+          statusHistories: beOrder.statusHistories,
           items: (beOrder.items || []).map((beItem: any) => ({
             id: beItem.id.toString(),
             productImage: beItem.productMainImage || 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad',
@@ -400,12 +450,13 @@ export function OrderDetailPage() {
   // NEW FEATURE: Cancel Order - Handle order cancellation
   const handleCancelOrder = async (reason: string, notes: string) => {
     console.warn(`[OrderCancel] Hủy đơn hàng với lý do: ${reason}, ghi chú: ${notes}`);
+    if (!order) {
+      console.error('Không tìm thấy thông tin đơn hàng để hủy');
+      return;
+    }
     try {
-      // TODO: Replace with actual API call to backend
-      // await api.post(`/api/orders/${order.id}/cancel`, { reason, notes });
-
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const finalReason = notes ? `${reason} - ${notes}` : reason;
+      await axios.put(`/api/orders/${order.id}/cancel`, { reason: finalReason });
 
       // Update order status
       setOrder(prev => {

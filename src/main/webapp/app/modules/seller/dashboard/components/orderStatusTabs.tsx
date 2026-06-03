@@ -31,14 +31,17 @@ export function OrderStatusTabs({ activeTab, onTabChange, counts }: OrderStatusT
       <div className="flex flex-wrap gap-2">
         {TABS.map(tab => {
           const Icon = tab.icon;
-          let count = 0;
-          if (tab.key === 'accepted') {
-            count = counts.accepted; // Sẽ bao gồm cả accepted lẫn confirmed ở trang cha truyền vào
-          } else if (tab.key === 'declined') {
-            count = counts.declined; // Bao gồm cả từ chối và huỷ đơn
-          } else {
-            count = (counts as any)[tab.key] || 0;
-          }
+          const getCountForTab = (key: typeof tab.key) => {
+            switch (key) {
+              case 'accepted':
+                return counts.accepted; // accepted bao gồm cả confirmed nếu cần
+              case 'declined':
+                return counts.declined; // declined bao gồm cả declined và cancelled
+              default:
+                return counts[key];
+            }
+          };
+          const count = getCountForTab(tab.key);
 
           // Kiểm tra xem Tab có đang được kích hoạt hay không
           const isActive = activeTab === tab.key;
