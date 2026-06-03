@@ -40,7 +40,10 @@
         "aiChatMessage": "Ai Chat Message",
         "userSearchHistory": "User Search History",
         "notification": "Notification",
-        "sellerRequest": "Seller Request"
+        "sellerRequest": "Seller Request",
+        "statusHistory": "Status History",
+        "tradeRequest": "Trade Request",
+        "tradeOfferedItem": "Trade Offered Item"
       },
       "account": {
         "main": "Tài khoản",

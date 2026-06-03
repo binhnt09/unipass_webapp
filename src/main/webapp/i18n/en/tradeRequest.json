@@ -1,0 +1,31 @@
+{
+  "unipassWebApp": {
+    "tradeRequest": {
+      "home": {
+        "title": "Trade Requests",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Trade Request",
+        "createOrEditLabel": "Create or edit a Trade Request",
+        "notFound": "No Trade Requests found"
+      },
+      "created": "A new Trade Request is created with identifier {{ param }}",
+      "updated": "A Trade Request is updated with identifier {{ param }}",
+      "deleted": "A Trade Request is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Trade Request {{ id }}?"
+      },
+      "detail": {
+        "title": "Trade Request"
+      },
+      "id": "ID",
+      "topUpAmount": "Top Up Amount",
+      "status": "Status",
+      "meetupLocation": "Meetup Location",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "targetProduct": "Target Product",
+      "buyer": "Buyer",
+      "seller": "Seller"
+    }
+  }
+}

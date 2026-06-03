@@ -1,0 +1,31 @@
+{
+  "unipassWebApp": {
+    "tradeRequest": {
+      "home": {
+        "title": "Trade Requests",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Trade Request",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Trade Request",
+        "notFound": "No Trade Requests found"
+      },
+      "created": "Một Trade Request mới được tạo với định danh {{ param }}",
+      "updated": "Một Trade Request cập nhật với định danh {{ param }}",
+      "deleted": "Một Trade Request đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Trade Request {{ id }}?"
+      },
+      "detail": {
+        "title": "Trade Request"
+      },
+      "id": "ID",
+      "topUpAmount": "Top Up Amount",
+      "status": "Status",
+      "meetupLocation": "Meetup Location",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "targetProduct": "Target Product",
+      "buyer": "Buyer",
+      "seller": "Seller"
+    }
+  }
+}

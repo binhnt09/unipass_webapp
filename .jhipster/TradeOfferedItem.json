@@ -1,0 +1,27 @@
+{
+  "annotations": {
+    "changelogDate": "20260603093506"
+  },
+  "applications": ["*"],
+  "dto": "mapstruct",
+  "fields": [],
+  "jpaMetamodelFiltering": true,
+  "name": "TradeOfferedItem",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "tradeRequest",
+      "relationshipName": "tradeRequest",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityField": "name",
+      "otherEntityName": "product",
+      "relationshipName": "offeredProduct",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "service": "serviceImpl"
+}

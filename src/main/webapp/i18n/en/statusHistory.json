@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "statusHistory": {
+      "home": {
+        "title": "Status Histories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Status History",
+        "createOrEditLabel": "Create or edit a Status History",
+        "notFound": "No Status Histories found"
+      },
+      "created": "A new Status History is created with identifier {{ param }}",
+      "updated": "A Status History is updated with identifier {{ param }}",
+      "deleted": "A Status History is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Status History {{ id }}?"
+      },
+      "detail": {
+        "title": "Status History"
+      },
+      "id": "ID",
+      "referenceId": "Reference Id",
+      "referenceType": "Reference Type",
+      "status": "Status",
+      "previousStatus": "Previous Status",
+      "note": "Note",
+      "createdAt": "Created At",
+      "actor": "Actor"
+    }
+  }
+}

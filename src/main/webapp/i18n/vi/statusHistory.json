@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "statusHistory": {
+      "home": {
+        "title": "Status Histories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Status History",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Status History",
+        "notFound": "No Status Histories found"
+      },
+      "created": "Một Status History mới được tạo với định danh {{ param }}",
+      "updated": "Một Status History cập nhật với định danh {{ param }}",
+      "deleted": "Một Status History đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Status History {{ id }}?"
+      },
+      "detail": {
+        "title": "Status History"
+      },
+      "id": "ID",
+      "referenceId": "Reference Id",
+      "referenceType": "Reference Type",
+      "status": "Status",
+      "previousStatus": "Previous Status",
+      "note": "Note",
+      "createdAt": "Created At",
+      "actor": "Actor"
+    }
+  }
+}

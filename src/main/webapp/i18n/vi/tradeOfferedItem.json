@@ -1,0 +1,25 @@
+{
+  "unipassWebApp": {
+    "tradeOfferedItem": {
+      "home": {
+        "title": "Trade Offered Items",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Trade Offered Item",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Trade Offered Item",
+        "notFound": "No Trade Offered Items found"
+      },
+      "created": "Một Trade Offered Item mới được tạo với định danh {{ param }}",
+      "updated": "Một Trade Offered Item cập nhật với định danh {{ param }}",
+      "deleted": "Một Trade Offered Item đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Trade Offered Item {{ id }}?"
+      },
+      "detail": {
+        "title": "Trade Offered Item"
+      },
+      "id": "ID",
+      "tradeRequest": "Trade Request",
+      "offeredProduct": "Offered Product"
+    }
+  }
+}

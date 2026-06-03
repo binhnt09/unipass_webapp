@@ -227,6 +227,27 @@ entity SellerRequest {
   reviewedBy String maxlength(50)
 }
 
+entity StatusHistory {
+  referenceId Long required
+  referenceType String required maxlength(50)
+  status String required maxlength(50)
+  previousStatus String maxlength(50)
+  note String maxlength(5000)
+  createdAt Instant
+}
+
+entity TradeRequest {
+  topUpAmount BigDecimal
+  status String maxlength(50)
+  meetupLocation String maxlength(255)
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity TradeOfferedItem {
+  // Thực thể này chỉ đóng vai trò làm bảng nối 1-N (Sẽ nhận Data qua Relationship)
+}
+
 // ============================================================================
 // RELATIONSHIPS CONFIGURATION (Mối quan hệ)
 // ============================================================================
@@ -246,21 +267,23 @@ relationship ManyToOne {
   OrderItem{product(name)} to Product
   Review{order} to Orders
   WalletTransaction{wallet} to UserWallet
-
-  // Đã đổi tên biến đại diện từ 'package' thành 'premiumPackage' ở đây
   UserPremium{premiumPackage(name)} to PremiumPackage
   PremiumHistory{premiumPackage(name)} to PremiumPackage
-
   ChatRoom{product(name)} to Product
   ChatMessage{room} to ChatRoom
   AiChatMessage{session} to AiChatSession
+
+  // Quan hệ cho phần Trade (Trao đổi)
+  TradeRequest{targetProduct(name)} to Product
+  TradeOfferedItem{tradeRequest} to TradeRequest
+  TradeOfferedItem{offeredProduct(name)} to Product
 }
 
 // 2. Mối quan hệ 1-1 nối sang bảng tích hợp User hệ thống
 relationship OneToOne {
   UserProfile{user(login) required} to User with builtInEntity
   UserWallet{user(login) required} to User with builtInEntity
-  SellerRequest{user(login) required} to User with builtInEntity // Chèn thêm mối quan hệ OneToOne tại đây
+  SellerRequest{user(login) required} to User with builtInEntity
 }
 
 // 3. Mối quan hệ Many-to-One nối sang bảng tích hợp User hệ thống
@@ -287,6 +310,11 @@ relationship ManyToOne {
   AiChatSession{user(login)} to User with builtInEntity
   UserSearchHistory{user(login)} to User with builtInEntity
   Notification{user(login)} to User with builtInEntity
+
+  // Quan hệ User cho các bảng History & Trade mới
+  StatusHistory{actor(login)} to User with builtInEntity // Lưu ai là người thực hiện đổi status
+  TradeRequest{buyer(login)} to User with builtInEntity
+  TradeRequest{seller(login)} to User with builtInEntity
 }
 
 // ============================================================================
@@ -297,8 +325,8 @@ dto * with mapstruct
 service * with serviceImpl
 filter *
 
-paginate ChatMessage, AiChatMessage, Notification, UserSearchHistory, WalletTransaction, AiChatSession with infinite-scroll
+paginate ChatMessage, AiChatMessage, Notification, UserSearchHistory, WalletTransaction, AiChatSession, StatusHistory with infinite-scroll
 paginate University, Campus, UserProfile, Category, Product, ProductImage, ItemRequest, RequestOffer, Orders, UserWallet, UserPremium with pagination
 paginate OrderItem, Review, Report, UserBankAccount, PremiumPackage, SystemPaymentTransaction, Invoice, ChatRoom, CartItem, PremiumHistory with pagination
 
-paginate SellerRequest with pagination // Thêm dòng cấu hình phân trang riêng biệt cho bảng mới ở cuối file
+paginate SellerRequest, TradeOfferedItem, TradeRequest with pagination // Thêm dòng cấu hình phân trang riêng biệt cho bảng mới ở cuối file

@@ -1,0 +1,25 @@
+{
+  "unipassWebApp": {
+    "tradeOfferedItem": {
+      "home": {
+        "title": "Trade Offered Items",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Trade Offered Item",
+        "createOrEditLabel": "Create or edit a Trade Offered Item",
+        "notFound": "No Trade Offered Items found"
+      },
+      "created": "A new Trade Offered Item is created with identifier {{ param }}",
+      "updated": "A Trade Offered Item is updated with identifier {{ param }}",
+      "deleted": "A Trade Offered Item is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Trade Offered Item {{ id }}?"
+      },
+      "detail": {
+        "title": "Trade Offered Item"
+      },
+      "id": "ID",
+      "tradeRequest": "Trade Request",
+      "offeredProduct": "Offered Product"
+    }
+  }
+}
