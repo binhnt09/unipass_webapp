@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Cài đặt dependencies (sử dụng --legacy-peer-deps nếu gặp lỗi conflict version)
+ENV CYPRESS_INSTALL_BINARY=0
 RUN npm install
 
 # Copy toàn bộ mã nguồn
