@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, Trophy, Info, Award, Star, TrendingUp } from 'lucide-react';
-
-const premiumSellers = [
-  { name: 'Sarah M.', university: 'MIT', sales: 156, rating: 4.9 },
-  { name: 'Alex K.', university: 'Stanford', sales: 143, rating: 4.8 },
-  { name: 'Lisa W.', university: 'Yale', sales: 128, rating: 5.0 },
-  { name: 'Mike T.', university: 'Berkeley', sales: 115, rating: 4.7 },
-  { name: 'Emily R.', university: 'UCLA', sales: 98, rating: 4.9 },
-];
+import axios from 'axios';
 
 export function AugmentedFeatures() {
+  const [premiumSellers, setPremiumSellers] = useState<{ name: string; university: string; sales: number; rating: number }[]>([]);
+
+  useEffect(() => {
+    axios
+      .get('/api/user-profiles/public/premium-sellers')
+      .then(res => setPremiumSellers(res.data))
+      .catch(err => console.error('Error fetching premium sellers', err));
+  }, []);
+
   return (
     <div className="w-80 space-y-6 hidden lg:block">
       {/* AI Chat Support Widget */}
