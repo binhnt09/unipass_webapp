@@ -76,6 +76,9 @@ import UserManagement from './modules/administration/user-management/user-manage
 import { ProductOrderManagementPage } from './modules/seller/dashboard/components/productOrderManagement';
 import { SellerOrderDetailPage } from './modules/seller/dashboard/components/sellerOrderDetail';
 import { SellerOrderManagementPage } from './modules/seller/dashboard/components/sellerOrderManagementPage';
+import { MyTradesPage } from './modules/trade/myTrades';
+import { TradeRequestsPage } from './modules/trade/tradeRequests';
+import { TradeDetailPage } from './modules/trade/components/tradeDetail';
 
 const loading = <div>loading ...</div>;
 
@@ -201,6 +204,9 @@ export const router = createBrowserRouter([
           { path: 'seller/orders/:id', element: <SellerOrderDetailPage /> },
           { path: 'seller/products/:productId/orders', element: <ProductOrderManagementPage /> },
           { path: 'seller/orders', element: <SellerOrderManagementPage /> },
+          { path: 'trades/mine', element: <MyTradesPage /> },
+          { path: 'seller/products/:productId/trades', element: <TradeRequestsPage /> },
+          { path: 'seller/trades/:tradeId', element: <TradeDetailPage /> },
         ],
       },
       {

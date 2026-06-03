@@ -61,7 +61,7 @@ interface OrderDetail {
   sellerName: string;
   sellerUniversity: string;
   sellerPhone: string;
-  status: 'pending' | 'shipping' | 'completed' | 'cancelled';
+  status: 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled';
   statusText: string;
   items: OrderItem[];
   subtotal: number;
@@ -111,16 +111,23 @@ export function OrderDetailPage() {
   //   setShowConfirmModal(true);
   // };
 
-  const mapBEStatusToFEStatus = (status: string): 'pending' | 'shipping' | 'completed' | 'cancelled' => {
+  const mapBEStatusToFEStatus = (status: string): 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled' => {
     if (!status) return 'pending';
     switch (status.toUpperCase()) {
       case 'PENDING_CONFIRM':
+      case 'PENDING':
         return 'pending';
+      case 'ACCEPT':
+      case 'ACCEPTED': // Backend set ACCEPTED khi seller accept
+        return 'accepted';
       case 'SHIPPING':
+      case 'DELIVERING':
         return 'shipping';
       case 'COMPLETED':
+      case 'DELIVERED':
         return 'completed';
       case 'CANCELLED':
+      case 'DECLINED':
         return 'cancelled';
       default:
         return 'pending';
@@ -131,12 +138,19 @@ export function OrderDetailPage() {
     if (!status) return 'CHỜ XÁC NHẬN';
     switch (status.toUpperCase()) {
       case 'PENDING_CONFIRM':
+      case 'PENDING':
         return 'CHỜ XÁC NHẬN';
+      case 'ACCEPT':
+      case 'ACCEPTED':
+        return 'ĐÃ XÁC NHẬN';
       case 'SHIPPING':
+      case 'DELIVERING':
         return 'ĐANG GIAO HÀNG';
       case 'COMPLETED':
+      case 'DELIVERED':
         return 'ĐÃ GIAO';
       case 'CANCELLED':
+      case 'DECLINED':
         return 'ĐÃ HỦY';
       default:
         return 'CHỜ XÁC NHẬN';
@@ -227,7 +241,7 @@ export function OrderDetailPage() {
             {
               label: 'Người bán đã xác nhận',
               time: '',
-              completed: feStatus === 'shipping' || feStatus === 'completed',
+              completed: feStatus === 'accepted' || feStatus === 'completed',
               description: 'Người bán đã xác nhận và đang đóng gói',
             },
             {
@@ -593,6 +607,8 @@ export function OrderDetailPage() {
     switch (status) {
       case 'pending':
         return 'bg-orange-50 text-[#FF6B35] border-[#FF6B35]';
+      case 'accepted':
+        return 'bg-emerald-50 text-emerald-600 border-emerald-600';
       case 'shipping':
         return 'bg-blue-50 text-blue-600 border-blue-600';
       case 'completed':
@@ -776,7 +792,7 @@ export function OrderDetailPage() {
 
             {/* Action Buttons Based on Status */}
             {/* NEW FEATURE: Cancel Order - Show cancel button for pending orders */}
-            {order.status === 'pending' && (
+            {(order.status === 'pending' || order.status === 'accepted') && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 border-2 border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-start gap-3 mb-4">
                   <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />

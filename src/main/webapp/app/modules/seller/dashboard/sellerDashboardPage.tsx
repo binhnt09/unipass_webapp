@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, Bell, BadgeCheck, Loader2, Play, Pause } from 'lucide-react';
+import { Edit, Trash2, Plus, Bell, BadgeCheck, Loader2, Play, Pause, Repeat } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
@@ -147,6 +147,10 @@ export function SellerDashboardPage() {
   const handleViewRequests = (listingId: string | number | undefined) => {
     if (!listingId) return;
     navigate(`/seller/products/${String(listingId)}/orders`);
+  };
+
+  const handleViewTradeRequests = (listingId: string | number | undefined) => {
+    navigate(`/seller/products/${String(listingId)}/trades`);
   };
   // Lazy load purchase requests for modal upon click (protecting mount performance)
   // const handleViewRequests = async (productId: number) => {
@@ -355,6 +359,15 @@ export function SellerDashboardPage() {
                               >
                                 <Bell className="w-3 h-3 animate-pulse" />
                                 {listing.pendingRequests} người đang chờ mua
+                              </button>
+                            )}
+                            {listing.pendingTradeRequests > 0 && (
+                              <button
+                                onClick={() => handleViewTradeRequests(listing.id)}
+                                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-1 rounded-full text-xs font-medium hover:shadow-md transition-all"
+                              >
+                                <Repeat className="w-3 h-3 animate-pulse" />
+                                {listing.pendingTradeRequests} đề xuất đổi
                               </button>
                             )}
                           </div>
