@@ -6,6 +6,7 @@ import { ICategory } from 'app/shared/model/category.model';
 import { useAppSelector } from 'app/config/store';
 import { useAuth } from 'app/contexts/AuthContext';
 import { toast } from 'react-toastify';
+import { getConditionLabel } from '../../../shared/util/condition-util';
 
 type ExistingImage = {
   id: number;
@@ -596,22 +597,7 @@ export function CreateListingPage() {
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {['Brand New', 'Like New', 'Excellent', 'Good', 'Fair'].map(cond => {
-                  const condLabel = (() => {
-                    switch (cond) {
-                      case 'Brand New':
-                        return 'Mới (100%)';
-                      case 'Like New':
-                        return 'Như mới (99%)';
-                      case 'Excellent':
-                        return 'Rất tốt';
-                      case 'Good':
-                        return 'Tốt';
-                      case 'Fair':
-                        return 'Đã qua sử dụng';
-                      default:
-                        return cond;
-                    }
-                  })();
+                  const condLabel = getConditionLabel(cond);
                   return (
                     <button
                       key={cond}

@@ -25,8 +25,6 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   //   const [showMenu, setShowMenu] = useState(false);
 
-  const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : null;
-
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -72,9 +70,7 @@ export function ProductCard({ product }: ProductCardProps) {
             alt={product.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          {discount && (
-            <div className="absolute top-2 left-2 bg-[#FF6B35] text-white px-2 py-1 rounded-md text-xs font-medium">{discount}% OFF</div>
-          )}
+
           {product.stock === 0 && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-sm tracking-wider z-10">
               HẾT HÀNG
@@ -97,9 +93,6 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Price */}
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-2xl font-bold text-[#0A2647]">{product.price.toLocaleString('vi-VN')}đ</span>
-          {product.originalPrice && (
-            <span className="text-sm text-gray-500 line-through">{product.originalPrice.toLocaleString('vi-VN')}đ</span>
-          )}
         </div>
 
         {/* Seller Info */}

@@ -18,6 +18,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router';
+import { getConditionLabel } from '../../shared/util/condition-util';
 
 // Interface for cart items
 interface CartItem {
@@ -323,7 +324,7 @@ export function CheckoutPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">{item.title}</h3>
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">{item.condition}</span>
+                          <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">{getConditionLabel(item.condition)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600">x{item.quantity}</span>
@@ -678,7 +679,7 @@ export function CheckoutPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-gray-900 text-sm mb-1 line-clamp-1">{item.title}</h4>
-                            <p className="text-xs text-gray-500 mb-1">{item.condition}</p>
+                            <p className="text-xs text-gray-500 mb-1">{getConditionLabel(item.condition)}</p>
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-gray-600">x{item.quantity}</span>
                               <span className="font-bold text-[#FF5722]">${(item.price * item.quantity).toFixed(2)}</span>

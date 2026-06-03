@@ -43,6 +43,7 @@ import { BankTransferQRPage } from './modules/checkout/payment/bank-transfer-qr'
 import { ProductDetailPage } from './modules/listing/components/productDetailPage';
 import SettingsPage from './modules/account/settings/settings';
 import PasswordPage from './modules/account/password/password';
+import { ProfilePage } from './modules/account/profile/ProfilePage';
 import University from './entities/university/university';
 import Campus from './entities/campus/campus';
 import EntitiesLayout from './entities/layout/entities-layout';
@@ -183,6 +184,8 @@ export const router = createBrowserRouter([
           { path: 'payment/vnpay', element: <VNPayQRPage /> },
           { path: 'payment/bank-transfer', element: <BankTransferQRPage /> },
           { path: 'seller-success', element: <SellerRegistrationSuccessPage /> },
+          { path: 'profile', element: <ProfilePage /> },
+          { path: 'profile/:username', element: <ProfilePage /> },
         ],
       },
       {

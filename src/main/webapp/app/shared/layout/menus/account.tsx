@@ -147,7 +147,7 @@ export const AccountMenu = ({
           <div className="py-1" onClick={() => setShowUserMenu(false)}>
             <Link to="/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors">
               <User size={16} />
-              Profile
+              Trang cá nhân
             </Link>
 
             {isSeller && (

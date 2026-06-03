@@ -1,128 +1,214 @@
-import React, { useState } from 'react';
-
-import { Search, Send, Paperclip, Smile, BadgeCheck, Bot, AlertCircle, Shield, Check, Flag, Star, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Send, Paperclip, Smile, BadgeCheck, AlertCircle, Flag, Star } from 'lucide-react';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
-
-interface Conversation {
-  id: string;
-  userName: string;
-  university: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: number;
-  verified: boolean;
-  avatar: string;
-  reputationScore: number;
-}
+import { useLocation } from 'react-router';
+import axios from 'axios';
+import { Storage } from 'react-jhipster';
+import SockJS from 'sockjs-client';
+import Stomp from 'webstomp-client';
+import { IChatRoom } from 'app/shared/model/chat-room.model';
+import { IChatMessage } from 'app/shared/model/chat-message.model';
+import { IProduct } from 'app/shared/model/product.model';
+import { useAuth } from '../../contexts/AuthContext';
+import { useAppSelector } from 'app/config/store';
+import dayjs from 'dayjs';
 
 export function ChatPage() {
-  const [selectedChat, setSelectedChat] = useState<string>('1');
+  const account = useAppSelector(state => state.authentication.account);
+  const { user } = useAuth();
+  const location = useLocation();
+
+  const [rooms, setRooms] = useState<IChatRoom[]>([]);
+  const [selectedChat, setSelectedChat] = useState<number | null>(null);
+  const [messages, setMessages] = useState<IChatMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
-  const [showAISupport, setShowAISupport] = useState(true);
+
   const [showReportModal, setShowReportModal] = useState(false);
 
-  const conversations: Conversation[] = [
-    {
-      id: '1',
-      userName: 'Minh Trần',
-      university: 'ĐH FPT',
-      lastMessage: 'Laptop còn không bạn?',
-      timestamp: '2 phút trước',
-      unread: 2,
-      verified: true,
-      avatar: 'MT',
-      reputationScore: 4.8,
-    },
-    {
-      id: '2',
-      userName: 'Nam Nguyễn',
-      university: 'ĐH FPT',
-      lastMessage: 'Mình có thể gặp ở thư viện không?',
-      timestamp: '15 phút trước',
-      unread: 0,
-      verified: true,
-      avatar: 'NN',
-      reputationScore: 4.9,
-    },
-    {
-      id: '3',
-      userName: 'Hương Lê',
-      university: 'ĐH FPT',
-      lastMessage: 'Cảm ơn bạn nhiều nhé!',
-      timestamp: '1 giờ trước',
-      unread: 1,
-      verified: true,
-      avatar: 'HL',
-      reputationScore: 4.7,
-    },
-    {
-      id: '4',
-      userName: 'Hoàng Phạm',
-      university: 'ĐH FPT',
-      lastMessage: 'Sách còn mới không bạn?',
-      timestamp: '3 giờ trước',
-      unread: 0,
-      verified: true,
-      avatar: 'HP',
-      reputationScore: 4.6,
-    },
-  ];
+  const stompClientRef = useRef<any>(null);
+  const subscriptionRef = useRef<any>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Product being discussed
-  const discussingProduct = {
-    id: '1',
-    name: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
-    price: 12500000,
-    image:
-      'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+  // Compute the safe login identifier string
+  const userLogin = account?.login || (user as any)?.login || user?.email || '';
+
+  // Safe compute of the active room by genuine database ID
+  const activeRoom = rooms.find(r => r.id === selectedChat);
+
+  const getChatPartner = (room: any) => {
+    if (!room) return null;
+    const currentLogin = account?.login || (user as any)?.login || user?.email;
+    const currentId = account?.id || user?.id;
+    const isBuyerMe =
+      (room.buyer?.id && currentId && String(room.buyer.id) === String(currentId)) ||
+      (room.buyer?.login && currentLogin && room.buyer.login === currentLogin);
+    return isBuyerMe ? room.seller : room.buyer;
   };
 
-  const messages = [
-    {
-      id: '1',
-      sender: 'other',
-      text: 'Chào bạn! Mình quan tâm đến laptop Dell XPS 13 của bạn. Máy còn không?',
-      timestamp: '10:23',
-    },
-    {
-      id: '2',
-      sender: 'me',
-      text: 'Còn bạn ơi! Máy còn mới 95%, pin khỏe, màn hình không trầy xước gì.',
-      timestamp: '10:25',
-    },
-    {
-      id: '3',
-      sender: 'other',
-      text: 'Tuyệt vời! Bạn có thể gửi thêm vài ảnh bàn phím và màn hình được không?',
-      timestamp: '10:27',
-    },
-    {
-      id: '4',
-      sender: 'me',
-      text: 'Được chứ, mình sẽ gửi ảnh cho bạn. Bàn phím còn rất đẹp, màn hình không có vết trầy.',
-      timestamp: '10:28',
-    },
-    {
-      id: '5',
-      sender: 'other',
-      text: 'Bạn kết bạn zalo số 0912345678 để tiện trao đổi và chuyển cọc nhé',
-      timestamp: '10:30',
-      hasPhoneNumber: true,
-    },
-  ];
+  const getPartnerDisplayName = (room: any) => {
+    const partner = getChatPartner(room);
+    if (!partner) return 'Người dùng';
+    const fullName = [partner.firstName, partner.lastName].filter(Boolean).join(' ');
+    return fullName.trim() || partner.login || 'Người dùng';
+  };
 
-  const currentConversation = conversations.find(c => c.id === selectedChat);
+  const chatPartner = getChatPartner(activeRoom);
 
-  const handleSendMessage = () => {
-    if (messageInput.trim()) {
-      console.warn('Sending message:', messageInput);
-      setMessageInput('');
+  const chatPartnerName = activeRoom ? getPartnerDisplayName(activeRoom) : 'Chọn cuộc hội thoại';
+
+  const otherUserInitials = chatPartner ? (chatPartner.firstName || chatPartner.login || 'U').substring(0, 2).toUpperCase() : 'U';
+
+  const otherUserUniversity = chatPartner?.universityName || 'Đại học Quốc gia';
+
+  // Helper to detect Vietnamese phone numbers
+  const hasPhoneNumber = (text?: string): boolean => {
+    if (!text) return false;
+    const phoneRegex = /(0[3|5|7|8|9]+[0-9]{8})\b|(\+84[3|5|7|8|9]+[0-9]{8})\b/g;
+    const simplePhoneRegex = /\b\d{4}[.\s]?\d{3}[.\s]?\d{3}\b|\b\d{10}\b/;
+    return phoneRegex.test(text) || simplePhoneRegex.test(text);
+  };
+
+  const getProductImageUrl = (product: IProduct): string => {
+    const pImages = (product as any).productImages;
+    if (pImages && pImages.length > 0) {
+      let url = pImages[0].imageUrl;
+      if (url && url.startsWith('uploads/')) {
+        url = '/' + url;
+      }
+      return url;
     }
+    return 'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080';
   };
 
-  const handleConfirmTransaction = () => {
-    // Navigate to rating/confirmation page
-    console.warn('Confirming transaction and opening rating modal');
+  // 1. WebSocket STOMP Connection Lifecycle
+  useEffect(() => {
+    const loc = globalThis.location;
+    const baseHref = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
+    let url = `//${loc.host}${baseHref}/websocket/tracker`;
+
+    const authToken = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
+    if (authToken) {
+      url += `?access_token=${authToken}`;
+    }
+
+    const socket = new SockJS(url);
+    const stompClient = Stomp.over(socket, { protocols: ['v12.stomp'] });
+
+    stompClient.connect(
+      {},
+      () => {
+        console.warn('STOMP client connected successfully');
+        stompClientRef.current = stompClient;
+        setIsConnected(true);
+      },
+      (error: any) => {
+        console.error('STOMP connection error:', error);
+      },
+    );
+
+    return () => {
+      if (stompClientRef.current) {
+        if (stompClientRef.current.connected) {
+          stompClientRef.current.disconnect();
+        }
+        stompClientRef.current = null;
+      }
+      setIsConnected(false);
+    };
+  }, []);
+
+  // 2. Load Active Rooms List
+  useEffect(() => {
+    axios
+      .get<IChatRoom[]>('/api/chat-rooms/my-rooms')
+      .then(res => {
+        const roomsList = res.data || [];
+        setRooms(roomsList);
+
+        // Auto-select room from router state if present
+        const passedRoomId = location.state?.selectedRoomId;
+        if (passedRoomId) {
+          const foundRoom = roomsList.find(r => r.id === Number(passedRoomId));
+          if (foundRoom) {
+            setSelectedChat(foundRoom.id);
+          } else if (roomsList.length > 0) {
+            setSelectedChat(roomsList[0].id);
+          }
+        } else if (roomsList.length > 0) {
+          setSelectedChat(roomsList[0].id);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load chat rooms:', err);
+      });
+  }, [location.state]);
+
+  // 3. Room Selection: Load History & Handle STOMP Subscriptions
+  useEffect(() => {
+    if (!selectedChat) return;
+
+    // Fetch Historical Logs
+    axios
+      .get<IChatMessage[]>(`/api/chat-messages?roomId.equals=${selectedChat}&sort=createdAt,asc`)
+      .then(res => {
+        setMessages(res.data || []);
+      })
+      .catch(err => {
+        console.error('Failed to load chat message history:', err);
+      });
+
+    // Handle WebSocket Subscription
+    if (isConnected && stompClientRef.current) {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+
+      const destination = `/topic/chat/${selectedChat}`;
+      console.warn(`Subscribing to WebSocket topic: ${destination}`);
+
+      subscriptionRef.current = stompClientRef.current.subscribe(destination, (msg: any) => {
+        try {
+          const receivedMessage = JSON.parse(msg.body) as IChatMessage;
+          console.warn('Received real-time message payload:', receivedMessage);
+
+          if (receivedMessage?.room?.id === selectedChat) {
+            setMessages(prev => {
+              if (prev.some(m => m.id === receivedMessage.id)) {
+                return prev;
+              }
+              return [...prev, receivedMessage];
+            });
+          }
+        } catch (err) {
+          console.error('Error parsing real-time websocket message:', err);
+        }
+      });
+    }
+
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+    };
+  }, [selectedChat, isConnected]);
+
+  // 4. Send Message Handler wrapped with Form Submission preventDefault
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageInput.trim() || !activeRoom || !stompClientRef.current) return;
+
+    try {
+      const payload = {
+        content: messageInput.trim(),
+        room: { id: activeRoom.id },
+      };
+      stompClientRef.current.send('/chat.send/' + activeRoom.id, JSON.stringify(payload), {});
+      setMessageInput(''); // Clear input box instantly and smoothly
+    } catch (err) {
+      console.error('STOMP transmission broken:', err);
+    }
   };
 
   return (
@@ -144,230 +230,203 @@ export function ChatPage() {
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
-          {conversations.map(conversation => (
-            <button
-              key={conversation.id}
-              onClick={() => setSelectedChat(conversation.id)}
-              className={`w-full p-4 flex items-start gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 ${
-                selectedChat === conversation.id ? 'bg-orange-50 border-l-4 border-l-[#FF6B35]' : ''
-              }`}
-            >
-              {/* Avatar */}
-              <div className="w-12 h-12 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white font-medium flex-shrink-0">
-                {conversation.avatar}
-              </div>
+          {rooms.map(room => {
+            const roomId = room.id;
+            const partner = getChatPartner(room);
+            const initials = partner ? (partner.firstName || partner.login || 'U').substring(0, 2).toUpperCase() : 'U';
+            const name = getPartnerDisplayName(room);
+            const university = partner?.universityName || 'Đại học Quốc gia';
+            const subtext = room.product?.name ? `Sản phẩm: ${room.product.name}` : 'Nhấn để bắt đầu trò chuyện';
+            const dateStr = room.createdAt ? dayjs(room.createdAt).format('DD/MM/YYYY') : '';
 
-              {/* Conversation Info */}
-              <div className="flex-1 min-w-0 text-left">
-                <div className="flex items-center gap-1 mb-1">
-                  <span className="font-medium text-gray-900 truncate">{conversation.userName}</span>
-                  {conversation.verified && <BadgeCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />}
+            return (
+              <button
+                key={roomId}
+                onClick={() => setSelectedChat(room.id)}
+                className={`w-full p-4 flex items-start gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 ${
+                  selectedChat === roomId ? 'bg-orange-50 border-l-4 border-l-[#FF6B35]' : ''
+                }`}
+              >
+                {/* Avatar */}
+                <div className="w-12 h-12 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden">
+                  {partner?.imageUrl ? <img src={partner.imageUrl} alt={name} className="w-full h-full object-cover" /> : initials}
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{conversation.university}</p>
-                <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
-              </div>
 
-              {/* Timestamp and Unread Badge */}
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                <span className="text-xs text-gray-500">{conversation.timestamp}</span>
-                {conversation.unread > 0 && (
-                  <div className="w-5 h-5 bg-[#FF6B35] rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">{conversation.unread}</span>
+                {/* Conversation Info */}
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="font-medium text-gray-900 truncate">{name}</span>
+                    <BadgeCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />
                   </div>
-                )}
-              </div>
-            </button>
-          ))}
+                  <p className="text-xs text-gray-600 mb-1">{university}</p>
+                  <p className="text-sm text-gray-600 truncate">{subtext}</p>
+                </div>
+
+                {/* Timestamp */}
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className="text-xs text-gray-500">{dateStr}</span>
+                </div>
+              </button>
+            );
+          })}
+          {rooms.length === 0 && <div className="p-8 text-center text-gray-500 text-sm">Bạn chưa có cuộc trò chuyện nào.</div>}
         </div>
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Chat Header */}
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white font-medium">
-                {currentConversation?.avatar}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-gray-900">{currentConversation?.userName}</h3>
-                  <span title=".edu.vn Verified">
-                    <BadgeCheck className="w-5 h-5 text-blue-500" />
-                  </span>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium text-gray-700">{currentConversation?.reputationScore}/5</span>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600">{currentConversation?.university}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowReportModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
-            >
-              <Flag className="w-5 h-5" />
-              <span className="text-sm">Báo cáo</span>
-            </button>
-          </div>
-
-          {/* Mini Product Card */}
-          <div className="px-4 pb-4">
-            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-3 border-2 border-orange-200 flex items-center gap-3">
-              <div className="w-16 h-16 rounded-lg overflow-hidden bg-white flex-shrink-0">
-                <ImageWithFallback src={discussingProduct.image} alt={discussingProduct.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-600 mb-1">💬 Đang thảo luận về:</p>
-                <h4 className="font-medium text-gray-900 text-sm line-clamp-1 mb-1">{discussingProduct.name}</h4>
-                <p className="text-[#FF6B35] font-bold">{discussingProduct.price.toLocaleString('vi-VN')}đ</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-          {messages.map(message => (
-            <div key={message.id}>
-              <div className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-md px-4 py-3 rounded-2xl ${
-                    message.sender === 'me' ? 'bg-[#0A2647] text-white rounded-br-sm' : 'bg-white text-gray-900 rounded-bl-sm shadow-sm'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed">{message.text}</p>
-                  <p className={`text-xs mt-1 ${message.sender === 'me' ? 'text-white/70' : 'text-gray-500'}`}>{message.timestamp}</p>
-                </div>
-              </div>
-
-              {/* System Alert for Off-platform Detection */}
-              {message.hasPhoneNumber && (
-                <div className="max-w-2xl mt-3 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-4 shadow-md">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <AlertCircle className="w-6 h-6 text-red-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
-                        ⚠️ Cảnh báo: Phát hiện giao dịch ngoài nền tảng
-                      </h4>
-                      <p className="text-sm text-red-800 leading-relaxed mb-3">
-                        Hệ thống phát hiện dấu hiệu giao dịch ngoài ứng dụng. Nền tảng sẽ <strong>từ chối giải quyết tranh chấp</strong> nếu
-                        bạn chuyển tiền cọc qua Zalo/Facebook.
-                      </p>
-                      <div className="bg-white/80 rounded-lg p-3 border border-red-200">
-                        <p className="text-sm font-bold text-red-900 mb-2">✅ Khuyến nghị:</p>
-                        <ul className="text-sm text-red-800 space-y-1">
-                          <li>• Giao dịch trực tiếp tại trường (thư viện, khu học tập)</li>
-                          <li>• Kiểm tra kỹ sản phẩm trước khi thanh toán</li>
-                          <li>• Chỉ thanh toán qua Unipass để được bảo vệ</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* AI Support Widget */}
-          {showAISupport && (
-            <div className="max-w-md bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-5 border-2 border-blue-200 shadow-lg">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-[#0A2647]">Trợ lý An toàn AI</h4>
-                    <button onClick={() => setShowAISupport(false)} className="ml-auto text-gray-400 hover:text-gray-600">
-                      ×
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-3">Mình nhận thấy bạn đang thương lượng giá. Đây là một số tips an toàn:</p>
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-3">
-                <div className="flex items-start gap-2 text-sm text-gray-700">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span>Luôn gặp mặt tại địa điểm công cộng trong trường</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm text-gray-700">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span>Kiểm tra kỹ sản phẩm trước khi thanh toán</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm text-gray-700">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span>Sử dụng tính năng bảo vệ thanh toán của Unipass</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                <p className="text-xs text-amber-900">
-                  <strong>Gợi ý:</strong> Giá gốc là 12.500.000đ. Bạn có thể đề xuất giá 12.000.000đ.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Message Input */}
-        <div className="bg-white border-t border-gray-200">
-          {/* Transaction Confirmation CTA */}
-          <div className="px-4 pt-4">
-            <button
-              onClick={handleConfirmTransaction}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl py-3.5 font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-            >
-              <CheckCircle className="w-5 h-5" />✅ Xác nhận chốt đơn & Đánh giá
-            </button>
-            <p className="text-xs text-center text-gray-600 mt-2 mb-2">
-              🎁 Nhận <span className="font-bold text-[#FF6B35]">+10 điểm uy tín</span> khi hoàn thành giao dịch trên app
+      {!activeRoom ? (
+        <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto text-4xl text-[#FF6B35]">💬</div>
+            <h3 className="text-xl font-bold text-gray-900">Không có cuộc trò chuyện nào</h3>
+            <p className="text-gray-500 text-sm max-w-sm mx-auto">
+              Chọn một cuộc trò chuyện từ danh sách bên trái hoặc liên hệ với người bán từ trang chi tiết sản phẩm.
             </p>
           </div>
-
-          {/* Trust Notice */}
-          <div className="px-4 pb-2">
-            <div className="flex items-center gap-2 text-xs text-gray-600 bg-blue-50 p-2.5 rounded-lg">
-              <Shield className="w-4 h-4 text-[#0A2647] flex-shrink-0" />
-              <span>Đây là sinh viên đã xác thực. Không bao giờ chia sẻ thông tin cá nhân nhạy cảm.</span>
-            </div>
-          </div>
-
-          {/* Input Area */}
-          <div className="px-4 pb-4">
-            <div className="flex items-end gap-3">
-              <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3">
-                <button className="p-1 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Paperclip className="w-5 h-5 text-gray-600" />
-                </button>
-                <input
-                  type="text"
-                  value={messageInput}
-                  onChange={e => setMessageInput(e.target.value)}
-                  onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Nhập tin nhắn..."
-                  className="flex-1 bg-transparent border-none outline-none text-gray-900 placeholder:text-gray-500"
-                />
-                <button className="p-1 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Smile className="w-5 h-5 text-gray-600" />
-                </button>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col">
+          {/* Chat Header */}
+          <div className="bg-white border-b border-gray-200 shadow-sm">
+            <div className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white font-medium overflow-hidden flex-shrink-0">
+                  {chatPartner?.imageUrl ? (
+                    <img src={chatPartner.imageUrl} alt={chatPartnerName} className="w-full h-full object-cover" />
+                  ) : (
+                    otherUserInitials
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-gray-900">{chatPartnerName}</h3>
+                    <span title=".edu.vn Verified">
+                      <BadgeCheck className="w-5 h-5 text-blue-500" />
+                    </span>
+                    <div className="flex items-center gap-1 text-sm">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-medium text-gray-700">4.8/5</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">{otherUserUniversity}</p>
+                </div>
               </div>
               <button
-                onClick={handleSendMessage}
-                className="w-12 h-12 bg-[#FF6B35] hover:bg-[#FF5722] rounded-full flex items-center justify-center transition-colors shadow-md"
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
               >
-                <Send className="w-5 h-5 text-white" />
+                <Flag className="w-5 h-5" />
+                <span className="text-sm">Báo cáo</span>
               </button>
+            </div>
+
+            {/* Mini Product Card */}
+            {activeRoom.product && (
+              <div className="px-4 pb-4">
+                <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-3 border-2 border-orange-200 flex items-center gap-3">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-white flex-shrink-0">
+                    <ImageWithFallback
+                      src={getProductImageUrl(activeRoom.product)}
+                      alt={activeRoom.product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-600 mb-1">💬 Đang thảo luận về:</p>
+                    <h4 className="font-medium text-gray-900 text-sm line-clamp-1 mb-1">{activeRoom.product.name}</h4>
+                    <p className="text-[#FF6B35] font-bold">{(activeRoom.product.price || 0).toLocaleString('vi-VN')}đ</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+            {messages.map(message => {
+              const currentId = account?.id || user?.id;
+              const isMe =
+                (message.sender?.id && currentId && String(message.sender.id) === String(currentId)) ||
+                (message.sender?.login && userLogin && message.sender.login === userLogin);
+              const dateStr = message.createdAt ? dayjs(message.createdAt).format('HH:mm') : '';
+              const phoneWarning = hasPhoneNumber(message.content);
+
+              return (
+                <div key={message.id}>
+                  <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div
+                      className={`max-w-md px-4 py-3 rounded-2xl ${
+                        isMe ? 'bg-[#0A2647] text-white rounded-br-sm' : 'bg-white text-gray-900 rounded-bl-sm shadow-sm'
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <p className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-500'}`}>{dateStr}</p>
+                    </div>
+                  </div>
+
+                  {/* System Alert for Off-platform Detection */}
+                  {phoneWarning && (
+                    <div className="max-w-2xl mt-3 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-4 shadow-md">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <AlertCircle className="w-6 h-6 text-red-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
+                            ⚠️ Cảnh báo: Phát hiện giao dịch ngoài nền tảng
+                          </h4>
+                          <p className="text-sm text-red-800 leading-relaxed mb-3">
+                            Hệ thống phát hiện dấu hiệu giao dịch ngoài ứng dụng. Nền tảng sẽ <strong>từ chối giải quyết tranh chấp</strong>{' '}
+                            nếu bạn chuyển tiền cọc qua Zalo/Facebook.
+                          </p>
+                          <div className="bg-white/80 rounded-lg p-3 border border-red-200">
+                            <p className="text-sm font-bold text-red-900 mb-2">✅ Khuyến nghị:</p>
+                            <ul className="text-sm text-red-800 space-y-1">
+                              <li>• Giao dịch trực tiếp tại trường (thư viện, khu học tập)</li>
+                              <li>• Kiểm tra kỹ sản phẩm trước khi thanh toán</li>
+                              <li>• Chỉ thanh toán qua Unipass để được bảo vệ</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Message Input wrapped inside form */}
+          <div className="bg-white border-t border-gray-200">
+            {/* Input Area Form container */}
+            <div className="px-4 pb-4">
+              <form onSubmit={handleSendMessage} className="flex items-end gap-3">
+                <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3">
+                  <button type="button" className="p-1 hover:bg-gray-200 rounded-lg transition-colors">
+                    <Paperclip className="w-5 h-5 text-gray-600" />
+                  </button>
+                  <input
+                    type="text"
+                    value={messageInput}
+                    onChange={e => setMessageInput(e.target.value)}
+                    placeholder="Nhập tin nhắn..."
+                    className="flex-1 bg-transparent border-none outline-none text-gray-900 placeholder:text-gray-500"
+                  />
+                  <button type="button" className="p-1 hover:bg-gray-200 rounded-lg transition-colors">
+                    <Smile className="w-5 h-5 text-gray-600" />
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  className="w-12 h-12 bg-[#FF6B35] hover:bg-[#FF5722] rounded-full flex items-center justify-center transition-colors shadow-md"
+                >
+                  <Send className="w-5 h-5 text-white" />
+                </button>
+              </form>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Report Modal */}
       {showReportModal && (

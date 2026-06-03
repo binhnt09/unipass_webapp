@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
+import { getConditionLabel } from '../../../shared/util/condition-util';
 
 // interface PurchaseRequest {
 //   id: string;
@@ -190,6 +191,18 @@ export function SellerDashboardPage() {
     }
   };
 
+  // Status alteration API: Toggle Active/Inactive
+  const handleToggleStatus = async (productId: number, currentStatus: string) => {
+    const newStatus = currentStatus === 'INACTIVE' ? 'AVAILABLE' : 'INACTIVE';
+    try {
+      await axios.patch(`/api/products/${productId}`, { id: productId, status: newStatus });
+      setListings(prev => prev.map(p => (p.id === productId ? { ...p, status: newStatus } : p)));
+    } catch (err: any) {
+      console.error('Failed to toggle status:', err);
+      alert('Lỗi khi đổi trạng thái: ' + (err.response?.data?.title || err.message));
+    }
+  };
+
   // Status alteration API: Accept request
   // const handleAccept = async () => {
   //   if (!selectedListing) return;
@@ -332,6 +345,9 @@ export function SellerDashboardPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">{listing.name}</h3>
+                            {listing.condition && (
+                              <p className="text-xs text-gray-500 mb-1">Tình trạng: {getConditionLabel(listing.condition)}</p>
+                            )}
                             {listing.pendingRequests > 0 && (
                               <button
                                 onClick={() => handleViewRequests(listing.id)}
@@ -380,6 +396,10 @@ export function SellerDashboardPage() {
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             Đã bán
                           </span>
+                        ) : listing.status === 'INACTIVE' ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Không hoạt động
+                          </span>
                         ) : (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             Đang hoạt động
@@ -391,19 +411,44 @@ export function SellerDashboardPage() {
                       <td className="py-4 px-6">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => navigate(`/listings/edit/${listing.id}`)}
-                            className="px-4 py-2 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2"
+                            onClick={() => handleToggleStatus(listing.id, listing.status || 'AVAILABLE')}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+                              listing.status === 'INACTIVE'
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                            }`}
                           >
-                            <Edit className="w-4 h-4" />
-                            Chỉnh sửa
+                            {listing.status === 'INACTIVE' ? (
+                              <>
+                                <Play className="w-4 h-4" />
+                                Kích hoạt
+                              </>
+                            ) : (
+                              <>
+                                <Pause className="w-4 h-4" />
+                                Tạm ngưng
+                              </>
+                            )}
                           </button>
-                          <button
-                            onClick={() => handleDelete(listing.id)}
-                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-2"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Xóa
-                          </button>
+
+                          {listing.status === 'INACTIVE' && (
+                            <>
+                              <button
+                                onClick={() => navigate(`/listings/edit/${listing.id}`)}
+                                className="px-4 py-2 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Chỉnh sửa
+                              </button>
+                              <button
+                                onClick={() => handleDelete(listing.id)}
+                                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Xóa
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

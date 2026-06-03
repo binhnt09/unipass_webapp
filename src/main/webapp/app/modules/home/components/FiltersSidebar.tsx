@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import { ICategory } from 'app/shared/model/category.model';
+import { getConditionLabel } from '../../../shared/util/condition-util';
 
 interface FiltersSidebarProps {
   categories: ICategory[];
@@ -33,11 +34,11 @@ export function FiltersSidebar({
   });
 
   const conditions = [
-    { id: 'Brand New', label: 'Mới tinh (100%)' },
-    { id: 'Like New', label: 'Như mới (99%)' },
-    { id: 'Excellent', label: 'Rất tốt' },
-    { id: 'Good', label: 'Tốt' },
-    { id: 'Fair', label: 'Trung bình' },
+    { id: 'Brand New', label: getConditionLabel('Brand New') },
+    { id: 'Like New', label: getConditionLabel('Like New') },
+    { id: 'Excellent', label: getConditionLabel('Excellent') },
+    { id: 'Good', label: getConditionLabel('Good') },
+    { id: 'Fair', label: getConditionLabel('Fair') },
   ];
 
   const toggleCondition = (id: string) => {

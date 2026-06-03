@@ -4,13 +4,19 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Clock, CheckCircle, XCircle, RefreshCw, ArrowLeft, ShieldCheck, Mail, AlertTriangle } from 'lucide-react';
 import { SellerRegistrationModal } from './SellerRegistrationModal';
+import { useAppDispatch } from 'app/config/store';
+import { getSession } from 'app/shared/reducers/authentication';
+import { useAuth } from 'app/contexts/AuthContext';
 
 export function SellerRegistrationSuccessPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const auth = useAuth();
   const [status, setStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | 'UNKNOWN'>('PENDING');
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [showRegModal, setShowRegModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const checkStatus = async (showToast = false) => {
     setIsChecking(true);
@@ -37,15 +43,9 @@ export function SellerRegistrationSuccessPage() {
       setStatus(upperStatus as any);
       setRejectionReason(fetchedReason);
 
-      if (upperStatus === 'APPROVED') {
-        toast.success('Chúc mừng! Tài khoản của bạn đã được phê duyệt thành Người bán!');
-        // Small delay for toast visibility
-        setTimeout(() => {
-          navigate('/seller-dashboard');
-        }, 1500);
-      } else if (upperStatus === 'REJECTED') {
+      if (upperStatus === 'REJECTED') {
         toast.error('Hồ sơ nâng cấp tài khoản của bạn đã bị từ chối.');
-      } else {
+      } else if (upperStatus !== 'APPROVED') {
         if (showToast) {
           toast.info('Hồ sơ của bạn vẫn đang được kiểm duyệt.');
         }
@@ -74,8 +74,30 @@ export function SellerRegistrationSuccessPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleApprovedTransition = async () => {
+      if (status === 'APPROVED') {
+        toast.success('Chúc mừng! Yêu cầu làm Người bán của bạn đã được phê duyệt.');
+        setIsLoading(true);
+
+        // Force refresh the account state to load the new ROLE_SELLER authority
+        if (dispatch) {
+          await (dispatch(getSession()) as any);
+        } else if ((auth as any)?.refreshAccount) {
+          await (auth as any).refreshAccount();
+        }
+
+        // Only navigate AFTER the local store is fully aware of the new role
+        navigate('/seller-dashboard');
+      }
+    };
+
+    handleApprovedTransition();
+  }, [status, dispatch, auth, navigate]);
+
   return (
     <div className="min-h-[80vh] bg-gray-50 py-12 flex items-center justify-center px-4">
+      {isLoading && <span className="sr-only">Loading...</span>}
       <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300">
         {/* Banner header theme */}
         <div className="bg-[#0A2647] p-8 text-center text-white relative">
