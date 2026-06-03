@@ -1,0 +1,16 @@
+services:
+  unipass-webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: unipass-webapp:latest
+    container_name: unipass_webapp_app
+    ports:
+      - "9000:80"
+    networks:
+      - unipass-network
+
+networks:
+  unipass-network:
+    name: unipass_api-develop_default
+    external: true

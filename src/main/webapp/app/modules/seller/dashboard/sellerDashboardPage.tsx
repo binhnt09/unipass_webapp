@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, Bell, BadgeCheck, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Plus, Bell, BadgeCheck, Loader2, Pause, Play } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
