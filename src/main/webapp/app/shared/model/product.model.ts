@@ -15,6 +15,8 @@ export interface IProduct {
   updatedAt?: dayjs.Dayjs | null;
   category?: ICategory | null;
   seller?: IUser | null;
+  sellerRating?: number;
+  sellerReviews?: number;
 }
 
 export const defaultValue: Readonly<IProduct> = {};
