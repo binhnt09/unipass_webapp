@@ -18,6 +18,7 @@ Tài liệu này vạch ra các bước chi tiết để xây dựng toàn bộ 
 Phần này tập trung vào việc đưa hàng vào giỏ, hiển thị giao diện và logic trừ kho (Stock Locking) quan trọng nhất để chống tranh giành.
 
 #### Backend (Spring Boot)
+
 - **[NEW] `OrderCheckoutDTO`**: DTO để hứng danh sách các `cart_item_id` mà user tick chọn mua trên giao diện.
 - **[MODIFY] `OrderService.java`**: Viết hàm `checkout(List<Long> cartItemIds)` với annotation `@Transactional`.
   - Check quyền (chỉ lấy cartItem của user đang login).
@@ -29,7 +30,8 @@ Phần này tập trung vào việc đưa hàng vào giỏ, hiển thị giao di
 - **[MODIFY] `OrderResource.java`**: Mở endpoint `POST /api/orders/checkout` gọi vào hàm trên.
 
 #### Frontend (React)
-- **[MODIFY] `shoppingCartPage.tsx`**: 
+
+- **[MODIFY] `shoppingCartPage.tsx`**:
   - Tích hợp API `GET /api/cart-items` lọc theo user đang login.
   - Viết hàm Javascript dùng `reduce` để nhóm (group-by) danh sách giỏ hàng theo `sellerId` hoặc `sellerName`.
   - Thêm Checkbox cho từng item và logic tính tổng tiền những món được chọn.
@@ -44,6 +46,7 @@ Phần này tập trung vào việc đưa hàng vào giỏ, hiển thị giao di
 Quản lý vòng đời đơn hàng khắt khe và kết nối thông báo Real-time cho Seller.
 
 #### Backend (Spring Boot)
+
 - **[MODIFY] `OrderService.java`**: Viết các hàm chuyển trạng thái an toàn:
   - `shipOrder(orderId)`: Chỉ Seller của đơn hàng mới được gọi. Chuyển từ `PENDING` -> `SHIPPING`.
   - `completeOrder(orderId)`: Chỉ Buyer mới được gọi. Chuyển từ `SHIPPING` -> `COMPLETED`.
@@ -53,6 +56,7 @@ Quản lý vòng đời đơn hàng khắt khe và kết nối thông báo Real-
 - **[NEW] `NotificationService.java`**: Hàm `notifyUser(String username, String message)` dùng `SimpMessageSendingOperations` đẩy thông báo đơn hàng mới.
 
 #### Frontend (React)
+
 - **[MODIFY] `orderDetailPage.tsx`**:
   - Dùng `useAppSelector` lấy role/ID hiện tại để quyết định hiển thị nút bấm.
   - Gắn sự kiện gọi các API `ship`, `complete`, `cancel`.
@@ -65,13 +69,15 @@ Quản lý vòng đời đơn hàng khắt khe và kết nối thông báo Real-
 Bảo vệ người dùng khỏi việc chơi xấu, thiết lập hệ thống điểm uy tín (Reputation).
 
 #### Backend (Spring Boot)
-- **[MODIFY] `ReviewService.java`**: Hàm `getReviewsForProduct()` hoặc `getReviewsForUser()`. 
+
+- **[MODIFY] `ReviewService.java`**: Hàm `getReviewsForProduct()` hoặc `getReviewsForUser()`.
   - Khi Query DB, kiểm tra: Nếu đơn hàng chưa đủ 15 ngày VÀ đối phương chưa review lại -> Thay thế content = "Đánh giá đang bị ẩn", rating = 0 trước khi trả về JSON cho Frontend.
 - **[MODIFY] `ReportService.java`**: Hàm `resolveReport(Long reportId)`.
   - Gắn `@Transactional`. Đổi status Report -> `RESOLVED`.
   - Lấy `reported_id` -> Cập nhật `UserProfile` trừ `reputation_score` (VD: trừ 10 điểm).
 
 #### Frontend (React)
+
 - **[NEW] `ReviewModal.tsx`**: Giao diện đánh giá sao ẩn.
 - **[NEW] `ReportModal.tsx`**: Nút Report hiện ra nếu đơn hàng đã COMPLETED trên 15 ngày. Gửi lý do lên bảng `Report`.
 

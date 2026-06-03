@@ -15,7 +15,7 @@ import {
   Edit,
 } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
 import { IProductImage } from 'app/shared/model/product-image.model';
@@ -26,9 +26,25 @@ interface ProductActionButtonsProps {
   isOwner: boolean;
   stock?: number;
   productId?: number;
+  sellerId?: number;
 }
 
-function ProductActionButtons({ isOwner, stock, productId }: ProductActionButtonsProps) {
+function ProductActionButtons({ isOwner, stock, productId, sellerId }: ProductActionButtonsProps) {
+  const navigate = useNavigate();
+
+  const handleContactSeller = async () => {
+    if (!sellerId) return;
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?sellerId=${sellerId}`);
+      if (response.status === 200 || response.status === 201) {
+        const roomId = response.data.id;
+        navigate('/messages', { state: { selectedRoomId: roomId } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat room:', err);
+    }
+  };
+
   if (isOwner) {
     return (
       <Link
@@ -56,7 +72,7 @@ function ProductActionButtons({ isOwner, stock, productId }: ProductActionButton
           className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-200 text-gray-400 rounded-lg font-bold cursor-not-allowed shadow-none"
         >
           <MessageCircle className="w-5 h-5" />
-          Liên hệ người bán
+          Nhắn tin cho người bán
         </button>
       </>
     );
@@ -71,9 +87,12 @@ function ProductActionButtons({ isOwner, stock, productId }: ProductActionButton
         <ShoppingCart className="w-5 h-5" />
         Đặt mua ngay
       </Link>
-      <button className="flex items-center justify-center gap-2 px-6 py-4 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-bold transition-colors shadow-md">
+      <button
+        onClick={handleContactSeller}
+        className="flex items-center justify-center gap-2 px-6 py-4 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-bold transition-colors shadow-md"
+      >
         <MessageCircle className="w-5 h-5" />
-        Liên hệ người bán
+        Nhắn tin cho người bán
       </button>
     </>
   );
@@ -367,7 +386,7 @@ export function ProductDetailPage() {
 
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
-                <ProductActionButtons isOwner={isOwner} stock={product.stock} productId={product.id} />
+                <ProductActionButtons isOwner={isOwner} stock={product.stock} productId={product.id} sellerId={product.seller?.id} />
               </div>
 
               {/* Trust Badge */}
