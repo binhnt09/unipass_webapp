@@ -2,95 +2,41 @@
 // Shows all trade requests user has made with status tracking
 // Route: /trades/mine
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { Package, ArrowRight, Clock, CheckCircle, XCircle, MessageCircle, Eye, AlertCircle } from 'lucide-react';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 import type { TradeRequest } from '../../shared/types/trade';
-
-// Mock data - user's trade proposals
-const mockMyTrades: TradeRequest[] = [
-  {
-    id: 'trade1',
-    status: 'pending',
-    targetProductId: '1',
-    targetProductTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
-    targetProductPrice: 12500000,
-    targetProductImage:
-      'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    offeredItems: [
-      {
-        title: 'iPad Air M1 64GB',
-        description: 'Máy mua 6 tháng trước, còn bảo hành 18 tháng.',
-        estimatedValue: 8000000,
-        images: [
-          'https://images.unsplash.com/photo-1561154464-82e9adf32764?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZXQlMjBkZXZpY2UlMjBpcGFkfGVufDF8fHx8MTc3MzgzMDk2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-        ],
-        condition: 'Như mới',
-      },
-    ],
-    tradeType: 'with_cash',
-    cashDifference: 4500000,
-    totalOfferedValue: 8000000,
-    reason: 'Cần laptop cho học tập và làm việc.',
-    requesterId: 'currentUser',
-    requesterName: 'Bạn',
-    requesterEmail: 'you@student.hust.edu.vn',
-    requesterPhone: '0912 345 678',
-    requesterUniversity: 'ĐH Bách Khoa Hà Nội',
-    proposedMeetingLocation: {
-      type: 'public_place',
-      publicPlace: 'Thư viện Tầng 2, ĐH Bách Khoa',
-    },
-    sellerId: 'seller1',
-    sellerName: 'Nguyễn Văn A',
-    createdAt: '2026-06-02T10:30:00Z',
-    updatedAt: '2026-06-02T10:30:00Z',
-  },
-  {
-    id: 'trade3',
-    status: 'accepted',
-    targetProductId: '2',
-    targetProductTitle: 'Tai nghe Sony WH-1000XM4',
-    targetProductPrice: 4500000,
-    targetProductImage:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aXJlbGVzcyUyMGhlYWRwaG9uZXN8ZW58MXx8fHwxNzczODkwMDY0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    offeredItems: [
-      {
-        title: 'AirPods Pro Gen 2',
-        description: 'Còn mới, dùng 2 tháng.',
-        estimatedValue: 4500000,
-        images: [
-          'https://images.unsplash.com/photo-1606841837239-c5a1a4a07af7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhaXJwb2RzfGVufDF8fHx8MTc3Mzg5MDg1NXww&ixlib=rb-4.1.0&q=80&w=1080',
-        ],
-        condition: 'Như mới',
-      },
-    ],
-    tradeType: 'straight',
-    cashDifference: 0,
-    totalOfferedValue: 4500000,
-    reason: 'Muốn đổi sang tai nghe over-ear.',
-    requesterId: 'currentUser',
-    requesterName: 'Bạn',
-    requesterEmail: 'you@student.hust.edu.vn',
-    requesterPhone: '0912 345 678',
-    requesterUniversity: 'ĐH Bách Khoa Hà Nội',
-    proposedMeetingLocation: {
-      type: 'buyer_address',
-      address: 'KTX A, Phòng 305',
-    },
-    sellerId: 'seller2',
-    sellerName: 'Trần Thị B',
-    createdAt: '2026-06-01T14:00:00Z',
-    updatedAt: '2026-06-01T16:00:00Z',
-    acceptedAt: '2026-06-01T16:00:00Z',
-  },
-];
+import { mapTradeRequestDtoToFe } from '../../shared/types/trade';
+import axios from 'axios';
 
 export function MyTradesPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accepted' | 'declined'>('all');
+  const [tradeRequests, setTradeRequests] = useState<TradeRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredTrades = mockMyTrades.filter(trade => {
+  useEffect(() => {
+    // Fetch data for the current user
+    const fetchTrades = async () => {
+      try {
+        // Fetch current user details to get ID
+        const accountRes = await axios.get('/api/account');
+        const userId = accountRes.data.id;
+
+        // Fetch trades where user is buyer
+        const res = await axios.get(`/api/trade-requests?buyerId.equals=${userId}`);
+        const trades = res.data.map(mapTradeRequestDtoToFe);
+        setTradeRequests(trades);
+      } catch (error) {
+        console.error('Error fetching trades:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrades();
+  }, []);
+
+  const filteredTrades = tradeRequests.filter(trade => {
     if (filterStatus === 'all') return true;
     return trade.status === filterStatus;
   });
@@ -113,9 +59,20 @@ export function MyTradesPage() {
     );
   };
 
-  const pendingCount = mockMyTrades.filter(t => t.status === 'pending').length;
-  const acceptedCount = mockMyTrades.filter(t => t.status === 'accepted').length;
-  const declinedCount = mockMyTrades.filter(t => t.status === 'declined').length;
+  const pendingCount = tradeRequests.filter(t => t.status === 'pending').length;
+  const acceptedCount = tradeRequests.filter(t => t.status === 'accepted').length;
+  const declinedCount = tradeRequests.filter(t => t.status === 'declined').length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -130,7 +87,7 @@ export function MyTradesPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Tổng đề xuất</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockMyTrades.length}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{tradeRequests.length}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Chờ xử lý</p>
@@ -157,7 +114,7 @@ export function MyTradesPage() {
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              Tất cả ({mockMyTrades.length})
+              Tất cả ({tradeRequests.length})
             </button>
             <button
               onClick={() => setFilterStatus('pending')}

@@ -189,6 +189,7 @@ export const router = createBrowserRouter([
           { path: 'seller-success', element: <SellerRegistrationSuccessPage /> },
           { path: 'profile', element: <ProfilePage /> },
           { path: 'profile/:username', element: <ProfilePage /> },
+          { path: 'trades/mine', element: <MyTradesPage /> },
         ],
       },
       {
@@ -204,7 +205,6 @@ export const router = createBrowserRouter([
           { path: 'seller/orders/:id', element: <SellerOrderDetailPage /> },
           { path: 'seller/products/:productId/orders', element: <ProductOrderManagementPage /> },
           { path: 'seller/orders', element: <SellerOrderManagementPage /> },
-          { path: 'trades/mine', element: <MyTradesPage /> },
           { path: 'seller/products/:productId/trades', element: <TradeRequestsPage /> },
           { path: 'seller/trades/:tradeId', element: <TradeDetailPage /> },
         ],

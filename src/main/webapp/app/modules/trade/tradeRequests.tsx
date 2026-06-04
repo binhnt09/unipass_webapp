@@ -4,131 +4,55 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
-import { ArrowLeft, Package, Filter, Search, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Package, Filter, Search, TrendingUp, Loader2 } from 'lucide-react';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 import { TradeRequestCard } from '../trade/components/tradeRequestCard';
 import type { TradeRequest } from '../../shared/types/trade';
-// import { useNotifications } from '../../contexts/notificationContext';
-
-// Mock product data
-const mockProducts: Record<string, { id: string; title: string; image: string; price: number }> = {
-  '1': {
-    id: '1',
-    title: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
-    image:
-      'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    price: 12500000,
-  },
-};
-
-// Mock trade requests data
-const mockTradeRequests: TradeRequest[] = [
-  {
-    id: 'trade1',
-    status: 'pending',
-    targetProductId: '1',
-    targetProductTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
-    targetProductPrice: 12500000,
-    targetProductImage:
-      'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    offeredItems: [
-      {
-        title: 'iPad Air M1 64GB',
-        description: 'Máy mua 6 tháng trước, còn bảo hành 18 tháng. Tình trạng như mới, không trầy xước.',
-        estimatedValue: 8000000,
-        images: [
-          'https://images.unsplash.com/photo-1561154464-82e9adf32764?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZXQlMjBkZXZpY2UlMjBpcGFkfGVufDF8fHx8MTc3MzgzMDk2N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-        ],
-        condition: 'Như mới',
-      },
-    ],
-    tradeType: 'with_cash',
-    cashDifference: 4500000,
-    totalOfferedValue: 8000000,
-    reason: 'Cần laptop cho học tập và làm việc. iPad không phù hợp với công việc lập trình hiện tại của mình.',
-    requesterId: 'user1',
-    requesterName: 'Nguyễn Văn A',
-    requesterEmail: 'a.nguyen@student.hust.edu.vn',
-    requesterPhone: '0912 345 678',
-    requesterUniversity: 'ĐH Bách Khoa Hà Nội',
-    proposedMeetingLocation: {
-      type: 'public_place',
-      publicPlace: 'Thư viện Tầng 2, ĐH Bách Khoa',
-      notes: 'Gần cổng B, có chỗ ngồi yên tĩnh',
-    },
-    sellerId: 'seller1',
-    sellerName: 'Người bán A',
-    createdAt: '2026-06-02T10:30:00Z',
-    updatedAt: '2026-06-02T10:30:00Z',
-  },
-  {
-    id: 'trade2',
-    status: 'pending',
-    targetProductId: '1',
-    targetProductTitle: 'Laptop Dell XPS 13 - Core i5, RAM 8GB',
-    targetProductPrice: 12500000,
-    targetProductImage:
-      'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    offeredItems: [
-      {
-        title: 'iPhone 13 Pro 128GB',
-        description: 'Máy đẹp, pin 95%, không va đập.',
-        estimatedValue: 10000000,
-        images: [
-          'https://images.unsplash.com/photo-1632633173522-c4d0ba3e3096?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpcGhvbmUlMjAxM3xlbnwxfHx8fDE3NzM4OTA3Njl8MA&ixlib=rb-4.1.0&q=80&w=1080',
-        ],
-        condition: 'Đã qua sử dụng',
-      },
-      {
-        title: 'Apple Watch Series 7',
-        description: 'Đồng hồ còn nguyên hộp, ít dùng.',
-        estimatedValue: 5000000,
-        images: [
-          'https://images.unsplash.com/photo-1434493907317-a46b5bbe7834?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcHBsZSUyMHdhdGNofGVufDF8fHx8MTc3Mzg5MDc5Nnww&ixlib=rb-4.1.0&q=80&w=1080',
-        ],
-        condition: 'Như mới',
-      },
-    ],
-    tradeType: 'straight',
-    cashDifference: 0,
-    totalOfferedValue: 15000000,
-    reason: 'Đang chuyển sang Android ecosystem nên cần đổi sang laptop để học tập.',
-    requesterId: 'user2',
-    requesterName: 'Trần Thị B',
-    requesterEmail: 'b.tran@student.hust.edu.vn',
-    requesterPhone: '0923 456 789',
-    requesterUniversity: 'ĐH Kinh tế Quốc dân',
-    proposedMeetingLocation: {
-      type: 'buyer_address',
-      address: 'Ký túc xá B2, Phòng 305, ĐH Kinh tế Quốc dân',
-    },
-    sellerId: 'seller1',
-    sellerName: 'Người bán A',
-    createdAt: '2026-06-01T14:20:00Z',
-    updatedAt: '2026-06-01T14:20:00Z',
-  },
-];
+import { mapTradeRequestDtoToFe } from '../../shared/types/trade';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export function TradeRequestsPage() {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
-  //   const { addNotification } = useNotifications();
 
-  const [product, setProduct] = useState<(typeof mockProducts)[string] | null>(null);
+  const [product, setProduct] = useState<any>(null);
   const [tradeRequests, setTradeRequests] = useState<TradeRequest[]>([]);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accepted' | 'declined'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    // Load product info
-    const productData = mockProducts[productId || '1'];
-    if (productData) {
-      setProduct(productData);
-    }
+  const [loading, setLoading] = useState(true);
 
-    // Load trade requests for this product
-    const requests = mockTradeRequests.filter(tr => tr.targetProductId === (productId || '1'));
-    setTradeRequests(requests);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!productId) return;
+
+        // Load product info
+        const productRes = await axios.get(`/api/products/${productId}`);
+        const p = productRes.data;
+        setProduct({
+          id: String(p.id),
+          title: p.name,
+          image: p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : 'https://via.placeholder.com/300',
+          price: p.price,
+        });
+
+        // Load trade requests for this product
+        const accountRes = await axios.get('/api/account');
+        const userId = accountRes.data.id;
+
+        const requestsRes = await axios.get(`/api/trade-requests?sellerId.equals=${userId}&targetProductId.equals=${productId}`);
+        const requests = requestsRes.data.map(mapTradeRequestDtoToFe);
+        setTradeRequests(requests);
+      } catch (error) {
+        console.error('Error fetching trade requests:', error);
+        toast.error('Không thể tải dữ liệu');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [productId]);
 
   // Filter trade requests
@@ -148,48 +72,38 @@ export function TradeRequestsPage() {
   });
 
   // Handle accept trade
-  const handleAccept = (tradeId: string) => {
-    setTradeRequests(requests =>
-      requests.map(r => (r.id === tradeId ? { ...r, status: 'accepted' as const, acceptedAt: new Date().toISOString() } : r)),
-    );
-
-    // addNotification({
-    //   type: 'success',
-    //   title: 'Đã chấp nhận đề xuất đổi đồ',
-    //   message: 'Người đề xuất sẽ nhận được thông báo. Hãy liên hệ để sắp xếp lịch gặp.',
-    // });
+  const handleAccept = async (tradeId: string) => {
+    try {
+      await axios.post(`/api/trade-requests/${tradeId}/accept`);
+      setTradeRequests(requests =>
+        requests.map(r => (r.id === tradeId ? { ...r, status: 'accepted' as const, acceptedAt: new Date().toISOString() } : r)),
+      );
+      toast.success('Đã chấp nhận đề xuất đổi đồ');
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra');
+    }
   };
 
   // Handle decline trade
-  const handleDecline = (tradeId: string) => {
-    // TODO: Show decline reason modal
-    const reason = 'Không phù hợp với nhu cầu hiện tại';
-
-    setTradeRequests(requests =>
-      requests.map(r =>
-        r.id === tradeId
-          ? {
-              ...r,
-              status: 'declined' as const,
-              declinedAt: new Date().toISOString(),
-              declineReason: reason,
-            }
-          : r,
-      ),
-    );
-
-    // addNotification({
-    //   type: 'info',
-    //   title: 'Đã từ chối đề xuất',
-    //   message: 'Người đề xuất sẽ nhận được thông báo về lý do từ chối.',
-    // });
+  const handleDecline = async (tradeId: string) => {
+    try {
+      await axios.post(`/api/trade-requests/${tradeId}/decline`);
+      setTradeRequests(requests =>
+        requests.map(r => (r.id === tradeId ? { ...r, status: 'declined' as const, declinedAt: new Date().toISOString() } : r)),
+      );
+      toast.success('Đã từ chối đề xuất đổi đồ');
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra');
+    }
   };
 
-  if (!product) {
+  if (loading || !product) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <Loader2 className="w-16 h-16 text-purple-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { toast } from 'react-toastify';
 import { Translate, translate, ValidatedField } from 'react-jhipster';
@@ -28,6 +28,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
   const [emailError, setEmailError] = useState(false);
   const [emailValue, setEmailValue] = useState('');
   const [passwordValue, setPasswordValue] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showDemoAccounts, setShowDemoAccounts] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +39,8 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
   const [registerUniversityId, setRegisterUniversityId] = useState<number | ''>('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerTermsAccepted, setRegisterTermsAccepted] = useState(false);
@@ -45,12 +48,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
 
   const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    setEmailValue('');
-    setPasswordValue('');
-    setLoginErrorMessage(null);
-    setRememberMe(false);
-  }, [activeTab]);
+  const LOGIN_CACHE_KEY = 'authModalLoginCache';
 
   const dispatch = useAppDispatch();
   const isAuthenticatedRedux = useAppSelector(state => state.authentication.isAuthenticated);
@@ -72,6 +70,54 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
     reset,
   } = useForm<any>({ mode: 'onBlur' });
   const formErrors = errors as Record<string, any>;
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LOGIN_CACHE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as {
+          username?: string;
+          password?: string;
+          rememberMe?: boolean;
+        };
+        if (parsed.rememberMe) {
+          setEmailValue(parsed.username || '');
+          setPasswordValue(parsed.password || '');
+          setRememberMe(true);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore remembered login', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (rememberMe) {
+      try {
+        localStorage.setItem(LOGIN_CACHE_KEY, JSON.stringify({ username: emailValue, password: passwordValue, rememberMe }));
+      } catch (error) {
+        console.error('Failed to save remembered login', error);
+      }
+    } else {
+      localStorage.removeItem(LOGIN_CACHE_KEY);
+    }
+  }, [rememberMe, emailValue, passwordValue]);
+
+  useEffect(() => {
+    setLoginErrorMessage(null);
+    if (activeTab === 'register') {
+      setRegisterFirstName('');
+      setRegisterLastName('');
+      setRegisterEmail('');
+      setRegisterStudentId('');
+      setRegisterUniversityId('');
+      setRegisterPassword('');
+      setRegisterConfirmPassword('');
+      setRegisterError(null);
+      setEmailError(false);
+      reset();
+    }
+  }, [activeTab, reset]);
 
   const emailCustomValidate = (v: any) => {
     const rawSid = (getValues && getValues('studentIdNumber')) || registerStudentId || '';
@@ -425,8 +471,8 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
         <div className="p-6">
           {activeTab === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <input type="text" name="fake-username" autoComplete="username" style={{ display: 'none' }} readOnly />
-              <input type="password" name="fake-password" autoComplete="new-password" style={{ display: 'none' }} readOnly />
+              <input type="text" name="hidden-username" autoComplete="off" style={{ display: 'none' }} readOnly />
+              <input type="password" name="hidden-password" autoComplete="off" style={{ display: 'none' }} readOnly />
               {/* Demo Accounts Info */}
               {showDemoAccounts && (
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200">
@@ -488,7 +534,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                     </div>
 
                     {/* Admin Account */}
-                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                    {/* <div className="bg-white rounded-lg p-3 border border-blue-200">
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-medium text-gray-900 text-sm">⚙️ Quản trị viên</p>
@@ -508,7 +554,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                         <CheckCircle className="w-3 h-3 text-green-600" />
                         <span>Quản lý hệ thống, trang Admin</span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               )}
@@ -527,7 +573,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                   <ValidatedField
                     name="username"
                     type="text"
-                    // autoComplete="off"
+                    autoComplete="username"
                     placeholder={translate('global.form.username.placeholder')}
                     validate={{
                       required: {
@@ -559,8 +605,8 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                   <Lock className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400 z-10 pointer-events-none" />{' '}
                   <ValidatedField
                     name="password"
-                    type="password"
-                    autoComplete="new-password"
+                    type={showLoginPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
                     placeholder={translate('login.form.password.placeholder')}
                     validate={{
                       required: {
@@ -580,8 +626,16 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                       trigger('password'); // Chạy báo lỗi real-time
                     }}
                     className="w-full pl-8"
-                    inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    inputClass="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(prev => !prev)}
+                    className="absolute right-3 top-[24px] -translate-y-1/2 text-gray-500 hover:text-[#0A2647]"
+                    aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 <p className="mt-2 text-xs text-gray-500">Mật khẩu tối thiểu 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
               </div>
@@ -845,7 +899,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                   <Lock className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <ValidatedField
                     name="password"
-                    type="password"
+                    type={showRegisterPassword ? 'text' : 'password'}
                     placeholder="Tạo mật khẩu"
                     validate={{
                       required: { value: true, message: translate('register.messages.missing.missingPassword') },
@@ -866,8 +920,16 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                     }}
                     autoComplete="new-password"
                     className="w-full pl-8"
-                    inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    inputClass="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword(prev => !prev)}
+                    className="absolute right-3 top-[24px] -translate-y-1/2 text-gray-500 hover:text-[#0A2647]"
+                    aria-label={showRegisterPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showRegisterPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 <PasswordStrengthBar password={registerPassword} />
                 <p className="mt-2 text-xs text-gray-500">Mật khẩu tối thiểu 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
@@ -878,7 +940,7 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                   <Lock className="absolute left-0 top-[24px] -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <ValidatedField
                     name="confirmPassword"
-                    type="password"
+                    type={showRegisterConfirmPassword ? 'text' : 'password'}
                     placeholder="Nhập lại mật khẩu"
                     validate={{
                       required: { value: true, message: translate('register.messages.missing.passwords_mismatch') },
@@ -897,8 +959,16 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                     }}
                     autoComplete="new-password"
                     className="w-full pl-8"
-                    inputClass="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                    inputClass="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterConfirmPassword(prev => !prev)}
+                    className="absolute right-3 top-[24px] -translate-y-1/2 text-gray-500 hover:text-[#0A2647]"
+                    aria-label={showRegisterConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  >
+                    {showRegisterConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
               </div>
               <div className="bg-gradient-to-r from-blue-50 to-orange-50 p-4 rounded-lg border border-[#FF6B35]/20">

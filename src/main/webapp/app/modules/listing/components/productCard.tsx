@@ -50,7 +50,7 @@ export function ProductCard({ product }: ProductCardProps) {
       };
 
       await axios.post('/api/cart-items', payload);
-
+      window.dispatchEvent(new Event('cartUpdated'));
       showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
     } catch (error) {
       console.error('Lỗi khi thêm vào giỏ hàng:', error);

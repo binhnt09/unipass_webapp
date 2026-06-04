@@ -24,7 +24,7 @@ import { IProduct } from 'app/shared/model/product.model';
 import { IProductImage } from 'app/shared/model/product-image.model';
 import { ReportModal } from './reportModal';
 import { useAuth } from '../../../contexts/AuthContext';
-import { CreateTradeRequestModal, TradeRequestFormData } from 'app/modules/trade/components/createTradeRequestModal';
+import { CreateTradeRequestModal } from 'app/modules/trade/components/createTradeRequestModal';
 
 interface ProductActionButtonsProps {
   isOwner: boolean;
@@ -121,7 +121,7 @@ export function ProductDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [showTradeModal, setShowTradeModal] = useState(false);
 
   useEffect(() => {
@@ -488,27 +488,9 @@ export function ProductDetailPage() {
         onClose={() => setShowTradeModal(false)}
         productId={product.id}
         productTitle={product.name}
-        productPrice={product.price || 0} // Convert to VND for demo
+        productPrice={product.price || 0}
         productImage={imageUrls[0]}
-        onSubmit={(data: TradeRequestFormData) => {
-          console.warn('[Trade Request] Submitting:', data);
-
-          // TODO: API call to create trade request
-          // await api.post('/trades', { ...data, productId: product.id });
-
-          setShowTradeModal(false);
-
-          // addNotification({
-          //   type: 'success',
-          //   title: 'Đề xuất đổi đồ đã được gửi!',
-          //   message: 'Người bán sẽ xem xét và phản hồi sớm nhất. Bạn sẽ nhận được thông báo.',
-          // });
-
-          // Navigate to My Trades page
-          setTimeout(() => {
-            navigate('/trades/mine');
-          }, 1500);
-        }}
+        sellerId={product.seller?.id}
       />
     </div>
   );

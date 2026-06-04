@@ -1,10 +1,10 @@
-// NEW FEATURE: Create Trade Request Modal - Form for users to propose item exchange
-// Allows uploading up to 2 items + cash difference to trade for seller's item
-// Features: Image upload, value estimation, meeting location selection
-
-import React, { useState } from 'react';
-import { X, Plus, Trash2, Upload, MapPin, Home, Package, AlertCircle } from 'lucide-react';
-import type { TradeType, MeetingLocationType, MeetingLocation } from '../../../shared/types/trade';
+import React, { useState, useEffect } from 'react';
+import { X, MapPin, Home, Package, AlertCircle, Upload, Loader2, Plus, Trash2 } from 'lucide-react';
+import type { TradeType, MeetingLocationType } from '../../../shared/types/trade';
+// import { useAuth } from '../../../contexts/AuthContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
 
 interface CreateTradeRequestModalProps {
   isOpen: boolean;
@@ -13,44 +13,43 @@ interface CreateTradeRequestModalProps {
   productTitle?: string;
   productPrice: number;
   productImage: string;
-  onSubmit: (data: TradeRequestFormData) => void;
+  sellerId?: number;
 }
 
-export interface TradeRequestFormData {
-  offeredItems: {
-    title: string;
-    description: string;
-    estimatedValue: number;
-    condition: string;
-    images: File[];
-  }[];
-  tradeType: TradeType;
-  cashDifference: number;
-  reason: string;
-  meetingLocation: MeetingLocation;
-  phone: string;
+interface OfferedItemForm {
+  name: string;
+  description: string;
+  estimatedValue: string;
+  condition: string;
+  imageFiles: File[];
+  imagePreviews: string[];
 }
+
+const EMPTY_ITEM: OfferedItemForm = {
+  name: '',
+  description: '',
+  estimatedValue: '',
+  condition: '',
+  imageFiles: [],
+  imagePreviews: [],
+};
 
 export function CreateTradeRequestModal({
   isOpen,
   onClose,
+  productId,
   productTitle,
   productPrice,
   productImage,
-  onSubmit,
+  sellerId,
 }: CreateTradeRequestModalProps) {
-  // Form state
-  const [offeredItems, setOfferedItems] = useState<
-    {
-      title: string;
-      description: string;
-      estimatedValue: string;
-      condition: string;
-      images: File[];
-      imagePreviews: string[];
-    }[]
-  >([{ title: '', description: '', estimatedValue: '', condition: '', images: [], imagePreviews: [] }]);
+  // const { user } = useAuth();
+  const navigate = useNavigate();
 
+  // Offered items (max 2)
+  const [offeredItems, setOfferedItems] = useState<OfferedItemForm[]>([{ ...EMPTY_ITEM }]);
+
+  // Form state
   const [tradeType, setTradeType] = useState<TradeType>('with_cash');
   const [cashDifference, setCashDifference] = useState('');
   const [reason, setReason] = useState('');
@@ -62,155 +61,168 @@ export function CreateTradeRequestModal({
   const [publicPlace, setPublicPlace] = useState('');
   const [locationNotes, setLocationNotes] = useState('');
 
-  // Validation
+  // Validation & submission
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      offeredItems.forEach(item => {
+        item.imagePreviews.forEach(url => {
+          if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+        });
+      });
+    };
+  }, []);
 
   if (!isOpen) return null;
 
-  // Add new offered item (max 2)
-  const addOfferedItem = () => {
+  // ─── Offered items helpers ───
+  const updateItem = (index: number, updates: Partial<OfferedItemForm>) => {
+    setOfferedItems(prev => prev.map((item, i) => (i === index ? { ...item, ...updates } : item)));
+  };
+
+  const addItem = () => {
     if (offeredItems.length < 2) {
-      setOfferedItems([...offeredItems, { title: '', description: '', estimatedValue: '', condition: '', images: [], imagePreviews: [] }]);
+      setOfferedItems(prev => [...prev, { ...EMPTY_ITEM }]);
     }
   };
 
-  // Remove offered item
-  const removeOfferedItem = (index: number) => {
+  const removeItem = (index: number) => {
     if (offeredItems.length > 1) {
-      setOfferedItems(offeredItems.filter((_, i) => i !== index));
+      offeredItems[index].imagePreviews.forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+      setOfferedItems(prev => prev.filter((_, i) => i !== index));
     }
   };
 
-  // Handle image upload
-  const handleImageUpload = (itemIndex: number, files: FileList | null) => {
-    if (!files) return;
+  const handleImageUpload = (index: number, files: FileList) => {
+    const item = offeredItems[index];
+    const remaining = 5 - item.imageFiles.length;
+    const newFiles = Array.from(files).slice(0, remaining);
 
-    const newFiles = Array.from(files).slice(0, 5 - offeredItems[itemIndex].images.length);
-    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+    const newPreviews = newFiles.map(f => URL.createObjectURL(f));
 
-    setOfferedItems(items =>
-      items.map((item, i) =>
-        i === itemIndex
-          ? {
-              ...item,
-              images: [...item.images, ...newFiles],
-              imagePreviews: [...item.imagePreviews, ...newPreviews],
-            }
-          : item,
-      ),
-    );
+    updateItem(index, {
+      imageFiles: [...item.imageFiles, ...newFiles],
+      imagePreviews: [...item.imagePreviews, ...newPreviews],
+    });
   };
 
-  // Remove image
   const removeImage = (itemIndex: number, imageIndex: number) => {
-    setOfferedItems(items =>
-      items.map((item, i) =>
-        i === itemIndex
-          ? {
-              ...item,
-              images: item.images.filter((_, ii) => ii !== imageIndex),
-              imagePreviews: item.imagePreviews.filter((_, ii) => ii !== imageIndex),
-            }
-          : item,
-      ),
-    );
+    const item = offeredItems[itemIndex];
+    const url = item.imagePreviews[imageIndex];
+    if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+
+    updateItem(itemIndex, {
+      imageFiles: item.imageFiles.filter((_, i) => i !== imageIndex),
+      imagePreviews: item.imagePreviews.filter((_, i) => i !== imageIndex),
+    });
   };
 
-  // Calculate total offered value
+  // ─── Value calculations ───
   const getTotalOfferedValue = () => {
-    return offeredItems.reduce((sum, item) => {
-      const value = parseFloat(item.estimatedValue) || 0;
-      return sum + value;
-    }, 0);
+    return offeredItems.reduce((sum, item) => sum + (parseFloat(item.estimatedValue) || 0), 0);
   };
 
-  // Calculate value difference
   const getValueDifference = () => {
     const totalOffered = getTotalOfferedValue();
     const cash = parseFloat(cashDifference) || 0;
     return productPrice - (totalOffered + cash);
   };
 
-  // Validate form
+  // ─── Validation ───
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Validate offered items
-    offeredItems.forEach((item, index) => {
-      if (!item.title.trim()) {
-        newErrors[`item${index}_title`] = 'Vui lòng nhập tên món đồ';
-      }
-      if (!item.description.trim()) {
-        newErrors[`item${index}_description`] = 'Vui lòng mô tả món đồ';
-      }
-      if (!item.estimatedValue || parseFloat(item.estimatedValue) <= 0) {
-        newErrors[`item${index}_value`] = 'Vui lòng nhập giá trị hợp lệ';
-      }
-      if (item.images.length === 0) {
-        newErrors[`item${index}_images`] = 'Vui lòng upload ít nhất 1 ảnh';
-      }
+    offeredItems.forEach((item, i) => {
+      if (!item.name.trim()) newErrors[`item${i}_name`] = 'Vui lòng nhập tên món đồ';
+      if (!item.estimatedValue || parseFloat(item.estimatedValue) <= 0) newErrors[`item${i}_value`] = 'Vui lòng nhập giá trị ước tính';
+      if (!item.condition) newErrors[`item${i}_condition`] = 'Vui lòng chọn tình trạng';
+      if (item.imageFiles.length === 0) newErrors[`item${i}_images`] = 'Vui lòng thêm ít nhất 1 hình ảnh';
     });
 
-    // Validate cash difference
     if (tradeType === 'with_cash') {
       if (!cashDifference || parseFloat(cashDifference) < 0) {
         newErrors.cashDifference = 'Vui lòng nhập số tiền bù hợp lệ';
       }
     }
 
-    // Validate reason
-    if (!reason.trim()) {
-      newErrors.reason = 'Vui lòng cho biết lý do muốn đổi';
-    }
+    if (!reason.trim()) newErrors.reason = 'Vui lòng cho biết lý do muốn đổi';
 
-    // Validate phone
     if (!phone.trim()) {
       newErrors.phone = 'Vui lòng nhập số điện thoại';
     } else if (!/^[0-9]{10}$/.test(phone.replace(/\s/g, ''))) {
       newErrors.phone = 'Số điện thoại không hợp lệ';
     }
 
-    // Validate meeting location
-    if (meetingLocationType === 'buyer_address' && !buyerAddress.trim()) {
-      newErrors.buyerAddress = 'Vui lòng nhập địa chỉ của bạn';
-    }
-    if (meetingLocationType === 'public_place' && !publicPlace.trim()) {
-      newErrors.publicPlace = 'Vui lòng nhập địa điểm công cộng';
-    }
+    if (meetingLocationType === 'buyer_address' && !buyerAddress.trim()) newErrors.buyerAddress = 'Vui lòng nhập địa chỉ';
+    if (meetingLocationType === 'public_place' && !publicPlace.trim()) newErrors.publicPlace = 'Vui lòng nhập địa điểm';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle submit
-  const handleSubmit = (e: React.FormEvent) => {
+  // ─── Submit handler ───
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate() || isSubmitting) return;
 
-    if (!validate()) {
-      return;
+    setIsSubmitting(true);
+    try {
+      // Step 1: Upload images for each offered item
+      const newOfferedItems: {
+        name: string;
+        description: string;
+        price: number;
+        condition: string;
+        imageUrls: string[];
+      }[] = [];
+      for (const item of offeredItems) {
+        const uploadedUrls: string[] = [];
+        for (const file of item.imageFiles) {
+          const formData = new FormData();
+          formData.append('file', file);
+          const uploadRes = await axios.post<string>('/api/product-images/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          uploadedUrls.push(uploadRes.data);
+        }
+
+        newOfferedItems.push({
+          name: item.name.trim(),
+          description: item.description.trim(),
+          price: parseFloat(item.estimatedValue),
+          condition: item.condition,
+          imageUrls: uploadedUrls,
+        });
+      }
+
+      // Step 2: Build and send the trade request payload
+      const payload = {
+        tradeRequest: {
+          targetProduct: { id: productId },
+          seller: sellerId ? { id: sellerId } : undefined,
+          topUpAmount: tradeType === 'with_cash' ? parseFloat(cashDifference) : 0,
+          meetupLocation: meetingLocationType === 'buyer_address' ? buyerAddress : publicPlace,
+          status: 'PENDING',
+        },
+        newOfferedItems,
+      };
+
+      await axios.post('/api/trade-requests/create-with-items', payload);
+
+      toast.success('Đề xuất đổi đồ đã được gửi thành công!');
+      onClose();
+      setTimeout(() => navigate('/trades/mine'), 500);
+    } catch (err) {
+      console.error('Error creating trade request:', err);
+      toast.error('Có lỗi xảy ra khi tạo đề xuất đổi đồ. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const formData: TradeRequestFormData = {
-      offeredItems: offeredItems.map(item => ({
-        title: item.title,
-        description: item.description,
-        estimatedValue: parseFloat(item.estimatedValue),
-        condition: item.condition,
-        images: item.images,
-      })),
-      tradeType,
-      cashDifference: tradeType === 'with_cash' ? parseFloat(cashDifference) : 0,
-      reason,
-      phone,
-      meetingLocation: {
-        type: meetingLocationType,
-        address: meetingLocationType === 'buyer_address' ? buyerAddress : undefined,
-        publicPlace: meetingLocationType === 'public_place' ? publicPlace : undefined,
-        notes: locationNotes || undefined,
-      },
-    };
-
-    onSubmit(formData);
   };
 
   const valueDiff = getValueDifference();
@@ -218,7 +230,6 @@ export function CreateTradeRequestModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between z-10">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -227,13 +238,17 @@ export function CreateTradeRequestModal({
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Đổi lấy: {productTitle}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
+          >
             <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Target Product Info */}
+          {/* Target product */}
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border-2 border-purple-200 dark:border-purple-800">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Món đồ bạn muốn lấy:</p>
             <div className="flex items-center gap-3">
@@ -247,155 +262,139 @@ export function CreateTradeRequestModal({
             </div>
           </div>
 
-          {/* Offered Items */}
+          {/* Offered items */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <label className="block text-sm font-bold text-gray-900 dark:text-white">Món đồ bạn muốn đổi ({offeredItems.length}/2)</label>
-              {offeredItems.length < 2 && (
-                <button
-                  type="button"
-                  onClick={addOfferedItem}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Thêm món đồ thứ 2
-                </button>
-              )}
-            </div>
+            <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Món đồ bạn muốn đem đổi (Tối đa 2 món) *</label>
 
-            <div className="space-y-6">
-              {offeredItems.map((item, index) => (
-                <div key={index} className="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 relative">
-                  {/* Remove button */}
+            {offeredItems.map((item, idx) => (
+              <div key={idx} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 mb-4 border border-gray-200 dark:border-gray-600">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-bold text-purple-600">Món đồ {idx + 1}</span>
                   {offeredItems.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => removeOfferedItem(index)}
-                      className="absolute top-2 right-2 p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
+                      onClick={() => removeItem(idx)}
+                      disabled={isSubmitting}
+                      className="text-red-500 hover:text-red-700 p-1 disabled:opacity-50"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
+                </div>
 
-                  <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">Món đồ #{index + 1}</p>
-
-                  {/* Image Upload */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ảnh món đồ (tối đa 5 ảnh) *</label>
-                    <div className="grid grid-cols-5 gap-2">
-                      {item.imagePreviews.map((preview, imgIndex) => (
-                        <div key={imgIndex} className="relative aspect-square">
-                          <img src={preview} alt={`Preview ${imgIndex + 1}`} className="w-full h-full object-cover rounded-lg" />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index, imgIndex)}
-                            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                      {item.images.length < 5 && (
-                        <label className="aspect-square border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 dark:hover:border-purple-500 transition-colors">
-                          <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                          <span className="text-xs text-gray-500">Upload</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            className="hidden"
-                            onChange={e => handleImageUpload(index, e.target.files)}
-                          />
-                        </label>
-                      )}
-                    </div>
-                    {errors[`item${index}_images`] && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors[`item${index}_images`]}</p>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên món đồ *</label>
-                    <input
-                      type="text"
-                      value={item.title}
-                      onChange={e => {
-                        const newItems = [...offeredItems];
-                        newItems[index].title = e.target.value;
-                        setOfferedItems(newItems);
-                      }}
-                      placeholder="VD: iPad Air M1 64GB"
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    {errors[`item${index}_title`] && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors[`item${index}_title`]}</p>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mô tả chi tiết *</label>
-                    <textarea
-                      value={item.description}
-                      onChange={e => {
-                        const newItems = [...offeredItems];
-                        newItems[index].description = e.target.value;
-                        setOfferedItems(newItems);
-                      }}
-                      placeholder="Mô tả tình trạng, thời gian sử dụng, bảo hành còn lại..."
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-                    />
-                    {errors[`item${index}_description`] && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors[`item${index}_description`]}</p>
-                    )}
-                  </div>
-
-                  {/* Value & Condition */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Giá trị ước tính *</label>
-                      <input
-                        type="number"
-                        value={item.estimatedValue}
-                        onChange={e => {
-                          const newItems = [...offeredItems];
-                          newItems[index].estimatedValue = e.target.value;
-                          setOfferedItems(newItems);
-                        }}
-                        placeholder="8000000"
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
-                      {errors[`item${index}_value`] && (
-                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors[`item${index}_value`]}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tình trạng</label>
-                      <select
-                        value={item.condition}
-                        onChange={e => {
-                          const newItems = [...offeredItems];
-                          newItems[index].condition = e.target.value;
-                          setOfferedItems(newItems);
-                        }}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                {/* Image upload */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hình ảnh (tối đa 5) *</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {item.imagePreviews.map((url, imgIdx) => (
+                      <div key={imgIdx} className="relative w-20 h-20 rounded-lg overflow-hidden group">
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx, imgIdx)}
+                          disabled={isSubmitting}
+                          className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-bl-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs disabled:opacity-50"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    {item.imageFiles.length < 5 && (
+                      <label
+                        className={`w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-500 flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 transition-colors ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}
                       >
-                        <option value="">Chọn tình trạng</option>
-                        <option value="Mới 99%">Mới 99%</option>
-                        <option value="Như mới">Như mới</option>
-                        <option value="Đã qua sử dụng">Đã qua sử dụng</option>
-                        <option value="Cũ">Cũ</option>
-                      </select>
-                    </div>
+                        <Upload className="w-5 h-5 text-gray-400 mb-1" />
+                        <span className="text-[10px] text-gray-400">Thêm ảnh</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          disabled={isSubmitting}
+                          onChange={e => e.target.files && handleImageUpload(idx, e.target.files)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  {errors[`item${idx}_images`] && <p className="text-sm text-red-600 mt-1">{errors[`item${idx}_images`]}</p>}
+                </div>
+
+                {/* Name */}
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tên món đồ *</label>
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={e => updateItem(idx, { name: e.target.value })}
+                    placeholder="VD: Laptop Dell Inspiron 15"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
+                  />
+                  {errors[`item${idx}_name`] && <p className="text-sm text-red-600 mt-1">{errors[`item${idx}_name`]}</p>}
+                </div>
+
+                {/* Description */}
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mô tả</label>
+                  <textarea
+                    value={item.description}
+                    onChange={e => updateItem(idx, { description: e.target.value })}
+                    placeholder="Mô tả tình trạng, phụ kiện đi kèm..."
+                    rows={2}
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Value & Condition row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Giá trị ước tính (VND) *</label>
+                    <input
+                      type="number"
+                      value={item.estimatedValue}
+                      onChange={e => updateItem(idx, { estimatedValue: e.target.value })}
+                      placeholder="5000000"
+                      min="0"
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
+                    />
+                    {errors[`item${idx}_value`] && <p className="text-sm text-red-600 mt-1">{errors[`item${idx}_value`]}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tình trạng *</label>
+                    <select
+                      value={item.condition}
+                      onChange={e => updateItem(idx, { condition: e.target.value })}
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
+                    >
+                      <option value="">Chọn tình trạng</option>
+                      <option value="Brand New">Mới 100%</option>
+                      <option value="Like New">Như mới (99%)</option>
+                      <option value="Excellent">Rất tốt</option>
+                      <option value="Good">Tốt</option>
+                      <option value="Fair">Trung bình</option>
+                    </select>
+                    {errors[`item${idx}_condition`] && <p className="text-sm text-red-600 mt-1">{errors[`item${idx}_condition`]}</p>}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+
+            {offeredItems.length < 2 && (
+              <button
+                type="button"
+                onClick={addItem}
+                disabled={isSubmitting}
+                className="w-full py-3 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-lg text-purple-600 dark:text-purple-400 font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" /> Thêm món đồ thứ 2
+              </button>
+            )}
           </div>
 
-          {/* Trade Type & Cash Difference */}
+          {/* Trade type & value summary */}
           <div className="border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
             <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Loại trao đổi</label>
             <div className="space-y-3">
@@ -407,6 +406,7 @@ export function CreateTradeRequestModal({
                   checked={tradeType === 'straight'}
                   onChange={e => setTradeType(e.target.value as TradeType)}
                   className="w-4 h-4 text-purple-600"
+                  disabled={isSubmitting}
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">Đổi thẳng (không bù tiền)</span>
               </label>
@@ -418,6 +418,7 @@ export function CreateTradeRequestModal({
                   checked={tradeType === 'with_cash'}
                   onChange={e => setTradeType(e.target.value as TradeType)}
                   className="w-4 h-4 text-purple-600"
+                  disabled={isSubmitting}
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">Đổi + bù tiền</span>
               </label>
@@ -430,14 +431,14 @@ export function CreateTradeRequestModal({
                     value={cashDifference}
                     onChange={e => setCashDifference(e.target.value)}
                     placeholder="4000000"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                   />
                   {errors.cashDifference && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.cashDifference}</p>}
                 </div>
               )}
             </div>
 
-            {/* Value Comparison */}
             <div className="mt-4 pt-4 border-t border-purple-300 dark:border-purple-700">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -486,14 +487,15 @@ export function CreateTradeRequestModal({
             <textarea
               value={reason}
               onChange={e => setReason(e.target.value)}
-              placeholder="VD: Cần laptop cho học tập, iPad không phù hợp với công việc hiện tại..."
+              placeholder="VD: Cần laptop cho học tập..."
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+              disabled={isSubmitting}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none disabled:opacity-50"
             />
             {errors.reason && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.reason}</p>}
           </div>
 
-          {/* Meeting Location */}
+          {/* Meeting location */}
           <div>
             <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Địa điểm gặp mặt đề xuất *</label>
             <div className="space-y-3">
@@ -505,6 +507,7 @@ export function CreateTradeRequestModal({
                   checked={meetingLocationType === 'buyer_address'}
                   onChange={e => setMeetingLocationType(e.target.value as MeetingLocationType)}
                   className="w-4 h-4 text-purple-600 mt-1"
+                  disabled={isSubmitting}
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -516,8 +519,9 @@ export function CreateTradeRequestModal({
                       type="text"
                       value={buyerAddress}
                       onChange={e => setBuyerAddress(e.target.value)}
-                      placeholder="VD: Ký túc xá A, Phòng 305, ĐH Bách Khoa Hà Nội"
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="VD: Ký túc xá A"
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                     />
                   )}
                   {errors.buyerAddress && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.buyerAddress}</p>}
@@ -532,6 +536,7 @@ export function CreateTradeRequestModal({
                   checked={meetingLocationType === 'public_place'}
                   onChange={e => setMeetingLocationType(e.target.value as MeetingLocationType)}
                   className="w-4 h-4 text-purple-600 mt-1"
+                  disabled={isSubmitting}
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -543,23 +548,24 @@ export function CreateTradeRequestModal({
                       type="text"
                       value={publicPlace}
                       onChange={e => setPublicPlace(e.target.value)}
-                      placeholder="VD: Thư viện Tầng 2, Quán cafe A..."
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="VD: Thư viện"
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                     />
                   )}
                   {errors.publicPlace && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.publicPlace}</p>}
                 </div>
               </label>
 
-              {/* Location Notes */}
               <div className="ml-7">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ghi chú thêm (tùy chọn)</label>
                 <input
                   type="text"
                   value={locationNotes}
                   onChange={e => setLocationNotes(e.target.value)}
-                  placeholder="VD: Gần cổng B, bên cạnh cây ATM..."
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="VD: Gần cổng B"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                 />
               </div>
             </div>
@@ -573,25 +579,35 @@ export function CreateTradeRequestModal({
               value={phone}
               onChange={e => setPhone(e.target.value)}
               placeholder="0912 345 678"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              disabled={isSubmitting}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             />
             {errors.phone && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.phone}</p>}
           </div>
 
-          {/* Submit Buttons */}
+          {/* Submit */}
           <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-bold transition-all shadow-lg"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-bold transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Gửi đề xuất đổi đồ
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Đang gửi...
+                </>
+              ) : (
+                'Gửi đề xuất đổi đồ'
+              )}
             </button>
           </div>
         </form>

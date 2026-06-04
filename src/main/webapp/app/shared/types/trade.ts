@@ -104,6 +104,10 @@ export interface TradeRequest {
   completedAt?: string;
   declinedAt?: string;
 
+  // Confirmation flags
+  isBuyerConfirmed?: boolean;
+  isSellerConfirmed?: boolean;
+
   // Ratings (sau khi hoàn thành)
   requesterRating?: number;
   sellerRating?: number;
@@ -111,13 +115,76 @@ export interface TradeRequest {
   sellerReview?: string;
 }
 
+export interface TradeRequestProductDTO {
+  name: string;
+  description: string;
+  price: number;
+  condition: string;
+  imageUrls: string[];
+}
+
 // For creating new trade request
 export interface CreateTradeRequestInput {
   targetProductId: string;
-  offeredItems: Omit<OfferedItem, 'images'>[]; // Images handled separately
+  existingProductIds?: number[]; // IDs of products from the buyer's own inventory
+  newOfferedItems?: TradeRequestProductDTO[]; // New items created specifically for this trade
   tradeType: TradeType;
   cashDifference: number;
   reason: string;
   proposedMeetingLocation: MeetingLocation;
   requesterPhone: string;
+}
+
+export function mapTradeRequestDtoToFe(dto: any): TradeRequest {
+  // Parsing meeting location from string if it's stored as JSON or string
+  // The backend currently stores `meetupLocation` as string. Let's assume it's just a public_place for now if it's a simple string.
+  let location: MeetingLocation = { type: 'public_place', publicPlace: dto.meetupLocation || '' };
+  try {
+    if (dto.meetupLocation && dto.meetupLocation.startsWith('{')) {
+      location = JSON.parse(dto.meetupLocation);
+    }
+  } catch (e) {
+    console.error(e);
+    // Ignore JSON parse error, use as simple string
+  }
+
+  // Parse offered items
+  const offeredItems = (dto.offeredItems || []).map((itemDto: any) => {
+    const p = itemDto.offeredProduct || {};
+    return {
+      title: p.name || 'Sản phẩm',
+      description: p.description || '',
+      estimatedValue: p.price || 0,
+      condition: p.condition || '',
+      images: p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls : ['https://via.placeholder.com/300?text=No+Image'],
+    };
+  });
+
+  const totalOfferedValue = offeredItems.reduce((acc: number, item: any) => acc + (item.estimatedValue || 0), 0);
+
+  return {
+    id: String(dto.id),
+    status: dto.status ? (dto.status.toLowerCase() as TradeStatus) : 'pending',
+    targetProductId: String(dto.targetProduct?.id || ''),
+    targetProductTitle: dto.targetProduct?.name || 'Sản phẩm',
+    targetProductPrice: dto.targetProduct?.price || 0,
+    targetProductImage: (dto.targetProduct?.imageUrls && dto.targetProduct.imageUrls[0]) || 'https://via.placeholder.com/300',
+    offeredItems,
+    tradeType: dto.topUpAmount > 0 ? 'with_cash' : 'straight',
+    cashDifference: dto.topUpAmount || 0,
+    totalOfferedValue,
+    reason: '', // Assuming not stored in DTO natively if not added
+    requesterId: String(dto.buyer?.id || ''),
+    requesterName: dto.buyer?.login || 'Người dùng',
+    requesterEmail: dto.buyer?.email || '',
+    requesterPhone: '', // Not in default UserDTO
+    requesterUniversity: '', // Not in default UserDTO
+    proposedMeetingLocation: location,
+    sellerId: String(dto.seller?.id || ''),
+    sellerName: dto.seller?.login || 'Người bán',
+    createdAt: dto.createdAt || new Date().toISOString(),
+    updatedAt: dto.updatedAt || new Date().toISOString(),
+    isBuyerConfirmed: dto.isBuyerConfirmed,
+    isSellerConfirmed: dto.isSellerConfirmed,
+  };
 }

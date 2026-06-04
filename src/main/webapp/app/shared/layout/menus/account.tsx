@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { Translate } from 'react-jhipster';
 import { NavLink as Link } from 'react-router';
-import { User, Settings, LogOut, Package, ShoppingBag, Lock, MessageCircle, Crown, ChevronDown } from 'lucide-react';
+import {
+  User,
+  Settings,
+  LogOut,
+  Package,
+  ShoppingBag,
+  Lock,
+  MessageCircle,
+  Crown,
+  ChevronDown,
+  Repeat,
+  LayoutDashboard,
+} from 'lucide-react';
 import { logout as logoutRedux } from 'app/shared/reducers/authentication'; // Action logout thật của JHipster
 // import MenuItem from 'app/shared/layout/menus/menu-item';
 
@@ -158,15 +170,15 @@ export const AccountMenu = ({
                   className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
                 >
                   <Package size={16} />
-                  Seller Dashboard
+                  Quản lý bán hàng
                 </Link>
                 <Link
                   to="/seller/orders"
                   onClick={() => setShowUserMenu(false)}
                   className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
                 >
-                  <ShoppingBag size={16} />
-                  My Pending Orders
+                  <LayoutDashboard size={16} />
+                  Quản lý orders
                 </Link>
               </>
             )}
@@ -178,17 +190,24 @@ export const AccountMenu = ({
                 className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
               >
                 <ShoppingBag size={16} />
-                Purchase Order
+                Đơn mua của tôi
               </Link>
             )}
-
+            <Link
+              to="/trades/mine"
+              onClick={() => setShowUserMenu(false)}
+              className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700 hover:text-[#FF6B35] transition-colors"
+            >
+              <Repeat size={16} />
+              Đồ yêu cầu đổi của tôi
+            </Link>
             <Link
               to="/messages"
               onClick={() => setShowUserMenu(false)}
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
             >
               <MessageCircle size={16} />
-              Messages
+              Tin nhắn
             </Link>
 
             <Link to="/premium" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors">
@@ -204,7 +223,7 @@ export const AccountMenu = ({
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
             >
               <Settings size={16} />
-              <Translate contentKey="global.menu.account.settings">Settings</Translate>
+              <Translate contentKey="global.menu.account.settings">Cài đặt</Translate>
             </Link>
             <Link
               to="/account/password"
@@ -212,7 +231,7 @@ export const AccountMenu = ({
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors"
             >
               <Lock size={16} />
-              <Translate contentKey="global.menu.account.password">Password</Translate>
+              <Translate contentKey="global.menu.account.password">Mật khẩu</Translate>
             </Link>
 
             <button
@@ -220,7 +239,7 @@ export const AccountMenu = ({
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-[#FF6B35] transition-colors w-full text-left"
             >
               <LogOut size={16} />
-              <Translate contentKey="global.menu.account.logout">Sign out</Translate>
+              <Translate contentKey="global.menu.account.logout">Đăng xuất</Translate>
             </button>
           </div>
         </div>
