@@ -14,7 +14,7 @@ interface TrackingStep {
 
 interface OrderTrackingTimelineProps {
   steps: TrackingStep[];
-  currentStatus: 'pending' | 'shipping' | 'completed' | 'cancelled';
+  currentStatus: 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled';
 }
 
 // NEW FEATURE: Order Tracking Timeline - Main timeline component

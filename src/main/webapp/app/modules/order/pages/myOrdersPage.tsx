@@ -6,7 +6,7 @@ import { RatingModal } from '../components/ratingModal';
 import axios from 'axios';
 // Removed OrderTrackingTimeline usage here — using polling-based realtime updates instead
 
-type OrderStatus = 'all' | 'pending' | 'shipping' | 'completed' | 'cancelled';
+type OrderStatus = 'all' | 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled';
 type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc';
 
 interface OrderItem {
@@ -23,7 +23,7 @@ interface Order {
   orderNumber: string;
   sellerName: string;
   sellerUniversity: string;
-  status: 'pending' | 'shipping' | 'completed' | 'cancelled';
+  status: 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled';
   statusText: string;
   items: OrderItem[];
   total: number;
@@ -46,6 +46,7 @@ export function MyOrdersPage() {
   const tabs = [
     { id: 'all' as OrderStatus, label: 'Tất cả' },
     { id: 'pending' as OrderStatus, label: 'Chờ xác nhận' },
+    { id: 'accepted' as OrderStatus, label: 'Đã xác nhận' },
     { id: 'shipping' as OrderStatus, label: 'Chờ giao hàng' },
     { id: 'completed' as OrderStatus, label: 'Hoàn thành' },
     { id: 'cancelled' as OrderStatus, label: 'Đã hủy' },
@@ -113,6 +114,8 @@ export function MyOrdersPage() {
     switch (status) {
       case 'pending':
         return 'text-[#FF6B35]';
+      case 'accepted':
+        return 'text-emerald-600';
       case 'shipping':
         return 'text-blue-600';
       case 'completed':
@@ -125,16 +128,23 @@ export function MyOrdersPage() {
   };
 
   // Hàm bổ trợ map trạng thái BE -> FE
-  const mapBEStatusToFEStatus = (status: string): 'pending' | 'shipping' | 'completed' | 'cancelled' => {
+  const mapBEStatusToFEStatus = (status: string): 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled' => {
     if (!status) return 'pending';
     switch (status.toUpperCase()) {
       case 'PENDING_CONFIRM':
+      case 'PENDING':
         return 'pending';
+      case 'ACCEPT':
+      case 'ACCEPTED': // Backend set ACCEPTED khi seller accept
+        return 'accepted';
       case 'SHIPPING':
+      case 'DELIVERING':
         return 'shipping';
       case 'COMPLETED':
+      case 'DELIVERED':
         return 'completed';
       case 'CANCELLED':
+      case 'DECLINED':
         return 'cancelled';
       default:
         return 'pending';
@@ -146,12 +156,19 @@ export function MyOrdersPage() {
     if (!status) return 'CHỜ XÁC NHẬN';
     switch (status.toUpperCase()) {
       case 'PENDING_CONFIRM':
+      case 'PENDING':
         return 'CHỜ XÁC NHẬN';
+      case 'ACCEPT':
+      case 'ACCEPTED':
+        return 'ĐÃ XÁC NHẬN';
       case 'SHIPPING':
+      case 'DELIVERING':
         return 'ĐANG GIAO HÀNG';
       case 'COMPLETED':
+      case 'DELIVERED':
         return 'ĐÃ GIAO';
       case 'CANCELLED':
+      case 'DECLINED':
         return 'ĐÃ HỦY';
       default:
         return 'CHỜ XÁC NHẬN';

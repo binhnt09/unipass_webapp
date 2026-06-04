@@ -15,6 +15,7 @@ import {
   Clock,
   Flag,
   Edit,
+  Package,
 } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
 import { Link, useParams, useNavigate } from 'react-router';
@@ -23,15 +24,17 @@ import { IProduct } from 'app/shared/model/product.model';
 import { IProductImage } from 'app/shared/model/product-image.model';
 import { ReportModal } from './reportModal';
 import { useAuth } from '../../../contexts/AuthContext';
+import { CreateTradeRequestModal } from 'app/modules/trade/components/createTradeRequestModal';
 
 interface ProductActionButtonsProps {
   isOwner: boolean;
   stock?: number;
   productId?: number;
   sellerId?: number;
+  onOpenTradeModal: () => void;
 }
 
-function ProductActionButtons({ isOwner, stock, productId, sellerId }: ProductActionButtonsProps) {
+function ProductActionButtons({ isOwner, stock, productId, sellerId, onOpenTradeModal }: ProductActionButtonsProps) {
   const navigate = useNavigate();
 
   const handleContactSeller = async () => {
@@ -96,6 +99,13 @@ function ProductActionButtons({ isOwner, stock, productId, sellerId }: ProductAc
         <MessageCircle className="w-5 h-5" />
         Nhắn tin cho người bán
       </button>
+      <button
+        onClick={onOpenTradeModal}
+        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all shadow-md mt-3"
+      >
+        <Package className="w-5 h-5" />
+        🔄 Đề xuất đổi đồ
+      </button>
     </>
   );
 }
@@ -111,6 +121,8 @@ export function ProductDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  // const navigate = useNavigate();
+  const [showTradeModal, setShowTradeModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -364,7 +376,13 @@ export function ProductDetailPage() {
 
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3">
-                <ProductActionButtons isOwner={isOwner} stock={product.stock} productId={product.id} sellerId={product.seller?.id} />
+                <ProductActionButtons
+                  isOwner={isOwner}
+                  stock={product.stock}
+                  productId={product.id}
+                  sellerId={product.seller?.id}
+                  onOpenTradeModal={() => setShowTradeModal(true)}
+                />
               </div>
 
               {/* Trust Badge */}
@@ -462,6 +480,18 @@ export function ProductDetailPage() {
           sellerName={product.seller?.login}
         />
       )}
+
+      {/* NEW FEATURE: Trade System - Modal for creating trade proposal */}
+      {/* User fills form: offered items (max 2), images, values, trade type, meeting location */}
+      <CreateTradeRequestModal
+        isOpen={showTradeModal}
+        onClose={() => setShowTradeModal(false)}
+        productId={product.id}
+        productTitle={product.name}
+        productPrice={product.price || 0}
+        productImage={imageUrls[0]}
+        sellerId={product.seller?.id}
+      />
     </div>
   );
 }

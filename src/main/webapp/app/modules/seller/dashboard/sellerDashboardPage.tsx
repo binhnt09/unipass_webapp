@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, Bell, BadgeCheck, Loader2, Pause, Play } from 'lucide-react';
+import { Edit, Trash2, Plus, Bell, BadgeCheck, Loader2, Play, Pause, Repeat } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { IProduct } from 'app/shared/model/product.model';
@@ -117,7 +117,20 @@ export function SellerDashboardPage() {
         const productOrderItems = allOrderItems.filter(item => item.product?.id === prod.id);
         // Exclude cancelled or completed order items
         const pendingCount = productOrderItems.filter(
-          item => item.order?.status !== 'CANCELLED' && item.order?.status !== 'COMPLETED',
+          item =>
+            item.order?.status !== 'ACCEPTED' &&
+            item.order?.status !== 'SHIPPING' &&
+            item.order?.status !== 'CANCELLED' &&
+            item.order?.status !== 'COMPLETED',
+        ).length;
+
+        const pendingTradeRequests = productOrderItems.filter(
+          item =>
+            item.order?.status !== 'PENDING_CONFIRM' &&
+            item.order?.status !== 'ACCEPTED' &&
+            item.order?.status !== 'SHIPPING' &&
+            item.order?.status !== 'CANCELLED' &&
+            item.order?.status !== 'COMPLETED',
         ).length;
 
         let imageUrl = primaryImage ? primaryImage.imageUrl : null;
@@ -129,6 +142,7 @@ export function SellerDashboardPage() {
           ...prod,
           imageUrl,
           pendingRequests: pendingCount,
+          pendingTradeRequests,
         };
       });
 
@@ -146,7 +160,11 @@ export function SellerDashboardPage() {
 
   const handleViewRequests = (listingId: string | number | undefined) => {
     if (!listingId) return;
-    navigate(`/seller/products/${String(listingId)}/orders`);
+    // navigate(`/seller/products/${String(listingId)}/orders`);
+  };
+
+  const handleViewTradeRequests = (listingId: string | number | undefined) => {
+    navigate(`/seller/products/${String(listingId)}/trades`);
   };
   // Lazy load purchase requests for modal upon click (protecting mount performance)
   // const handleViewRequests = async (productId: number) => {
@@ -358,6 +376,23 @@ export function SellerDashboardPage() {
                               </button>
                             )}
                           </div>
+                          {listing.pendingTradeRequests > 0 ? (
+                            <button
+                              onClick={() => handleViewTradeRequests(listing.id)}
+                              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-1 rounded-full text-xs font-medium hover:shadow-md transition-all"
+                            >
+                              <Repeat className="w-3 h-3 animate-pulse" />
+                              {listing.pendingTradeRequests} đề xuất đổi
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleViewTradeRequests(listing.id)}
+                              className="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xs transition-colors"
+                            >
+                              <Repeat className="w-3 h-3 animate-pulse" />
+                              Chưa có ai đề xuất đổi
+                            </button>
+                          )}
                         </div>
                       </td>
 
