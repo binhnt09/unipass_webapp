@@ -452,9 +452,7 @@ export function SellerRegistrationModal({ isOpen, onClose }: SellerRegistrationM
                     <span className="text-gray-500 font-medium block mb-1">Ảnh xác minh đã tải lên:</span>
                     <div className="mt-1 flex items-center gap-3">
                       <img
-                        src={
-                          idCardUrl && idCardUrl.startsWith('/uploads/') ? `http://localhost:8080${idCardUrl}` : idCardUrl || uploadPreview
-                        }
+                        src={idCardUrl || uploadPreview}
                         alt="Xác minh"
                         className="w-24 h-16 object-cover rounded-md border border-gray-300"
                       />

@@ -435,9 +435,7 @@ export function CreateListingPage() {
                 {existingImages.map((image, index) => (
                   <div key={`existing-${image.id}`} className="relative group">
                     <img
-                      src={
-                        image.imageUrl && image.imageUrl.startsWith('/uploads/') ? `http://localhost:8080${image.imageUrl}` : image.imageUrl
-                      }
+                      src={image.imageUrl}
                       alt={`Existing ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg border border-gray-200"
                     />

@@ -284,7 +284,7 @@ export function SellerRequestsAdminPage() {
                           {req.idCardUrl ? (
                             <div className="relative group cursor-pointer w-20 h-12 rounded overflow-hidden border border-gray-300">
                               <img
-                                src={req.idCardUrl.startsWith('/uploads/') ? `http://localhost:8080${req.idCardUrl}` : req.idCardUrl}
+                                src={req.idCardUrl}
                                 alt="CCCD / Thẻ sinh viên"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                 onClick={() => setZoomedImageUrl(req.idCardUrl || '')}
@@ -428,11 +428,7 @@ export function SellerRequestsAdminPage() {
             className="max-w-4xl max-h-[85vh] overflow-hidden rounded-lg bg-black border border-white/10 shadow-2xl relative"
             onClick={e => e.stopPropagation()}
           >
-            <img
-              src={zoomedImageUrl.startsWith('/uploads/') ? `http://localhost:8080${zoomedImageUrl}` : zoomedImageUrl}
-              alt="CCCD Zoomed In"
-              className="max-w-full max-h-[85vh] object-contain mx-auto"
-            />
+            <img src={zoomedImageUrl} alt="CCCD Zoomed In" className="max-w-full max-h-[85vh] object-contain mx-auto" />
             <div className="absolute bottom-0 inset-x-0 bg-black/60 p-3 text-center text-white text-xs font-medium border-t border-white/5">
               Tải ảnh thẻ xác minh chất lượng cao của Sinh viên
             </div>
