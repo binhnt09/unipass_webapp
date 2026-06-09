@@ -5,6 +5,12 @@ import { AIChatSupport } from './AIChatSupport';
 export function AIChatButton() {
   const [showChat, setShowChat] = useState(false);
 
+  React.useEffect(() => {
+    const handleOpenChat = () => setShowChat(true);
+    window.addEventListener('open-ai-chat', handleOpenChat);
+    return () => window.removeEventListener('open-ai-chat', handleOpenChat);
+  }, []);
+
   return (
     <>
       {/* Floating Button */}

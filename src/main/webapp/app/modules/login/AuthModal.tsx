@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { X, Mail, Lock, User, GraduationCap, Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { toast } from 'react-toastify';
 import { Translate, translate, ValidatedField } from 'react-jhipster';
@@ -23,13 +23,13 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
   const location = useLocation();
   const isFirstRender = React.useRef(true);
 
-  const { login: authLogin, isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(defaultTab);
   const [emailError, setEmailError] = useState(false);
   const [emailValue, setEmailValue] = useState('');
   const [passwordValue, setPasswordValue] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
-  const [showDemoAccounts, setShowDemoAccounts] = useState(true);
+
   const [loading, setLoading] = useState(false);
 
   const [registerFirstName, setRegisterFirstName] = useState('');
@@ -390,23 +390,6 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
     dispatch(loginRedux(emailValue, passwordValue, true));
   };
 
-  const quickLogin = (email: string, password: string) => {
-    setLoading(true);
-    setLoginErrorMessage(null);
-
-    const success = authLogin(email, password);
-    if (success) {
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      } else {
-        onClose();
-      }
-    } else {
-      setLoginErrorMessage('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
-    }
-    setLoading(false);
-  };
-
   const loginUsernameValidate = (value: any) => {
     const val = (value || '').toString().trim();
     // Bỏ qua kiểm tra nếu là tài khoản 'admin' hoặc 'user' (bất kỳ tài khoản bypass nào bạn muốn)
@@ -473,91 +456,6 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
             <form onSubmit={handleLogin} className="space-y-4">
               <input type="text" name="hidden-username" autoComplete="off" style={{ display: 'none' }} readOnly />
               <input type="password" name="hidden-password" autoComplete="off" style={{ display: 'none' }} readOnly />
-              {/* Demo Accounts Info */}
-              {showDemoAccounts && (
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-blue-600" />
-                      <h4 className="font-bold text-blue-900">Tài khoản Demo</h4>
-                    </div>
-                    <button type="button" onClick={() => setShowDemoAccounts(false)} className="text-blue-600 hover:text-blue-800 text-sm">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-3">
-                    {/* Buyer Account */}
-                    <div className="bg-white rounded-lg p-3 border border-blue-200">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">👤 Người mua</p>
-                          <p className="text-xs text-gray-600 mt-1">buyer@fpt.edu.vn</p>
-                          <p className="text-xs text-gray-500">Mật khẩu: buyer123</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => quickLogin('buyer@fpt.edu.vn', 'buyer123')}
-                          disabled={loading}
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-xs rounded-md transition-colors disabled:cursor-not-allowed"
-                        >
-                          {loading ? '...' : 'Đăng nhập'}
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <CheckCircle className="w-3 h-3 text-green-600" />
-                        <span>Xem đơn mua, giỏ hàng, tin nhắn</span>
-                      </div>
-                    </div>
-
-                    {/* Seller Account */}
-                    <div className="bg-white rounded-lg p-3 border border-blue-200">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">🏪 Người bán</p>
-                          <p className="text-xs text-gray-600 mt-1">seller@fpt.edu.vn</p>
-                          <p className="text-xs text-gray-500">Mật khẩu: seller123</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => quickLogin('seller@fpt.edu.vn', 'seller123')}
-                          disabled={loading}
-                          className="px-3 py-1.5 bg-[#FF6B35] hover:bg-[#FF5722] disabled:bg-gray-400 text-white text-xs rounded-md transition-colors disabled:cursor-not-allowed"
-                        >
-                          {loading ? '...' : 'Đăng nhập'}
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <CheckCircle className="w-3 h-3 text-green-600" />
-                        <span>Quản lý sản phẩm + tất cả tính năng</span>
-                      </div>
-                    </div>
-
-                    {/* Admin Account */}
-                    {/* <div className="bg-white rounded-lg p-3 border border-blue-200">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">⚙️ Quản trị viên</p>
-                          <p className="text-xs text-gray-600 mt-1">admin@fpt.edu.vn</p>
-                          <p className="text-xs text-gray-500">Mật khẩu: admin123</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => quickLogin('admin@fpt.edu.vn', 'admin123')}
-                          disabled={loading}
-                          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white text-xs rounded-md transition-colors disabled:cursor-not-allowed"
-                        >
-                          {loading ? '...' : 'Đăng nhập'}
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <CheckCircle className="w-3 h-3 text-green-600" />
-                        <span>Quản lý hệ thống, trang Admin</span>
-                      </div>
-                    </div> */}
-                  </div>
-                </div>
-              )}
 
               {(loginErrorMessage || loginErrorRedux) && (
                 <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 flex items-start gap-2">

@@ -127,9 +127,12 @@ export function ProductCard({ product }: ProductCardProps) {
             <ShoppingCart className="w-4 h-4" />
             {isAdding ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </button>
-          <button className="p-2 border border-gray-300 hover:border-[#0A2647] hover:bg-gray-50 rounded-lg transition-colors">
+          <Link
+            to="/messages"
+            className="p-2 border border-gray-300 hover:border-[#0A2647] hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center"
+          >
             <MessageCircle className="w-4 h-4 text-gray-700" />
-          </button>
+          </Link>
         </div>
       </div>
       {/* Toast Notification */}

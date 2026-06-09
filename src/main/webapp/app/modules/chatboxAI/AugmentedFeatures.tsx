@@ -28,7 +28,10 @@ export function AugmentedFeatures() {
         <p className="text-sm text-white/90 mb-4">
           Có thắc mắc? Trợ lý AI của chúng tôi có thể giúp bạn với việc mua bán và các vấn đề tài khoản 24/7.
         </p>
-        <button className="w-full bg-[#FF6B35] hover:bg-[#FF5722] text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-ai-chat'))}
+          className="w-full bg-[#FF6B35] hover:bg-[#FF5722] text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
+        >
           Bắt đầu trò chuyện
         </button>
       </div>
