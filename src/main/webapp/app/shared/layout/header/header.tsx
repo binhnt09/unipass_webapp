@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Nav, Navbar } from 'react-bootstrap';
 import { Storage } from 'react-jhipster';
 import { NavLink as Link, useNavigate } from 'react-router';
-import { Search, Bell, ShoppingCart, Crown, MessageCircle, ChevronDown, Shield, Loader2, Plus } from 'lucide-react';
+import { Search, Bell, ShoppingCart, Crown, MessageCircle, ChevronDown, Shield, Loader2, Plus, Menu } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -124,11 +124,19 @@ const Header = (props: IHeaderProps) => {
   };
   const closeAuthModal = () => setShowAuthModal(false);
 
+  const [isNavExpanded, setIsNavExpanded] = useState(false);
+
   return (
     <div id="app-header" className="fixed inset-x-0 top-0 z-50">
       {/* {renderDevRibbon()} */}
       <LoadingBar className="loading-bar" />
-      <Navbar expand="md" className="relative navbar-dark bg-[#0A2647] text-white shadow-lg" collapseOnSelect>
+      <Navbar
+        expanded={isNavExpanded}
+        onToggle={expanded => setIsNavExpanded(expanded)}
+        expand="md"
+        className="relative navbar-dark bg-[#0A2647] text-white shadow-lg"
+        collapseOnSelect
+      >
         <div className="container-fluid px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3 py-2">
             <div className="flex items-center gap-6">
@@ -154,12 +162,21 @@ const Header = (props: IHeaderProps) => {
               </div>
             </div>
 
-            <Navbar.Toggle aria-controls="header-tabs" aria-label="Menu" className="border border-white/20" />
+            <Navbar.Toggle
+              aria-controls="header-tabs"
+              aria-label="Menu"
+              className="border-0 p-1"
+              onClick={() => setIsNavExpanded(!isNavExpanded)}
+            >
+              <Menu className="w-6 h-6 text-white" />
+            </Navbar.Toggle>
             <Navbar.Collapse
               id="header-tabs"
-              className="w-full md:w-auto absolute md:relative top-full left-0 bg-[#0A2647] md:bg-transparent shadow-2xl md:shadow-none px-4 pb-4 md:p-0 border-t border-white/10 md:border-t-0 z-50"
+              className={`${
+                isNavExpanded ? 'block' : 'hidden'
+              } md:block w-full md:w-auto absolute md:relative top-full left-0 bg-[#0A2647] md:bg-transparent shadow-2xl md:shadow-none px-4 pb-4 md:p-0 border-t border-white/10 md:border-t-0 z-50`}
             >
-              <Nav className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-3 mt-4 md:mt-0 w-full">
+              <Nav className="flex flex-row flex-wrap items-center gap-3 md:gap-3 mt-3 md:mt-0 w-full">
                 <Home />
                 {isUserLoggedIn && isUserSeller && (
                   <>
