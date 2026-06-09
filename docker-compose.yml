@@ -6,7 +6,7 @@ services:
     image: unipass-webapp:latest
     container_name: unipass_webapp_app
     ports:
-      - "9000:80"
+      - "80:80"
     networks:
       - unipass-network
 
