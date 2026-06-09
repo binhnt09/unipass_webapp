@@ -165,7 +165,7 @@ const Header = (props: IHeaderProps) => {
             <Navbar.Toggle
               aria-controls="header-tabs"
               aria-label="Menu"
-              className="border-0 p-1"
+              className="md:hidden border-0 p-1"
               onClick={() => setIsNavExpanded(!isNavExpanded)}
             >
               <Menu className="w-6 h-6 text-white" />
@@ -176,7 +176,7 @@ const Header = (props: IHeaderProps) => {
                 isNavExpanded ? 'block' : 'hidden'
               } md:block w-full md:w-auto absolute md:relative top-full left-0 bg-[#0A2647] md:bg-transparent shadow-2xl md:shadow-none px-4 pb-4 md:p-0 border-t border-white/10 md:border-t-0 z-50`}
             >
-              <Nav className="flex flex-row flex-wrap items-center gap-3 md:gap-3 mt-3 md:mt-0 w-full">
+              <Nav className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-3 mt-3 md:mt-0 w-full">
                 <Home />
                 {isUserLoggedIn && isUserSeller && (
                   <>
@@ -188,7 +188,7 @@ const Header = (props: IHeaderProps) => {
                     </Link> */}
                     <Link
                       to="/create-listing"
-                      className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
+                      className="flex sm:inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-sm font-medium"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Bán hàng</span>
@@ -200,7 +200,7 @@ const Header = (props: IHeaderProps) => {
                     type="button"
                     onClick={handleSellerButtonClick}
                     disabled={isCheckingStatus}
-                    className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#FF5722] text-[#0A2647] rounded-2xl transition-colors text-sm font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex sm:inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B35] hover:bg-[#FF5722] text-[#0A2647] rounded-2xl transition-colors text-sm font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCheckingStatus ? (
                       <>
@@ -215,7 +215,7 @@ const Header = (props: IHeaderProps) => {
                 {isUserLoggedIn && isAdmin && (
                   <Link
                     to="/admin/seller-requests"
-                    className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl transition-colors text-sm font-medium"
+                    className="flex sm:inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl transition-colors text-sm font-medium"
                   >
                     <Shield className="w-4 h-4" />
                     <span>Duyệt Người bán</span>
@@ -225,7 +225,7 @@ const Header = (props: IHeaderProps) => {
                 {props.isAuthenticated && props.isAdmin && <AdminMenu showOpenAPI={props.isOpenAPIEnabled} />}
                 <Link
                   to="/premium"
-                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0A2647] transition-colors text-sm font-medium"
+                  className="flex sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0A2647] transition-colors text-sm font-medium"
                 >
                   <Crown className="w-4 h-4" />
                   <span>Premium</span>

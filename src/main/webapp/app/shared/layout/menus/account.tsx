@@ -134,7 +134,11 @@ export const AccountMenu = ({
           <ChevronDown size={14} />
         </button>
 
-        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+        <div
+          className={`absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 transition-all duration-200 z-50 ${
+            showUserMenu ? 'opacity-100 visible' : 'opacity-0 invisible md:group-hover:opacity-100 md:group-hover:visible'
+          }`}
+        >
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#0A2647] rounded-full flex items-center justify-center">
