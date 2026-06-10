@@ -17,6 +17,7 @@ const initialState: EntityState<INotification> = {
   updating: false,
   totalItems: 0,
   updateSuccess: false,
+  unreadCount: 0,
 };
 
 const apiUrl = 'api/notifications';
@@ -28,6 +29,39 @@ export const getEntities = createAsyncThunk(
   async ({ page, size, sort }: IQueryParams) => {
     const requestUrl = `${apiUrl}?${sort ? `page=${page}&size=${size}&sort=${sort}&` : ''}cacheBuster=${Date.now()}`;
     return axios.get<INotification[]>(requestUrl);
+  },
+  { serializeError: serializeAxiosError },
+);
+
+export const getMyNotifications = createAsyncThunk(
+  'notification/fetch_my_notifications',
+  async ({ page, size, sort }: IQueryParams) => {
+    const requestUrl = `${apiUrl}/my-notifications?${sort ? `page=${page}&size=${size}&sort=${sort}&` : ''}cacheBuster=${Date.now()}`;
+    return axios.get<INotification[]>(requestUrl);
+  },
+  { serializeError: serializeAxiosError },
+);
+
+export const getUnreadCount = createAsyncThunk(
+  'notification/fetch_unread_count',
+  async () => {
+    return axios.get<number>(`${apiUrl}/unread-count`);
+  },
+  { serializeError: serializeAxiosError },
+);
+
+export const markAsRead = createAsyncThunk(
+  'notification/mark_as_read',
+  async (id: string | number) => {
+    return axios.put<void>(`${apiUrl}/${id}/read`);
+  },
+  { serializeError: serializeAxiosError },
+);
+
+export const markAllAsRead = createAsyncThunk(
+  'notification/mark_all_as_read',
+  async () => {
+    return axios.put<void>(`${apiUrl}/read-all`);
   },
   { serializeError: serializeAxiosError },
 );
@@ -85,12 +119,19 @@ export const NotificationSlice = createEntitySlice({
         state.loading = false;
         state.entity = action.payload.data;
       })
+      .addCase(getUnreadCount.fulfilled, (state, action) => {
+        state.unreadCount = action.payload.data;
+      })
       .addCase(deleteEntity.fulfilled, state => {
         state.updating = false;
         state.updateSuccess = true;
         state.entity = {};
       })
-      .addMatcher(isFulfilled(getEntities), (state, action) => {
+      .addMatcher(isFulfilled(markAsRead, markAllAsRead), state => {
+        state.updating = false;
+        state.updateSuccess = true;
+      })
+      .addMatcher(isFulfilled(getEntities, getMyNotifications), (state, action) => {
         const { data, headers } = action.payload;
         const links = getPageNumberFromLinkHeader(headers.link);
 
@@ -108,12 +149,12 @@ export const NotificationSlice = createEntitySlice({
         state.updateSuccess = true;
         state.entity = action.payload.data;
       })
-      .addMatcher(isPending(getEntities, getEntity), state => {
+      .addMatcher(isPending(getEntities, getEntity, getMyNotifications, getUnreadCount), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.loading = true;
       })
-      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity), state => {
+      .addMatcher(isPending(createEntity, updateEntity, partialUpdateEntity, deleteEntity, markAsRead, markAllAsRead), state => {
         state.errorMessage = null;
         state.updateSuccess = false;
         state.updating = true;

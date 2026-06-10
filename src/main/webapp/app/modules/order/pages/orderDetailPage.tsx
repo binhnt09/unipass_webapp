@@ -60,6 +60,7 @@ interface OrderDetail {
   id: string;
   orderNumber: string;
   sellerName: string;
+  sellerId?: string;
   sellerUniversity: string;
   sellerPhone: string;
   status: 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled';
@@ -81,7 +82,6 @@ interface OrderDetail {
     description?: string;
   }[];
   notes?: string; // NEW FEATURE: Order Notes
-  sellerId?: string; // NEW FEATURE: For contact seller link
   statusHistories?: StatusHistory[];
 }
 
@@ -315,6 +315,7 @@ export function OrderDetailPage() {
           id: beOrder.id.toString(),
           orderNumber: `ORD${beOrder.id}`,
           sellerName: beOrder.seller?.login || 'Người bán',
+          sellerId: beOrder.seller?.id?.toString(),
           sellerUniversity: 'Đại học FPT', // Fix cứng hoặc lấy từ beOrder.seller.university
           sellerPhone: beOrder.seller?.phone || 'Đang cập nhật',
           status: feStatus,
@@ -709,6 +710,23 @@ export function OrderDetailPage() {
     );
   }
 
+  const handleContactSeller = async () => {
+    if (!order.sellerId) {
+      toast.error('Không tìm thấy thông tin người bán');
+      return;
+    }
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?sellerId=${order.sellerId}`);
+      if (response.status === 200 || response.status === 201) {
+        const roomId = response.data.id;
+        navigate('/messages', { state: { selectedRoomId: roomId } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat room:', err);
+      toast.error('Không thể mở cửa sổ chat. Vui lòng thử lại sau.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -806,13 +824,13 @@ export function OrderDetailPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">{order.sellerUniversity}</p>
                   </div>
                 </div>
-                <Link
-                  to={`/messages?seller=${order.sellerName}&order=${order.orderNumber}`}
+                <button
+                  onClick={handleContactSeller}
                   className="flex items-center gap-2 px-4 py-2 border-2 border-[#0A2647] dark:border-blue-500 text-[#0A2647] dark:text-blue-400 hover:bg-[#0A2647] hover:text-white dark:hover:bg-blue-900/20 rounded-lg font-medium text-sm transition-all"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Nhắn tin
-                </Link>
+                </button>
               </div>
 
               <div className="space-y-4">
@@ -1016,13 +1034,13 @@ export function OrderDetailPage() {
 
               <div className="space-y-3">
                 {/* NEW FEATURE: Contact Seller with Order Context */}
-                <Link
-                  to={`/messages?seller=${order.sellerName}&order=${order.orderNumber}`}
+                <button
+                  onClick={handleContactSeller}
                   className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-[#0A2647] dark:border-blue-500 text-[#0A2647] dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg font-medium transition-colors w-full"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Nhắn tin về đơn hàng này
-                </Link>
+                </button>
 
                 {/* NEW FEATURE: Re-order Functionality */}
                 <button

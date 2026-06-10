@@ -53,6 +53,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
       price: prod.price || 0,
       originalPrice: prod.price ? Math.round(prod.price * 1.15) : null,
       seller: prod.seller?.login || 'Sinh viên',
+      sellerId: (prod.seller as any)?.id?.toString(),
       university: (prod.seller as any)?.university?.name || 'Đại học FPT Hà Nội',
       rating: prod.sellerRating || 0,
       reviews: prod.sellerReviews || 0,

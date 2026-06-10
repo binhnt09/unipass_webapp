@@ -10,6 +10,7 @@ import LoadingBar from 'react-redux-loading-bar';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { setLocale } from 'app/shared/reducers/locale';
+import { getUnreadCount as fetchUnreadNotificationCount } from 'app/entities/notification/notification.reducer';
 import { AccountMenu, LocaleMenu, AdminMenu, EntitiesMenu } from '../menus';
 import { AuthModal } from 'app/modules/login/AuthModal';
 import { SellerRegistrationModal } from 'app/modules/seller/registration/SellerRegistrationModal';
@@ -35,6 +36,8 @@ const Header = (props: IHeaderProps) => {
   const [showSellerRegModal, setShowSellerRegModal] = useState(false);
   const [authModalDefaultTab, setAuthModalDefaultTab] = useState<'login' | 'register'>('login');
   const [cartCount, setCartCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadNotificationCount = useAppSelector(state => state.notification.unreadCount);
 
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const navigate = useNavigate();
@@ -107,12 +110,50 @@ const Header = (props: IHeaderProps) => {
     if (isUserLoggedIn && !isAdmin) {
       fetchCartCount(); // Lấy lần đầu khi load trang
       window.addEventListener('cartUpdated', fetchCartCount); // Lắng nghe tín hiệu "cartUpdated" từ các trang khác bắn tới
+      dispatch(fetchUnreadNotificationCount());
       // Cleanup khi component bị hủy
       return () => {
         window.removeEventListener('cartUpdated', fetchCartCount);
       };
     }
-  }, [isUserLoggedIn, isAdmin]);
+  }, [isUserLoggedIn, isAdmin, dispatch]);
+
+  // ====== UNREAD MESSAGE COUNT POLLING ======
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await axios.get('/api/chat-messages/unread-count');
+      setUnreadCount(res.data?.count ?? 0);
+    } catch {
+      // Silently fail – không làm ảnh hưởng UX
+    }
+  };
+
+  useEffect(() => {
+    if (!isUserLoggedIn) {
+      setUnreadCount(0);
+      return;
+    }
+    fetchUnreadCount(); // Fetch ngay khi load
+    const interval = setInterval(fetchUnreadCount, 30000); // Poll mỗi 30 giây
+    return () => clearInterval(interval);
+  }, [isUserLoggedIn]);
+
+  // Khi cửa sổ lấy lại focus, fetch lại ngay (user vừa switch tab về)
+  useEffect(() => {
+    const onFocus = () => {
+      if (isUserLoggedIn) fetchUnreadCount();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [isUserLoggedIn]);
+
+  // Lắng nghe event 'messageRead' để reset badge (bắn từ trang /messages)
+  useEffect(() => {
+    const onMessageRead = () => setUnreadCount(0);
+    window.addEventListener('messagesRead', onMessageRead);
+    return () => window.removeEventListener('messagesRead', onMessageRead);
+  }, []);
+  // ==========================================
 
   const openAuthModal = () => {
     setAuthModalDefaultTab('login');
@@ -230,32 +271,34 @@ const Header = (props: IHeaderProps) => {
                   <Crown className="w-4 h-4" />
                   <span>Premium</span>
                 </Link>
-                <div className="flex flex-row items-center gap-3 w-full md:w-auto">
-                  {isUserLoggedIn && (
-                    <Link to="/messages" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Tin nhắn">
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
-                        2
+                {isUserLoggedIn && (
+                  <Link to="/messages" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Tin nhắn">
+                    <MessageCircle className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white font-bold animate-pulse">
+                        {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
-                    </Link>
-                  )}
-                  {isUserLoggedIn && !isAdmin && (
-                    <Link to="/cart" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Giỏ hàng">
-                      <ShoppingCart className="w-5 h-5" />
+                    )}
+                  </Link>
+                )}
+                {isUserLoggedIn && !isAdmin && (
+                  <Link to="/cart" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Giỏ hàng">
+                    <ShoppingCart className="w-5 h-5" />
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
+                      {cartCount > 99 ? '99+' : cartCount}
+                    </span>
+                  </Link>
+                )}
+                {isUserLoggedIn && (
+                  <Link to="/notifications" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Thông báo">
+                    <Bell className="w-5 h-5" />
+                    {unreadNotificationCount > 0 && (
                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
-                        {cartCount > 99 ? '99+' : cartCount}
+                        {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
                       </span>
-                    </Link>
-                  )}
-                  {isUserLoggedIn && (
-                    <Link to="/notifications" className="relative p-2 hover:bg-white/10 rounded-2xl transition-colors" title="Thông báo">
-                      <Bell className="w-5 h-5" />
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] rounded-full text-[10px] flex items-center justify-center text-white">
-                        3
-                      </span>
-                    </Link>
-                  )}
-                </div>
+                    )}
+                  </Link>
+                )}
                 <LocaleMenu currentLocale={props.currentLocale} onClick={handleLocaleChange} />
                 <AccountMenu onLoginClick={openAuthModal} onRegisterClick={openRegisterModal} />
               </Nav>

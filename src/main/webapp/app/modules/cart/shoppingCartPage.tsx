@@ -112,6 +112,20 @@ export function ShoppingCartPage() {
     });
   };
 
+  const handleContactSeller = async (sellerId: string) => {
+    if (!sellerId) return;
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?sellerId=${sellerId}`);
+      if (response.status === 200 || response.status === 201) {
+        const roomId = response.data.id;
+        navigate('/messages', { state: { selectedRoomId: roomId } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat room:', err);
+      showToast('Không thể mở cửa sổ chat. Vui lòng thử lại sau.', 'error');
+    }
+  };
+
   // Toggle all items for a seller
   const toggleAllForSeller = (sellerId: string) => {
     const seller = sellerGroups.find(g => g.sellerId === sellerId);
@@ -527,15 +541,14 @@ export function ShoppingCartPage() {
 
                   {/* COMMENTED OUT: Voucher Section - uncomment when implementing with backend API */}
 
-                  {/* Seller Actions */}
                   <div className="px-6 pb-6 flex items-center justify-end gap-3">
-                    <Link
-                      to="/messages"
+                    <button
+                      onClick={() => handleContactSeller(group.sellerId)}
                       className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#0A2647] text-[#0A2647] hover:bg-blue-50 rounded-lg font-medium transition-colors"
                     >
                       <MessageCircle className="w-4 h-4" />
                       Chat
-                    </Link>
+                    </button>
                     <button
                       onClick={() => handleCheckout(group.sellerId)}
                       disabled={!someSelected}

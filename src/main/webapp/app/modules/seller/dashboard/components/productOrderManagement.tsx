@@ -27,6 +27,7 @@ interface OrderRequest {
   orderId: string;
   status: OrderRequestStatus;
   buyerName: string;
+  buyerId?: string;
   buyerEmail: string;
   buyerPhone?: string;
   university: string;
@@ -163,6 +164,7 @@ export function ProductOrderManagementPage() {
             orderId: String(order.id),
             status,
             buyerName: buyerDetails.name || buyer.login || `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || 'Người mua ẩn danh',
+            buyerId: buyer.id ? String(buyer.id) : undefined,
             buyerEmail: buyer.email || buyer.login || 'Không có email',
             buyerPhone: buyerDetails.phone || buyer.phone || undefined,
             university: buyer.university?.name || 'Không rõ',
@@ -405,9 +407,21 @@ export function ProductOrderManagementPage() {
     // setSelectedOrderForCancel(null);
   };
 
-  const handleContact = (orderId: string) => {
+  const handleContact = async (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
-    if (order) navigate(`/messages?buyer=${order.buyerName}&order=${order.orderId || orderId}`);
+    if (!order || !order.buyerId) {
+      toast.error('Không tìm thấy thông tin người mua');
+      return;
+    }
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?targetUserId=${order.buyerId}`);
+      if (response.status === 200 || response.status === 201) {
+        navigate('/messages', { state: { selectedRoomId: response.data.id } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat:', err);
+      toast.error('Không thể mở cửa sổ chat. Vui lòng thử lại sau.');
+    }
   };
 
   const handleMarkShipping = async (orderId: string) => {

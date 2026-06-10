@@ -32,6 +32,7 @@ interface SellerOrderDetail {
   status: 'pending' | 'accepted' | 'confirmed' | 'shipping' | 'completed' | 'declined' | 'cancelled';
   statusText: string;
   buyerName: string;
+  buyerId?: string;
   buyerEmail: string;
   buyerPhone: string;
   buyerUniversity: string;
@@ -266,6 +267,7 @@ const mapBEOrderToSellerDetail = (beOrder: any, id: string): SellerOrderDetail =
     status,
     statusText: getStatusText(beOrder.status),
     buyerName: deliveryInfo.name || buyer.login || 'Người mua',
+    buyerId: buyer.id?.toString(),
     buyerEmail: buyer.email || buyer.login || 'Không có email',
     buyerPhone: deliveryInfo.phone || '',
     buyerUniversity: buyer.university?.name || buyer.universityName || 'Đại học chưa xác định',
@@ -430,6 +432,23 @@ export function SellerOrderDetailPage() {
       setTimeout(() => navigate('/seller/dashboard'), 2000);
     } catch (cancelError) {
       console.error('[SellerOrderDetail] Cancel failed:', cancelError);
+    }
+  };
+
+  const handleContactBuyer = async () => {
+    if (!order.buyerId) {
+      toast.error('Không tìm thấy thông tin người mua');
+      return;
+    }
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?targetUserId=${order.buyerId}`);
+      if (response.status === 200 || response.status === 201) {
+        const roomId = response.data.id;
+        navigate('/messages', { state: { selectedRoomId: roomId } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat room:', err);
+      toast.error('Không thể mở cửa sổ chat. Vui lòng thử lại sau.');
     }
   };
 
@@ -731,13 +750,13 @@ export function SellerOrderDetailPage() {
                   </div>
                 </div>
 
-                <Link
-                  to={`/messages?buyer=${order.buyerName}&order=${order.orderNumber}`}
+                <button
+                  onClick={handleContactBuyer}
                   className="flex items-center justify-center gap-2 w-full px-6 py-3 border-2 border-[#0A2647] dark:border-blue-500 text-[#0A2647] dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg font-medium transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Nhắn tin buyer
-                </Link>
+                </button>
               </div>
             </div>
 

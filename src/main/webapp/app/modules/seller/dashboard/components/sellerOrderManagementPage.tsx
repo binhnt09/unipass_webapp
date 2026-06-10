@@ -15,6 +15,7 @@ interface OrderRequest {
   orderId: string;
   status: OrderRequestStatus;
   buyerName: string;
+  buyerId?: string;
   buyerEmail: string;
   buyerPhone?: string;
   university: string;
@@ -122,6 +123,7 @@ export function SellerOrderManagementPage() {
           orderId: String(order.id),
           status: mapBackendStatus(order.status),
           buyerName: buyerDetails.name || buyer.login || 'Người mua',
+          buyerId: buyer.id ? String(buyer.id) : undefined,
           buyerEmail: buyer.email || buyer.login || 'Không có email',
           buyerPhone: buyerDetails.phone || undefined,
           university: buyer.universityName || 'Đại học FPT',
@@ -261,6 +263,23 @@ export function SellerOrderManagementPage() {
     }
   };
 
+  const handleContact = async (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order || !order.buyerId) {
+      toast.error('Không tìm thấy thông tin người mua');
+      return;
+    }
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?targetUserId=${order.buyerId}`);
+      if (response.status === 200 || response.status === 201) {
+        navigate('/messages', { state: { selectedRoomId: response.data.id } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat:', err);
+      toast.error('Không thể mở cửa sổ chat. Vui lòng thử lại sau.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -326,7 +345,7 @@ export function SellerOrderManagementPage() {
                 onAccept={handleAccept}
                 onDecline={() => setSelectedOrderForDecline(order)}
                 onCancel={() => setSelectedOrderForCancel(order)}
-                onContact={() => navigate(`/messages?order=${order.orderId}`)}
+                onContact={() => handleContact(order.id)}
                 onMarkShipping={handleMarkShipping}
                 onMarkCompleted={handleMarkCompleted}
               />

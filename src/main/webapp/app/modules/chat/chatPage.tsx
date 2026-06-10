@@ -143,6 +143,20 @@ export function ChatPage() {
       });
   }, [location.state]);
 
+  // Khi user vào trang /messages, mark toàn bộ tin nhắn là đã đọc
+  // và bắn event để header reset badge về 0
+  useEffect(() => {
+    const markRead = async () => {
+      try {
+        await axios.post('/api/chat-messages/mark-all-read');
+        window.dispatchEvent(new Event('messagesRead'));
+      } catch {
+        // Silently fail
+      }
+    };
+    markRead();
+  }, []);
+
   // 3. Room Selection: Load History & Handle STOMP Subscriptions
   useEffect(() => {
     if (!selectedChat) return;

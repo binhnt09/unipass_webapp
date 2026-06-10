@@ -1,137 +1,58 @@
-import React, { useState } from 'react';
-import { Bell, Package, ShoppingBag, Star, MessageCircle, TrendingUp, AlertCircle, CheckCircle, Truck, Gift, Tag, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, Package, ShoppingBag, AlertCircle, X } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from 'app/config/store';
+import {
+  getMyNotifications,
+  markAsRead as markAsReadThunk,
+  markAllAsRead as markAllAsReadThunk,
+  getUnreadCount,
+  deleteEntity,
+} from 'app/entities/notification/notification.reducer';
+import dayjs from 'dayjs';
+// import { INotification } from 'app/shared/model/notification.model';
 
-type NotificationType = 'order' | 'promotion' | 'system' | 'review' | 'message';
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  icon?: any;
-  color?: string;
-}
+type NotificationType = 'all' | 'order' | 'cart' | 'trade' | 'system';
 
 export function NotificationsPage() {
-  const [filter, setFilter] = useState<'all' | NotificationType>('all');
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'order',
-      title: 'Đơn hàng đã được xác nhận',
-      message: 'Đơn hàng #UM2024032301 của bạn đã được người bán xác nhận và đang chuẩn bị hàng.',
-      timestamp: '5 phút trước',
-      read: false,
-      icon: CheckCircle,
-      color: 'green',
-    },
-    {
-      id: '2',
-      type: 'order',
-      title: 'Đơn hàng đang được giao',
-      message: 'Đơn hàng #UM2024032205 đang trên đường giao đến bạn. Dự kiến giao hàng trong hôm nay.',
-      timestamp: '1 giờ trước',
-      read: false,
-      icon: Truck,
-      color: 'blue',
-    },
-    {
-      id: '3',
-      type: 'promotion',
-      title: 'Flash Sale - Giảm đến 50%!',
-      message: 'Laptop Dell XPS 13 đang có chương trình giảm giá đặc biệt chỉ trong 2 giờ. Nhanh tay!',
-      timestamp: '2 giờ trước',
-      read: false,
-      icon: Tag,
-      color: 'orange',
-    },
-    {
-      id: '4',
-      type: 'message',
-      title: 'Tin nhắn mới từ người bán',
-      message: 'Nam Nguyễn đã trả lời câu hỏi của bạn về sản phẩm "Tai nghe Sony WH-1000XM4".',
-      timestamp: '3 giờ trước',
-      read: true,
-      icon: MessageCircle,
-      color: 'purple',
-    },
-    {
-      id: '5',
-      type: 'order',
-      title: 'Giao hàng thành công',
-      message: 'Đơn hàng #UM2024032104 đã được giao thành công. Hãy đánh giá sản phẩm nhé!',
-      timestamp: '1 ngày trước',
-      read: true,
-      icon: Package,
-      color: 'green',
-    },
-    {
-      id: '6',
-      type: 'review',
-      title: 'Nhận được đánh giá mới',
-      message: 'Minh Hoàng đã đánh giá 5 sao cho sản phẩm "Balo laptop chống nước" của bạn.',
-      timestamp: '1 ngày trước',
-      read: true,
-      icon: Star,
-      color: 'yellow',
-    },
-    {
-      id: '7',
-      type: 'promotion',
-      title: 'Mã giảm giá mới cho bạn',
-      message: 'Bạn nhận được mã giảm giá 100.000đ cho đơn hàng từ 500.000đ. Mã: UNIMART100',
-      timestamp: '2 ngày trước',
-      read: true,
-      icon: Gift,
-      color: 'pink',
-    },
-    {
-      id: '8',
-      type: 'system',
-      title: 'Cập nhật chính sách bảo mật',
-      message: 'UniMart đã cập nhật chính sách bảo mật và điều khoản sử dụng. Vui lòng xem chi tiết.',
-      timestamp: '3 ngày trước',
-      read: true,
-      icon: AlertCircle,
-      color: 'gray',
-    },
-    {
-      id: '9',
-      type: 'system',
-      title: 'Nâng cấp Premium thành công',
-      message: 'Tài khoản của bạn đã được nâng cấp lên gói Premium. Bắt đầu trải nghiệm ngay!',
-      timestamp: '1 tuần trước',
-      read: true,
-      icon: TrendingUp,
-      color: 'blue',
-    },
-  ]);
+  const dispatch = useAppDispatch();
+  const [filter, setFilter] = useState<NotificationType>('all');
 
+  const notifications = useAppSelector(state => state.notification.entities) || [];
+  const unreadCount = useAppSelector(state => state.notification.unreadCount) || 0;
+
+  useEffect(() => {
+    dispatch(getMyNotifications({ page: 0, size: 50, sort: 'id,desc' }));
+    dispatch(getUnreadCount());
+  }, [dispatch]);
   const filterOptions = [
     { value: 'all', label: 'Tất cả', icon: Bell },
     { value: 'order', label: 'Đơn hàng', icon: ShoppingBag },
-    { value: 'promotion', label: 'Khuyến mãi', icon: Tag },
-    { value: 'message', label: 'Tin nhắn', icon: MessageCircle },
-    { value: 'review', label: 'Đánh giá', icon: Star },
+    { value: 'cart', label: 'Giỏ hàng', icon: ShoppingBag },
+    { value: 'trade', label: 'Đổi đồ', icon: Package },
     { value: 'system', label: 'Hệ thống', icon: AlertCircle },
   ];
 
   const filteredNotifications = filter === 'all' ? notifications : notifications.filter(n => n.type === filter);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => (n.id === id ? { ...n, read: true } : n)));
+  const handleMarkAsRead = (id: number) => {
+    dispatch(markAsReadThunk(id)).then(() => {
+      dispatch(getMyNotifications({ page: 0, size: 50, sort: 'id,desc' }));
+      dispatch(getUnreadCount());
+    });
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  const handleMarkAllAsRead = () => {
+    dispatch(markAllAsReadThunk()).then(() => {
+      dispatch(getMyNotifications({ page: 0, size: 50, sort: 'id,desc' }));
+      dispatch(getUnreadCount());
+    });
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+  const handleDeleteNotification = (id: number) => {
+    dispatch(deleteEntity(id)).then(() => {
+      dispatch(getMyNotifications({ page: 0, size: 50, sort: 'id,desc' }));
+      dispatch(getUnreadCount());
+    });
   };
 
   //   const getColorClasses = (color: string, read: boolean) => {
@@ -162,7 +83,7 @@ export function NotificationsPage() {
             </div>
             {unreadCount > 0 && (
               <button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="px-4 py-2 text-sm font-medium text-[#0A2647] hover:text-[#FF6B35] transition-colors"
               >
                 Đánh dấu đã đọc tất cả
@@ -201,52 +122,45 @@ export function NotificationsPage() {
             </div>
           ) : (
             filteredNotifications.map(notification => {
-              const Icon = notification.icon || Bell;
+              const Icon =
+                notification.type === 'order'
+                  ? ShoppingBag
+                  : notification.type === 'trade'
+                    ? Package
+                    : notification.type === 'cart'
+                      ? ShoppingBag
+                      : Bell;
+              const color = notification.type === 'order' ? 'blue' : notification.type === 'trade' ? 'green' : 'gray';
+
               return (
                 <div
                   key={notification.id}
                   className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all hover:shadow-md ${
-                    !notification.read ? 'border-l-4 border-l-[#FF6B35]' : ''
+                    !notification.isRead ? 'border-l-4 border-l-[#FF6B35]' : ''
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     {/* Icon */}
                     <div
                       className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        notification.read
+                        notification.isRead
                           ? 'bg-gray-100'
-                          : notification.color === 'green'
+                          : color === 'green'
                             ? 'bg-green-100'
-                            : notification.color === 'blue'
+                            : color === 'blue'
                               ? 'bg-blue-100'
-                              : notification.color === 'orange'
-                                ? 'bg-orange-100'
-                                : notification.color === 'purple'
-                                  ? 'bg-purple-100'
-                                  : notification.color === 'yellow'
-                                    ? 'bg-yellow-100'
-                                    : notification.color === 'pink'
-                                      ? 'bg-pink-100'
-                                      : 'bg-gray-100'
+                              : 'bg-gray-100'
                       }`}
                     >
                       <Icon
                         className={`w-6 h-6 ${
-                          notification.read
+                          notification.isRead
                             ? 'text-gray-500'
-                            : notification.color === 'green'
+                            : color === 'green'
                               ? 'text-green-600'
-                              : notification.color === 'blue'
+                              : color === 'blue'
                                 ? 'text-blue-600'
-                                : notification.color === 'orange'
-                                  ? 'text-orange-600'
-                                  : notification.color === 'purple'
-                                    ? 'text-purple-600'
-                                    : notification.color === 'yellow'
-                                      ? 'text-yellow-600'
-                                      : notification.color === 'pink'
-                                        ? 'text-pink-600'
-                                        : 'text-gray-500'
+                                : 'text-gray-500'
                         }`}
                       />
                     </div>
@@ -254,23 +168,25 @@ export function NotificationsPage() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-2">
-                        <h3 className={`font-bold text-gray-900 ${!notification.read ? 'text-[#0A2647]' : ''}`}>{notification.title}</h3>
-                        {!notification.read && <div className="w-2 h-2 bg-[#FF6B35] rounded-full flex-shrink-0 mt-2"></div>}
+                        <h3 className={`font-bold text-gray-900 ${!notification.isRead ? 'text-[#0A2647]' : ''}`}>{notification.title}</h3>
+                        {!notification.isRead && <div className="w-2 h-2 bg-[#FF6B35] rounded-full flex-shrink-0 mt-2"></div>}
                       </div>
-                      <p className="text-gray-600 text-sm mb-3 leading-relaxed">{notification.message}</p>
+                      <p className="text-gray-600 text-sm mb-3 leading-relaxed">{notification.content}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">{notification.timestamp}</span>
+                        <span className="text-xs text-gray-500">
+                          {notification.createdAt ? dayjs(notification.createdAt).fromNow() : ''}
+                        </span>
                         <div className="flex items-center gap-2">
-                          {!notification.read && (
+                          {!notification.isRead && (
                             <button
-                              onClick={() => markAsRead(notification.id)}
+                              onClick={() => handleMarkAsRead(notification.id as number)}
                               className="text-xs font-medium text-[#0A2647] hover:text-[#FF6B35] transition-colors"
                             >
                               Đánh dấu đã đọc
                             </button>
                           )}
                           <button
-                            onClick={() => deleteNotification(notification.id)}
+                            onClick={() => handleDeleteNotification(notification.id as number)}
                             className="p-1 hover:bg-gray-100 rounded transition-colors"
                           >
                             <X className="w-4 h-4 text-gray-400 hover:text-red-600" />
