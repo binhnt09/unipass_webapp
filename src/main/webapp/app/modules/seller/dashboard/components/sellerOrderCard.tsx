@@ -33,6 +33,7 @@ export interface OrderRequest {
   orderId?: string;
   status: OrderRequestStatus;
   buyerName: string;
+  buyerId?: string;
   buyerEmail: string;
   buyerPhone?: string;
   university: string;

@@ -1,6 +1,6 @@
 import { Star, MessageCircle, ShoppingCart, BadgeCheck } from 'lucide-react';
 import { ImageWithFallback } from '../../../shared/figma/ImageWithFallback';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -11,6 +11,7 @@ interface Product {
   price: number;
   originalPrice: number | null;
   seller: string;
+  sellerId?: string;
   university: string;
   rating: number;
   reviews: number;
@@ -25,6 +26,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   //   const [showMenu, setShowMenu] = useState(false);
 
+  const navigate = useNavigate();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -57,6 +59,27 @@ export function ProductCard({ product }: ProductCardProps) {
       showToast('Có lỗi xảy ra khi thêm vào giỏ hàng hoặc bạn chưa đăng nhập!', 'error');
     } finally {
       setIsAdding(false);
+    }
+  };
+
+  const handleContactSeller = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!product.sellerId) {
+      showToast('Không tìm thấy thông tin người bán', 'error');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?sellerId=${product.sellerId}`);
+      if (response.status === 200 || response.status === 201) {
+        const roomId = response.data.id;
+        navigate('/messages', { state: { selectedRoomId: roomId } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat room:', err);
+      showToast('Không thể mở cửa sổ chat. Vui lòng thử lại sau.', 'error');
     }
   };
 
@@ -127,7 +150,10 @@ export function ProductCard({ product }: ProductCardProps) {
             <ShoppingCart className="w-4 h-4" />
             {isAdding ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </button>
-          <button className="p-2 border border-gray-300 hover:border-[#0A2647] hover:bg-gray-50 rounded-lg transition-colors">
+          <button
+            onClick={handleContactSeller}
+            className="p-2 border border-gray-300 hover:border-[#0A2647] hover:bg-gray-50 rounded-lg transition-colors"
+          >
             <MessageCircle className="w-4 h-4 text-gray-700" />
           </button>
         </div>

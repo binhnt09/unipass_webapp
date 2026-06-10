@@ -22,6 +22,7 @@ interface Order {
   id: string;
   orderNumber: string;
   sellerName: string;
+  sellerId?: string;
   sellerUniversity: string;
   status: 'pending' | 'accepted' | 'shipping' | 'completed' | 'cancelled';
   statusText: string;
@@ -30,6 +31,8 @@ interface Order {
   orderDate: string;
   orderDateRaw: number;
 }
+
+import { useNavigate } from 'react-router';
 
 export function MyOrdersPage() {
   const [activeTab, setActiveTab] = useState<OrderStatus>('all');
@@ -43,6 +46,24 @@ export function MyOrdersPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [recentlyUpdatedOrderId, setRecentlyUpdatedOrderId] = useState<string | null>(null);
   const prevOrdersRef = useRef<Order[] | null>(null);
+  const navigate = useNavigate();
+
+  const handleContactSeller = async (sellerId?: string) => {
+    if (!sellerId) {
+      alert('Không tìm thấy thông tin người bán');
+      return;
+    }
+    try {
+      const response = await axios.post(`/api/chat-rooms/initiate?sellerId=${sellerId}`);
+      if (response.status === 200 || response.status === 201) {
+        const roomId = response.data.id;
+        navigate('/messages', { state: { selectedRoomId: roomId } });
+      }
+    } catch (err) {
+      console.error('Error initiating chat room:', err);
+      alert('Không thể mở cửa sổ chat. Vui lòng thử lại sau.');
+    }
+  };
 
   const tabs = [
     { id: 'all' as OrderStatus, label: 'Tất cả' },
@@ -191,6 +212,7 @@ export function MyOrdersPage() {
           id: beOrder.id.toString(),
           orderNumber: `ORD${beOrder.id}`,
           sellerName: beOrder.seller?.login || 'Người bán',
+          sellerId: beOrder.seller?.id?.toString(),
           sellerUniversity: 'Đại học FPT',
           status: mapBEStatusToFEStatus(beOrder.status),
           statusText: getStatusText(beOrder.status),
@@ -212,6 +234,22 @@ export function MyOrdersPage() {
           })),
         };
       });
+
+    // const handleContactSeller = async (sellerId?: string) => {
+    //   if (!sellerId) {
+    //     return; // Or show error toast if you import it
+    //   }
+    //   try {
+    //     const response = await axios.post(`/api/chat-rooms/initiate?sellerId=${sellerId}`);
+    //     if (response.status === 200 || response.status === 201) {
+    //       const roomId = response.data.id;
+    //       // window.location.href = `/messages?selectedRoomId=${roomId}`;
+    //     }
+    //   } catch (err) {
+    //     console.error('Error initiating chat room:', err);
+    //   }
+    // };
+    // // Wait, I should not define handleContactSeller inside useEffect. I will put it outside.
 
     const fetchAndUpdate = async (initial = false) => {
       try {
@@ -485,13 +523,13 @@ export function MyOrdersPage() {
                       )}
                     </div>
                     <div className="flex gap-3">
-                      <Link
-                        to={`/messages`}
+                      <button
+                        onClick={() => handleContactSeller(order.sellerId)}
                         className="px-5 py-2.5 border-2 border-[#0A2647] text-[#0A2647] hover:bg-[#0A2647] hover:text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2"
                       >
                         <MessageCircle className="w-4 h-4" />
                         Liên hệ
-                      </Link>
+                      </button>
                       <Link
                         to={`/order/${order.id}`}
                         className="px-5 py-2.5 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
