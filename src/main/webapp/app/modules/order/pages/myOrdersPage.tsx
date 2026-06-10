@@ -28,6 +28,7 @@ interface Order {
   items: OrderItem[];
   total: number;
   orderDate: string;
+  orderDateRaw: number;
 }
 
 export function MyOrdersPage() {
@@ -93,9 +94,11 @@ export function MyOrdersPage() {
     .sort((a, b) => {
       switch (sortBy) {
         case 'date-desc':
-          return b.orderDate.localeCompare(a.orderDate);
+          // return b.orderDate.localeCompare(a.orderDate);
+          return b.orderDateRaw - a.orderDateRaw;
         case 'date-asc':
-          return a.orderDate.localeCompare(b.orderDate);
+          // return a.orderDate.localeCompare(b.orderDate);
+          return a.orderDateRaw - b.orderDateRaw;
         case 'price-desc':
           return b.total - a.total;
         case 'price-asc':
@@ -180,24 +183,35 @@ export function MyOrdersPage() {
     let isMounted = true;
 
     const mapBEToFE = (beOrders: any[]): Order[] =>
-      beOrders.map((beOrder: any) => ({
-        id: beOrder.id.toString(),
-        orderNumber: `ORD${beOrder.id}`,
-        sellerName: beOrder.seller?.login || 'Người bán',
-        sellerUniversity: 'Đại học FPT',
-        status: mapBEStatusToFEStatus(beOrder.status),
-        statusText: getStatusText(beOrder.status),
-        orderDate: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleDateString('vi-VN') : 'Vừa xong',
-        total: beOrder.totalAmount,
-        items: (beOrder.items || []).map((beItem: any) => ({
-          id: beItem.id.toString(),
-          productImage: beItem.productMainImage,
-          productTitle: beItem.product?.name || 'Sản phẩm',
-          variation: beItem.product?.condition || '',
-          quantity: beItem.quantity,
-          unitPrice: beItem.price,
-        })),
-      }));
+      beOrders.map((beOrder: any) => {
+        // Lấy thời gian thô từ BE trả về
+        const rawDate = beOrder.createdAt || beOrder.createdDate;
+
+        return {
+          id: beOrder.id.toString(),
+          orderNumber: `ORD${beOrder.id}`,
+          sellerName: beOrder.seller?.login || 'Người bán',
+          sellerUniversity: 'Đại học FPT',
+          status: mapBEStatusToFEStatus(beOrder.status),
+          statusText: getStatusText(beOrder.status),
+
+          // 🔥 SỬA: Đổi toLocaleDateString() sang toLocaleString() để hiển thị cả Giờ:Phút:Giây
+          orderDate: rawDate ? new Date(rawDate).toLocaleString('vi-VN') : 'Vừa xong',
+
+          // 🔥 SỬA: Đóng gói timestamp phục vụ hàm sort dữ liệu
+          orderDateRaw: rawDate ? new Date(rawDate).getTime() : 0,
+
+          total: beOrder.totalAmount,
+          items: (beOrder.items || []).map((beItem: any) => ({
+            id: beItem.id.toString(),
+            productImage: beItem.productMainImage,
+            productTitle: beItem.product?.name || 'Sản phẩm',
+            variation: beItem.product?.condition || '',
+            quantity: beItem.quantity,
+            unitPrice: beItem.price,
+          })),
+        };
+      });
 
     const fetchAndUpdate = async (initial = false) => {
       try {

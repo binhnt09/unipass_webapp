@@ -165,7 +165,7 @@ export function SellerOrderCard({
                 </h3>
 
                 {/* 🔴 SỬA LỖI HIỂN THỊ CHI TIẾT SẢN PHẨM TRONG ĐƠN (OrderItem[]) */}
-                {order.items && order.items.length > 0 && (
+                {/* {order.items && order.items.length > 0 && (
                   <div className="mt-2 mb-3 space-y-1.5 border-l-2 border-gray-200 dark:border-gray-600 pl-3">
                     {order.items.map(item => (
                       <div key={item.id} className="flex items-center justify-between text-xs md:text-sm text-gray-600 dark:text-gray-400">
@@ -177,7 +177,7 @@ export function SellerOrderCard({
                       </div>
                     ))}
                   </div>
-                )}
+                )} */}
 
                 <div className="flex flex-wrap items-center gap-3 mb-2">
                   {getStatusBadge()}

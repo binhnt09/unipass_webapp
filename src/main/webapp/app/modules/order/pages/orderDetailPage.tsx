@@ -34,6 +34,7 @@ import { OrderNotes } from '../pages/orderNotes';
 // NEW FEATURE: Notifications for user feedback
 import { useNotifications } from '../../../contexts/notificationContext';
 import { toast } from 'react-toastify';
+import { RatingModal } from '../components/ratingModal';
 
 interface OrderItem {
   id: string;
@@ -90,9 +91,9 @@ export function OrderDetailPage() {
   const { addNotification } = useNotifications();
 
   const [copiedText, setCopiedText] = useState<string | null>(null);
-  const [showRatingModal, setShowRatingModal] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
+  const [selectedOrderForRating, setSelectedOrderForRating] = useState<OrderDetail | null>(null);
+  // const [rating, setRating] = useState(0);
+  // const [hoverRating, setHoverRating] = useState(0);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -168,6 +169,115 @@ export function OrderDetailPage() {
     };
   };
 
+  const getOrderTrackingSteps = (status: string, beOrder: any) => {
+    const statusOrder = ['PENDING_CONFIRM', 'ACCEPTED', 'SHIPPING', 'COMPLETED'];
+    const statusLabel: Record<string, string> = {
+      PENDING_CONFIRM: 'Đơn hàng đã được đặt',
+      ACCEPTED: 'Người bán đã xác nhận',
+      SHIPPING: 'Đang giao hàng',
+      COMPLETED: 'Đã giao hàng',
+      // CANCELLED: 'Đã hủy đơn hàng',
+    };
+
+    const canonicalStatus = (rawStatus: string) => {
+      switch (String(rawStatus || '').toUpperCase()) {
+        case 'PENDING':
+        case 'PENDING_CONFIRM':
+          return 'PENDING_CONFIRM';
+        case 'ACCEPT':
+        case 'ACCEPTED':
+        case 'CONFIRMED':
+          return 'ACCEPTED';
+        case 'SHIPPING':
+        case 'DELIVERING':
+          return 'SHIPPING';
+        case 'COMPLETED':
+        case 'DELIVERED':
+          return 'COMPLETED';
+        case 'CANCELLED':
+        case 'DECLINED':
+        case 'REJECTED':
+          return 'CANCELLED';
+        default:
+          return String(rawStatus || '').toUpperCase();
+      }
+    };
+
+    const normalizedCurrentStatus = canonicalStatus(status);
+    const currentStatusIndex = statusOrder.indexOf(normalizedCurrentStatus) >= 0 ? statusOrder.indexOf(normalizedCurrentStatus) : 0;
+
+    const historySteps = (beOrder.statusHistories || [])
+      .slice()
+      .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .reduce((steps: any[], entry: any) => {
+        const rawStatus = canonicalStatus(entry.status);
+        const label = statusLabel[rawStatus];
+        if (!label || steps.some(step => step.label === label)) {
+          return steps;
+        }
+        const stepIndex = statusOrder.indexOf(rawStatus);
+        steps.push({
+          label,
+          time: entry.createdAt ? new Date(entry.createdAt).toLocaleString('vi-VN') : '',
+          completed: stepIndex >= 0 ? stepIndex <= currentStatusIndex : true,
+          description:
+            rawStatus === 'PENDING_CONFIRM'
+              ? 'Đơn hàng của bạn đã được tạo thành công'
+              : rawStatus === 'ACCEPTED'
+                ? 'Người bán đã xác nhận và đang đóng gói'
+                : rawStatus === 'SHIPPING'
+                  ? 'Đơn hàng đang trên đường giao đến bạn'
+                  : rawStatus === 'COMPLETED'
+                    ? 'Giao hàng thành công'
+                    : rawStatus === 'CANCELLED'
+                      ? 'Đơn hàng đã bị hủy'
+                      : '',
+        });
+        return steps;
+      }, [] as any[]);
+
+    const hasLabel = (label: string) => historySteps.some(step => step.label === label);
+    const addMissingStep = (rawStatus: string) => {
+      const label = statusLabel[rawStatus];
+      if (!label || hasLabel(label)) return;
+      const index = statusOrder.indexOf(rawStatus);
+      const fallbackTime =
+        rawStatus === 'PENDING_CONFIRM'
+          ? beOrder.createdAt
+          : rawStatus === 'ACCEPTED'
+            ? beOrder.acceptedDate || beOrder.confirmedDate
+            : rawStatus === 'SHIPPING'
+              ? beOrder.shippedDate || beOrder.shippingDate
+              : rawStatus === 'COMPLETED'
+                ? beOrder.completedDate
+                : rawStatus === 'CANCELLED'
+                  ? beOrder.cancelledDate
+                  : undefined;
+
+      historySteps.push({
+        label,
+        time: fallbackTime ? new Date(fallbackTime).toLocaleString('vi-VN') : '',
+        completed: index <= currentStatusIndex,
+        description:
+          rawStatus === 'PENDING_CONFIRM'
+            ? 'Đơn hàng của bạn đã được tạo thành công'
+            : rawStatus === 'ACCEPTED'
+              ? 'Người bán đã xác nhận và đang đóng gói'
+              : rawStatus === 'SHIPPING'
+                ? 'Đơn hàng đang trên đường giao đến bạn'
+                : rawStatus === 'COMPLETED'
+                  ? 'Giao hàng thành công'
+                  : rawStatus === 'CANCELLED'
+                    ? 'Đơn hàng đã bị hủy'
+                    : '',
+      });
+    };
+
+    statusOrder.forEach(addMissingStep);
+
+    return statusOrder.map(rawStatus => historySteps.find(step => step.label === statusLabel[rawStatus])!);
+  };
+
   // 2. Xử lý Gọi API kết hợp Real-time Polling
   useEffect(() => {
     let isMounted = true;
@@ -176,11 +286,13 @@ export function OrderDetailPage() {
       try {
         setError(null);
 
-        const response = await axios.get('/api/orders/current-user');
-        const beOrdersData = response.data || [];
+        // const response = await axios.get('/api/orders/current-user');
+        // const beOrdersData = response.data || [];
+        const response = await axios.get(`/api/orders/detail/${id}`);
+        const beOrder = response.data;
 
         // Tìm đơn hàng tương ứng với ID trên URL
-        const beOrder = beOrdersData.find((o: any) => o.id?.toString() === id);
+        // const beOrder = beOrdersData.find((o: any) => o.id?.toString() === id);
 
         if (!beOrder) {
           if (isMounted) {
@@ -196,68 +308,7 @@ export function OrderDetailPage() {
 
         // Xây dựng Tracking Timeline động dựa trên trạng thái thật
         let trackingSteps: any[] = [];
-        if (beOrder.statusHistories && beOrder.statusHistories.length > 0) {
-          const sortedHistories = [...beOrder.statusHistories].sort(
-            (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-          );
-          trackingSteps = sortedHistories.map((h: any) => {
-            let label = '';
-            if (h.status === 'PENDING_CONFIRM') label = 'Đơn hàng đã được đặt';
-            else if (h.status === 'ACCEPTED') label = 'Người bán đã xác nhận';
-            else if (h.status === 'SHIPPING') label = 'Đang giao hàng';
-            else if (h.status === 'COMPLETED') label = 'Đã giao hàng';
-            else if (h.status === 'CANCELLED') label = 'Đã hủy đơn hàng';
-            else label = h.status;
-
-            return {
-              label,
-              time: h.createdAt ? new Date(h.createdAt).toLocaleString('vi-VN') : '',
-              completed: true,
-              description: h.note || '',
-            };
-          });
-
-          const lastStatus = sortedHistories[sortedHistories.length - 1].status;
-          if (lastStatus !== 'COMPLETED' && lastStatus !== 'CANCELLED') {
-            if (lastStatus === 'PENDING_CONFIRM') {
-              trackingSteps.push({ label: 'Người bán đã xác nhận', time: '', completed: false, description: 'Chờ người bán xác nhận' });
-              trackingSteps.push({ label: 'Đang giao hàng', time: '', completed: false, description: 'Chờ giao hàng' });
-              trackingSteps.push({ label: 'Đã giao hàng', time: '', completed: false, description: 'Chờ nhận hàng' });
-            } else if (lastStatus === 'ACCEPTED') {
-              trackingSteps.push({ label: 'Đang giao hàng', time: '', completed: false, description: 'Chờ giao hàng' });
-              trackingSteps.push({ label: 'Đã giao hàng', time: '', completed: false, description: 'Chờ nhận hàng' });
-            } else if (lastStatus === 'SHIPPING') {
-              trackingSteps.push({ label: 'Đã giao hàng', time: '', completed: false, description: 'Chờ nhận hàng' });
-            }
-          }
-        } else {
-          trackingSteps = [
-            {
-              label: 'Đơn hàng đã được đặt',
-              time: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleString('vi-VN') : '',
-              completed: true,
-              description: 'Đơn hàng của bạn đã được tạo thành công',
-            },
-            {
-              label: 'Người bán đã xác nhận',
-              time: '',
-              completed: feStatus === 'accepted' || feStatus === 'completed',
-              description: 'Người bán đã xác nhận và đang đóng gói',
-            },
-            {
-              label: 'Đang giao hàng',
-              time: '',
-              completed: feStatus === 'shipping' || feStatus === 'completed',
-              description: 'Đơn hàng đang trên đường giao đến bạn',
-            },
-            {
-              label: 'Đã giao hàng',
-              time: '',
-              completed: feStatus === 'completed',
-              description: 'Giao hàng thành công',
-            },
-          ];
-        }
+        trackingSteps = getOrderTrackingSteps(beOrder.status, beOrder);
 
         // Map data để đẩy lên UI
         const mappedOrder: OrderDetail = {
@@ -268,7 +319,7 @@ export function OrderDetailPage() {
           sellerPhone: beOrder.seller?.phone || 'Đang cập nhật',
           status: feStatus,
           statusText: getStatusText(beOrder.status),
-          orderDate: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleDateString('vi-VN') : '',
+          orderDate: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleString('vi-VN') : '',
           deliveryAddress: deliveryInfo.address,
           deliveryPhone: deliveryInfo.phone,
           receiverName: deliveryInfo.name,
@@ -843,7 +894,7 @@ export function OrderDetailPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowRatingModal(true)}
+                  onClick={() => setSelectedOrderForRating(order)}
                   className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-medium transition-colors shadow-md"
                 >
                   Viết đánh giá
@@ -996,7 +1047,7 @@ export function OrderDetailPage() {
       </div>
 
       {/* Rating Modal */}
-      {showRatingModal && (
+      {/* {showRatingModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in">
             <h3 className="text-2xl font-bold text-[#0A2647] mb-2">Đánh giá đơn hàng</h3>
@@ -1040,7 +1091,7 @@ export function OrderDetailPage() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <ConfirmDialog
         isOpen={showConfirmModal}
@@ -1052,6 +1103,7 @@ export function OrderDetailPage() {
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmReceived} // 🔴 BƯỚC 2: Gọi hàm API ở đây!
       />
+      {selectedOrderForRating && <RatingModal order={selectedOrderForRating} onClose={() => setSelectedOrderForRating(null)} />}
     </div>
   );
 }

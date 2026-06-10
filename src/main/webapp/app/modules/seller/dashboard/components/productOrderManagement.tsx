@@ -163,7 +163,7 @@ export function ProductOrderManagementPage() {
             orderId: String(order.id),
             status,
             buyerName: buyerDetails.name || buyer.login || `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || 'Người mua ẩn danh',
-            buyerEmail: buyer.email || 'Không có email',
+            buyerEmail: buyer.email || buyer.login || 'Không có email',
             buyerPhone: buyerDetails.phone || buyer.phone || undefined,
             university: buyer.university?.name || 'Không rõ',
             requestDate: rawCreatedDate

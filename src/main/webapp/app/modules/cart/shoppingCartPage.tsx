@@ -205,7 +205,7 @@ export function ShoppingCartPage() {
         sellerSelections.delete(itemId);
         return { ...prev, [sellerId]: sellerSelections };
       });
-
+      window.dispatchEvent(new Event('cartUpdated'));
       showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
     } catch (error: any) {
       console.error('Lỗi khi xóa sản phẩm:', error);
@@ -506,7 +506,7 @@ export function ShoppingCartPage() {
                                       </button>
                                     )}
                                   </div>
-                                  <div className="text-lg font-bold text-gray-400 line-through">${item.price.toFixed(2)}</div>
+                                  <div className="text-lg font-bold text-gray-400 line-through">{item.price.toLocaleString('vi-VN')}đ</div>
                                 </div>
                               </>
                             )}
@@ -603,7 +603,6 @@ export function ShoppingCartPage() {
                 Đã chọn: {Object.values(selectedItems).reduce((sum, set) => sum + set.size, 0)} sản phẩm
               </span>
               <span className="text-lg font-bold text-[#FF6B35]">
-                $
                 {sellerGroups
                   .reduce((total, group) => {
                     const selected = selectedItems[group.sellerId] || new Set();
@@ -614,7 +613,8 @@ export function ShoppingCartPage() {
                     // return total + subtotal - calculateDiscount(group.sellerId, subtotal);
                     return total + subtotal;
                   }, 0)
-                  .toFixed(2)}
+                  .toLocaleString('vi-VN')}
+                đ
               </span>
             </div>
             <button
