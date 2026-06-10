@@ -70,6 +70,14 @@ module.exports = async options => {
       module: {
         rules: [
           {
+            test: /\.(png|jpe?g|gif|svg|ico)$/i,
+            type: 'asset/resource',
+            generator: {
+              filename: 'content/images/[name][ext]',
+            },
+            include: [utils.root('./src/main/webapp/content/images')],
+          },
+          {
             test: /\.tsx?$/,
             use: getTsLoaderRule(options.env),
             include: [utils.root('./src/main/webapp/app')],
