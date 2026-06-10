@@ -154,8 +154,8 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
     return true;
   };
 
-  // const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
-  const passwordPattern = /^.*$/;
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+  // const passwordPattern = /^.*$/;
   const isPasswordValid = (password: string) => passwordPattern.test(password);
 
   useEffect(() => {
@@ -802,6 +802,10 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
                     validate={{
                       required: { value: true, message: translate('register.messages.missing.missingPassword') },
                       minLength: { value: 6, message: translate('register.messages.missing.invalidPassword') },
+                      pattern: {
+                        value: passwordPattern,
+                        message: 'Mật khẩu phải tối thiểu 6 ký tự và gồm chữ hoa, chữ thường, số và ký tự đặc biệt.',
+                      },
                     }}
                     register={formRegister}
                     error={formErrors.password}

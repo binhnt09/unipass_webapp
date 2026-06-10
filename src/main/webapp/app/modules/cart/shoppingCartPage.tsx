@@ -69,35 +69,7 @@ export function ShoppingCartPage() {
   const [showStockModal, setShowStockModal] = useState<string | null>(null);
 
   // NEW FEATURE: Related products - recommendations based on cart items
-  const [relatedProducts] = useState([
-    {
-      id: 'r1',
-      image: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400&h=400&fit=crop',
-      title: 'Scientific Calculator TI-84',
-      price: 89.99,
-      condition: 'Like New',
-      seller: 'John D.',
-      university: 'MIT',
-    },
-    {
-      id: 'r2',
-      image: 'https://images.unsplash.com/photo-1546868871-0111235fc75a?w=400&h=400&fit=crop',
-      title: 'Desk Organizer Set',
-      price: 15.5,
-      condition: 'New',
-      seller: 'Emma K.',
-      university: 'Yale',
-    },
-    {
-      id: 'r3',
-      image: 'https://images.unsplash.com/photo-1610465299996-e9befc36f6c7?w=400&h=400&fit=crop',
-      title: 'USB-C Hub Adapter',
-      price: 32.0,
-      condition: 'Excellent',
-      seller: 'Tom R.',
-      university: 'Berkeley',
-    },
-  ]);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
 
   // COMMENTED OUT: LocalStorage persistence - may conflict with API cart sync
   // This saves cart state locally but should be replaced with API calls to backend
@@ -160,6 +132,28 @@ export function ShoppingCartPage() {
     });
   };
 
+  // Helper function to get 3 random products from cart items
+  const getRandomRelatedProducts = (sellers: SellerGroup[]) => {
+    // Collect all products from all sellers
+    const allProducts = sellers.flatMap(seller =>
+      seller.items.map(item => ({
+        id: item.productId,
+        image: item.image,
+        title: item.title,
+        price: item.price,
+        condition: item.condition,
+        seller: seller.sellerName,
+        university: seller.university,
+      })),
+    );
+
+    // Shuffle array and get first 3 items
+    if (allProducts.length === 0) return [];
+
+    const shuffled = [...allProducts].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(3, shuffled.length));
+  };
+
   const updateQuantity = async (sellerId: string, itemId: string, delta: number) => {
     // 1. Tìm item hiện tại để lấy maxStock
     const group = sellerGroups.find(g => g.sellerId === sellerId);
@@ -211,7 +205,7 @@ export function ShoppingCartPage() {
         sellerSelections.delete(itemId);
         return { ...prev, [sellerId]: sellerSelections };
       });
-
+      window.dispatchEvent(new Event('cartUpdated'));
       showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
     } catch (error: any) {
       console.error('Lỗi khi xóa sản phẩm:', error);
@@ -314,7 +308,11 @@ export function ShoppingCartPage() {
           }
         });
 
-        setSellerGroups(Array.from(groupsMap.values()));
+        const groups = Array.from(groupsMap.values());
+        setSellerGroups(groups);
+
+        // Set random related products from fetched items
+        setRelatedProducts(getRandomRelatedProducts(groups));
       } catch (err) {
         console.error('Error fetching cart:', err);
         showToast('Không thể tải giỏ hàng', 'error');
@@ -479,8 +477,12 @@ export function ShoppingCartPage() {
 
                                 {/* Price */}
                                 <div className="text-right">
-                                  <div className="text-lg font-bold text-[#FF5722]">${(item.price * item.quantity).toFixed(2)}</div>
-                                  {item.quantity > 1 && <div className="text-xs text-gray-500">${item.price.toFixed(2)} mỗi cái</div>}
+                                  <div className="text-lg font-bold text-[#FF5722]">
+                                    {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                                  </div>
+                                  {item.quantity > 1 && (
+                                    <div className="text-xs text-gray-500">{item.price.toLocaleString('vi-VN')}đ mỗi cái</div>
+                                  )}
                                 </div>
                               </div>
                             ) : (
@@ -504,7 +506,7 @@ export function ShoppingCartPage() {
                                       </button>
                                     )}
                                   </div>
-                                  <div className="text-lg font-bold text-gray-400 line-through">${item.price.toFixed(2)}</div>
+                                  <div className="text-lg font-bold text-gray-400 line-through">{item.price.toLocaleString('vi-VN')}đ</div>
                                 </div>
                               </>
                             )}
@@ -578,7 +580,7 @@ export function ShoppingCartPage() {
                       </h3>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">{product.condition}</span>
-                        <span className="text-lg font-bold text-[#FF5722]">${product.price.toFixed(2)}</span>
+                        <span className="text-lg font-bold text-[#FF5722]">{product.price.toLocaleString('vi-VN')}đ</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span className="font-medium">{product.seller}</span>
@@ -601,7 +603,6 @@ export function ShoppingCartPage() {
                 Đã chọn: {Object.values(selectedItems).reduce((sum, set) => sum + set.size, 0)} sản phẩm
               </span>
               <span className="text-lg font-bold text-[#FF6B35]">
-                $
                 {sellerGroups
                   .reduce((total, group) => {
                     const selected = selectedItems[group.sellerId] || new Set();
@@ -612,7 +613,8 @@ export function ShoppingCartPage() {
                     // return total + subtotal - calculateDiscount(group.sellerId, subtotal);
                     return total + subtotal;
                   }, 0)
-                  .toFixed(2)}
+                  .toLocaleString('vi-VN')}
+                đ
               </span>
             </div>
             <button

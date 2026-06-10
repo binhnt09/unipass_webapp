@@ -24,6 +24,7 @@ import { OrderTrackingTimeline } from '../../../order/pages/orderTrackingTimelin
 import { OrderNotes } from '../../../order/pages/orderNotes';
 import { CancelSellerOrderModal } from '../components/cancelSellerOrderModal';
 import { useNotifications } from '../../../../contexts/notificationContext';
+import { toast } from 'react-toastify';
 
 interface SellerOrderDetail {
   id: string;
@@ -58,6 +59,7 @@ const mapBackendStatusToFEStatus = (status?: string) => {
   const normalized = String(status || '').toUpperCase();
   switch (normalized) {
     case 'PENDING':
+    case 'PENDING_CONFIRM':
     case 'WAITING':
       return 'pending';
     case 'ACCEPTED':
@@ -119,59 +121,113 @@ const parseDeliveryInfo = (meetupLocation?: string) => {
 const getSellerProductTitle = (firstItem: any, beOrder: any) =>
   firstItem.product?.name || firstItem.productName || beOrder.productName || 'Sản phẩm';
 
-const getSellerProductImage = (firstItem: any) =>
-  firstItem.product?.mainImage || firstItem.product?.image || firstItem.image || '/content/images/default-product.png';
+const getSellerProductImage = (firstItem: any) => firstItem.productMainImage || '/content/images/default-product.png';
 
 const getSellerProductPrice = (firstItem: any, beOrder: any) => firstItem.price ?? firstItem.unitPrice ?? beOrder.totalAmount ?? 0;
 
 const getSellerTrackingSteps = (status: string, beOrder: any) => {
+  const statusOrder = ['PENDING_CONFIRM', 'ACCEPTED', 'SHIPPING', 'COMPLETED', 'CANCELLED'];
+  const currentStatusIndex = Math.max(statusOrder.indexOf(String(status || '').toUpperCase()), 0);
+
+  const normalizeLabel = (rawStatus: string) => {
+    switch (String(rawStatus || '').toUpperCase()) {
+      case 'PENDING_CONFIRM':
+        return 'Đơn hàng đã được đặt';
+      case 'ACCEPTED':
+        return 'Người bán đã xác nhận';
+      case 'SHIPPING':
+        return 'Đang giao hàng';
+      case 'COMPLETED':
+        return 'Đã giao hàng';
+      case 'CANCELLED':
+        return 'Đã hủy đơn hàng';
+      default:
+        return String(rawStatus || '');
+    }
+  };
+
+  const trackingStepsFromHistory = (histories: any[]) => {
+    const seenLabels = new Set<string>();
+    return histories.reduce((steps: any[], h: any) => {
+      const rawStatus = String(h.status || '').toUpperCase();
+      const label = normalizeLabel(rawStatus);
+      if (!label || seenLabels.has(label)) return steps;
+      seenLabels.add(label);
+      const statusIndex = statusOrder.indexOf(rawStatus);
+      steps.push({
+        label,
+        time: h.createdAt ? new Date(h.createdAt).toLocaleString('vi-VN') : '',
+        completed: statusIndex >= 0 ? statusIndex <= currentStatusIndex : true,
+        description: h.note || '',
+      });
+      return steps;
+    }, [] as any[]);
+  };
+
   if (beOrder.statusHistories && beOrder.statusHistories.length > 0) {
     const sortedHistories = [...beOrder.statusHistories].sort(
       (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
-    const trackingSteps = sortedHistories.map((h: any) => {
-      let label = '';
-      if (h.status === 'PENDING_CONFIRM') label = 'Nhận yêu cầu mua';
-      else if (h.status === 'ACCEPTED') label = 'Đã chấp nhận yêu cầu';
-      else if (h.status === 'SHIPPING') label = 'Giao hàng';
-      else if (h.status === 'COMPLETED') label = 'Hoàn thành';
-      else if (h.status === 'CANCELLED') label = 'Đã hủy đơn hàng';
-      else label = h.status;
+    const trackingSteps = trackingStepsFromHistory(sortedHistories);
 
-      return {
-        label,
-        time: h.createdAt ? new Date(h.createdAt).toLocaleString('vi-VN') : '',
-        completed: true,
-        description: h.note || '',
-      };
-    });
+    const hasLabel = (label: string) => trackingSteps.some(step => step.label === label);
+    const pushIfMissing = (step: any) => {
+      if (!hasLabel(step.label)) trackingSteps.push(step);
+    };
 
-    const lastStatus = sortedHistories[sortedHistories.length - 1].status;
+    const lastStatus = String(sortedHistories[sortedHistories.length - 1].status).toUpperCase();
     if (lastStatus !== 'COMPLETED' && lastStatus !== 'CANCELLED') {
       if (lastStatus === 'PENDING_CONFIRM') {
-        trackingSteps.push({ label: 'Đã chấp nhận yêu cầu', time: '', completed: false, description: 'Chờ bạn chấp nhận yêu cầu mua' });
-        trackingSteps.push({ label: 'Chờ thanh toán', time: '', completed: false, description: 'Người mua có 24h để thanh toán' });
-        trackingSteps.push({ label: 'Giao hàng', time: '', completed: false, description: 'Giao sản phẩm cho người mua' });
-        trackingSteps.push({ label: 'Hoàn thành', time: '', completed: false, description: 'Người mua xác nhận đã nhận hàng' });
+        pushIfMissing({
+          label: 'Người bán đã xác nhận',
+          time: '',
+          completed: statusOrder.indexOf('ACCEPTED') <= currentStatusIndex,
+          description: 'Chờ người bán xác nhận',
+        });
+        pushIfMissing({
+          label: 'Đang giao hàng',
+          time: '',
+          completed: statusOrder.indexOf('SHIPPING') <= currentStatusIndex,
+          description: 'Chờ giao hàng',
+        });
+        pushIfMissing({
+          label: 'Đã giao hàng',
+          time: '',
+          completed: statusOrder.indexOf('COMPLETED') <= currentStatusIndex,
+          description: 'Chờ nhận hàng',
+        });
       } else if (lastStatus === 'ACCEPTED') {
-        trackingSteps.push({ label: 'Chờ thanh toán', time: '', completed: false, description: 'Người mua có 24h để thanh toán' });
-        trackingSteps.push({ label: 'Giao hàng', time: '', completed: false, description: 'Giao sản phẩm cho người mua' });
-        trackingSteps.push({ label: 'Hoàn thành', time: '', completed: false, description: 'Người mua xác nhận đã nhận hàng' });
+        pushIfMissing({
+          label: 'Đang giao hàng',
+          time: '',
+          completed: statusOrder.indexOf('SHIPPING') <= currentStatusIndex,
+          description: 'Chờ giao hàng',
+        });
+        pushIfMissing({
+          label: 'Đã giao hàng',
+          time: '',
+          completed: statusOrder.indexOf('COMPLETED') <= currentStatusIndex,
+          description: 'Chờ nhận hàng',
+        });
       } else if (lastStatus === 'SHIPPING') {
-        trackingSteps.push({ label: 'Hoàn thành', time: '', completed: false, description: 'Người mua xác nhận đã nhận hàng' });
+        pushIfMissing({
+          label: 'Đã giao hàng',
+          time: '',
+          completed: statusOrder.indexOf('COMPLETED') <= currentStatusIndex,
+          description: 'Chờ nhận hàng',
+        });
       }
     }
     return trackingSteps;
   }
 
   const shipmentDate = beOrder.shippedDate || beOrder.shippingDate;
-
   return [
     {
       label: 'Đơn hàng đã được đặt',
       time: beOrder.createdAt ? new Date(beOrder.createdAt).toLocaleString('vi-VN') : '',
       completed: true,
-      description: 'Đơn hàng của bạn đã được tạo thành công',
+      description: 'Đơn hàng đã được tạo thành công',
     },
     {
       label: 'Người bán đã xác nhận',
@@ -183,7 +239,7 @@ const getSellerTrackingSteps = (status: string, beOrder: any) => {
       label: 'Đang giao hàng',
       time: shipmentDate ? new Date(shipmentDate).toLocaleString('vi-VN') : '',
       completed: status === 'shipping' || status === 'completed',
-      description: 'Đơn hàng đang trên đường giao đến bạn',
+      description: 'Đơn hàng đang trên đường giao',
     },
     {
       label: 'Đã giao hàng',
@@ -209,10 +265,10 @@ const mapBEOrderToSellerDetail = (beOrder: any, id: string): SellerOrderDetail =
     orderNumber: beOrder.id ? `ORD${beOrder.id}` : `ORD${id}`,
     status,
     statusText: getStatusText(beOrder.status),
-    buyerName: buyer.login || `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || 'Người mua',
-    buyerEmail: buyer.email || buyer.username || 'Không có email',
-    buyerPhone: buyer.phone || '',
-    buyerUniversity: buyer.university?.name || buyer.university || 'Đại học chưa xác định',
+    buyerName: deliveryInfo.name || buyer.login || 'Người mua',
+    buyerEmail: buyer.email || buyer.login || 'Không có email',
+    buyerPhone: deliveryInfo.phone || '',
+    buyerUniversity: buyer.university?.name || buyer.universityName || 'Đại học chưa xác định',
     productId: firstItem.product?.id?.toString() || firstItem.productId?.toString() || '',
     productTitle: getSellerProductTitle(firstItem, beOrder),
     productImage: getSellerProductImage(firstItem),
@@ -272,35 +328,43 @@ export function SellerOrderDetailPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchOrder = async () => {
-      if (!id) {
-        setError('Không tìm thấy mã đơn hàng.');
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
+      if (!id) return;
       try {
-        const response = await axios.get(`/api/orders/${id}`);
+        const response = await axios.get(`/api/orders/detail/${id}`);
         const beOrder = response.data || {};
-        setOrder(mapBEOrderToSellerDetail(beOrder, id));
+
+        if (isMounted) {
+          // Luôn đi qua hàm mapBEOrderToSellerDetail để làm sạch dữ liệu
+          setOrder(mapBEOrderToSellerDetail(beOrder, id));
+          setError(null);
+        }
       } catch (fetchError: any) {
         console.error('[SellerOrderDetail] Fetch failed:', fetchError);
-        const fallbackOrder = mockOrderData[id];
-        if (fallbackOrder) {
-          setOrder(fallbackOrder);
-          setError(null);
-        } else {
-          setError('Không thể tải chi tiết đơn hàng. Vui lòng thử lại.');
+        if (isMounted) {
+          const fallbackOrder = mockOrderData[id];
+          if (fallbackOrder) setOrder(fallbackOrder);
+          else setError('Không thể tải chi tiết đơn hàng.');
         }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
+    // Chạy ngay lần đầu vào trang
     fetchOrder();
+
+    // Bật Real-time cập nhật mỗi 3 giây giống Buyer
+    const intervalId = setInterval(() => {
+      fetchOrder();
+    }, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId); // Hủy vòng lặp khi rời trang
+    };
   }, [id]);
 
   if (loading) {
@@ -388,6 +452,24 @@ export function SellerOrderDetailPage() {
     }
   };
 
+  const handleAcceptOrder = async () => {
+    try {
+      const response = await axios.put(`/api/orders/${order.id}/accept`);
+      const updatedOrder = response.data;
+      const mappedOrder = mapBEOrderToSellerDetail(updatedOrder, id || order.id);
+      // setOrder({
+      //   ...mappedOrder,
+      //   status: 'accepted',
+      //   statusText: 'ĐÃ XÁC NHẬN',
+      // });
+      setOrder(mappedOrder);
+      toast.success('Nguoi mua se nhan duoc thong bao.');
+    } catch (e) {
+      console.error('[SellerOrderDetail] Accept failed:', e);
+      toast.error('Khong the chap nhan yeu cau. Vui long thu lai.');
+    }
+  };
+
   const handleMarkCompleted = () => {
     setOrder({
       ...order,
@@ -455,11 +537,11 @@ export function SellerOrderDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link
-          to="/seller-dashboard"
+          to="/seller/orders"
           className="inline-flex items-center gap-2 text-[#0A2647] dark:text-white hover:text-[#FF6B35] mb-6 font-medium transition-colors group"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Quay lại Dashboard
+          Quay lại quản lý Orders
         </Link>
 
         {/* Order Status Header */}
@@ -510,6 +592,33 @@ export function SellerOrderDetailPage() {
             </div>
 
             {/* Action Buttons */}
+            {order.status === 'pending' && (
+              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-6 border-2 border-orange-200 dark:border-orange-800">
+                <div className="flex items-start gap-3 mb-4">
+                  <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white mb-1">Yeu cau mua moi</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Vui long xem xet yeu cau tu nguoi mua va quyet dinh chap nhan hoac tu choi.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setShowCancelModal(true)}
+                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-bold transition-colors"
+                  >
+                    Tu choi
+                  </button>
+                  <button
+                    onClick={handleAcceptOrder}
+                    className="px-6 py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8C5A] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-bold transition-all shadow-md"
+                  >
+                    Chap nhan
+                  </button>
+                </div>
+              </div>
+            )}
             {order.status === 'accepted' && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 border-2 border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-start gap-3 mb-4">
@@ -539,16 +648,24 @@ export function SellerOrderDetailPage() {
                 <div className="flex items-start gap-3 mb-4">
                   <Truck className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-gray-900 dark:text-white mb-1">Sẵn sàng giao hàng</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Người mua đã thanh toán. Vui lòng bắt đầu giao hàng.</p>
+                    <h4 className="font-bold text-gray-900 dark:text-white mb-1">San sang giao hang</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Nguoi mua da thanh toan. Vui long bat dau giao hang.</p>
                   </div>
                 </div>
-                <button
-                  onClick={handleMarkShipping}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-bold transition-all shadow-lg"
-                >
-                  Bắt đầu giao hàng
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setShowCancelModal(true)}
+                    className="px-6 py-3 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg font-bold transition-colors border border-red-200 dark:border-red-800"
+                  >
+                    Huy don
+                  </button>
+                  <button
+                    onClick={handleMarkShipping}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-bold transition-all shadow-md"
+                  >
+                    Bat dau giao hang
+                  </button>
+                </div>
               </div>
             )}
 
@@ -596,11 +713,11 @@ export function SellerOrderDetailPage() {
                 <div className="space-y-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 text-sm">
                     <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-700 dark:text-gray-300 font-mono text-xs">{order.buyerEmail}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-mono text-shadow-2xs">{order.buyerEmail}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Phone className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-700 dark:text-gray-300">{order.buyerPhone}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-mono text-shadow-2xs">{order.buyerPhone}</span>
                     <button
                       onClick={() => copyToClipboard(order.buyerPhone, 'phone')}
                       className="ml-auto text-gray-400 hover:text-[#FF6B35] transition-colors"
@@ -610,7 +727,7 @@ export function SellerOrderDetailPage() {
                   </div>
                   <div className="flex items-start gap-2 text-sm">
                     <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                    <span className="text-gray-700 dark:text-gray-300">{order.deliveryAddress}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-mono text-shadow-2xs">{order.deliveryAddress}</span>
                   </div>
                 </div>
 

@@ -19,9 +19,9 @@ interface OrderTrackingTimelineProps {
 
 // NEW FEATURE: Order Tracking Timeline - Main timeline component
 export function OrderTrackingTimeline({ steps, currentStatus }: OrderTrackingTimelineProps) {
-  // Find current active step index
-  const currentStepIndex = steps.findIndex(step => step.completed);
-  const activeStepIndex = currentStepIndex === -1 ? 0 : currentStepIndex;
+  // Find current active step index (last completed step)
+  const lastCompletedStep = steps.reduce((lastIndex, step, index) => (step.completed ? index : lastIndex), -1);
+  const activeStepIndex = lastCompletedStep === -1 ? 0 : lastCompletedStep;
 
   // NEW FEATURE: Order Tracking Timeline - Get icon for each step type
   const getStepIcon = (index: number, label: string) => {

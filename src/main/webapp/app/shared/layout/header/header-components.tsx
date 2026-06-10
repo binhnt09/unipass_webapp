@@ -6,9 +6,11 @@ import { NavLink as Link } from 'react-router';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import logoImg from '../../../../content/images/Icon_logo.png';
+
 export const BrandIcon = props => (
-  <div {...props} className="w-10 h-10 rounded-2xl bg-[#FF6B35] flex items-center justify-center text-white font-bold text-lg">
-    U
+  <div {...props} className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white shadow-sm overflow-hidden p-1">
+    <img src={logoImg} alt="Logo" className="w-full h-full object-contain" />
   </div>
 );
 
@@ -16,7 +18,7 @@ export const Brand = () => (
   <NavbarBrand as={Link as any} to="/" className="flex items-center gap-3 text-white no-underline">
     <BrandIcon />
     <div className="flex flex-col leading-tight">
-      <span className="text-xl font-bold">Unipass</span>
+      <span className="text-xl font-bold">UniPass</span>
       <span className="text-xs text-white/70">Maketplace</span>
     </div>
   </NavbarBrand>

@@ -31,11 +31,71 @@ interface ProductActionButtonsProps {
   stock?: number;
   productId?: number;
   sellerId?: number;
+  sellerName?: string;
+  sellerAvatar?: string;
+  university?: string;
   onOpenTradeModal: () => void;
+  productName?: string;
+  productPrice?: number;
+  productImage?: string;
 }
 
-function ProductActionButtons({ isOwner, stock, productId, sellerId, onOpenTradeModal }: ProductActionButtonsProps) {
+function ProductActionButtons({
+  isOwner,
+  stock,
+  productId,
+  sellerId,
+  sellerName,
+  sellerAvatar,
+  university,
+  onOpenTradeModal,
+  productName,
+  productPrice,
+  productImage,
+}: ProductActionButtonsProps) {
   const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    if (!productId || !sellerId) return;
+
+    try {
+      const response = await axios.post('/api/cart-items', {
+        quantity: 1,
+        product: { id: productId },
+      });
+
+      const cartItemId = response.data?.id;
+      if (!cartItemId) return;
+
+      navigate('/checkout', {
+        state: {
+          sellerId: String(sellerId),
+          selectedItemIds: [String(cartItemId)],
+          sellerGroups: [
+            {
+              sellerId: String(sellerId),
+              sellerName: sellerName || 'Người bán',
+              sellerAvatar: sellerAvatar || 'U',
+              university: university || 'Đại học FPT',
+              items: [
+                {
+                  id: String(cartItemId),
+                  image: productImage || 'https://via.placeholder.com/150',
+                  title: productName || 'Sản phẩm',
+                  price: productPrice ?? 0,
+                  condition: 'N/A',
+                  quantity: 1,
+                  inStock: stock !== 0,
+                },
+              ],
+            },
+          ],
+        },
+      });
+    } catch (error) {
+      console.error('Error creating cart item for checkout:', error);
+    }
+  };
 
   const handleContactSeller = async () => {
     if (!sellerId) return;
@@ -85,13 +145,13 @@ function ProductActionButtons({ isOwner, stock, productId, sellerId, onOpenTrade
 
   return (
     <>
-      <Link
-        to="/cart"
+      <button
+        onClick={handleCheckout}
         className="flex items-center justify-center gap-2 px-6 py-4 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-bold transition-colors shadow-md"
       >
         <ShoppingCart className="w-5 h-5" />
         Đặt mua ngay
-      </Link>
+      </button>
       <button
         onClick={handleContactSeller}
         className="flex items-center justify-center gap-2 px-6 py-4 bg-[#0A2647] hover:bg-[#144272] text-white rounded-lg font-bold transition-colors shadow-md"
@@ -381,6 +441,12 @@ export function ProductDetailPage() {
                   stock={product.stock}
                   productId={product.id}
                   sellerId={product.seller?.id}
+                  sellerName={sellerName}
+                  sellerAvatar={sellerName.substring(0, 2).toUpperCase()}
+                  university={universityName}
+                  productName={product.name}
+                  productPrice={product.price}
+                  productImage={imageUrls[0]}
                   onOpenTradeModal={() => setShowTradeModal(true)}
                 />
               </div>
