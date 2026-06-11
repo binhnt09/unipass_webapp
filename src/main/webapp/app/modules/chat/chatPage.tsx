@@ -129,12 +129,12 @@ export function ChatPage() {
         const passedRoomId = location.state?.selectedRoomId;
         if (passedRoomId) {
           const foundRoom = roomsList.find(r => r.id === Number(passedRoomId));
-          if (foundRoom) {
+          if (foundRoom && foundRoom.id !== undefined) {
             setSelectedChat(foundRoom.id);
-          } else if (roomsList.length > 0) {
+          } else if (roomsList.length > 0 && roomsList[0].id !== undefined) {
             setSelectedChat(roomsList[0].id);
           }
-        } else if (roomsList.length > 0) {
+        } else if (roomsList.length > 0 && roomsList[0].id !== undefined) {
           setSelectedChat(roomsList[0].id);
         }
       })
@@ -256,7 +256,7 @@ export function ChatPage() {
             return (
               <button
                 key={roomId}
-                onClick={() => setSelectedChat(room.id)}
+                onClick={() => room.id !== undefined && setSelectedChat(room.id)}
                 className={`w-full p-4 flex items-start gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 ${
                   selectedChat === roomId ? 'bg-orange-50 border-l-4 border-l-[#FF6B35]' : ''
                 }`}
