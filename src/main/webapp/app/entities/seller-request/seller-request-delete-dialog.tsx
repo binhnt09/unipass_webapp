@@ -18,9 +18,11 @@ export const SellerRequestDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const sellerRequestEntity = useAppSelector(state => state.sellerRequest.entity);
   const updateSuccess = useAppSelector(state => state.sellerRequest.updateSuccess);

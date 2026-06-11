@@ -15,8 +15,10 @@ export const CampusDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const campusEntity = useAppSelector(state => state.campus.entity);
   return (

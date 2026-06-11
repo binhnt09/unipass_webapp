@@ -82,31 +82,42 @@ export function ChatPage() {
 
   // 1. WebSocket STOMP Connection Lifecycle
   useEffect(() => {
-    const loc = globalThis.location;
-    const baseHref = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
-    let url = `//${loc.host}${baseHref}/websocket/tracker`;
+    let retryTimeout: ReturnType<typeof setTimeout>;
 
-    const authToken = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
-    if (authToken) {
-      url += `?access_token=${authToken}`;
-    }
+    const connectStomp = () => {
+      const loc = globalThis.location;
+      const baseHref = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
+      let url = `//${loc.host}${baseHref}/websocket/tracker`;
 
-    const socket = new SockJS(url);
-    const stompClient = Stomp.over(socket, { protocols: ['v12.stomp'] });
+      const authToken = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
+      if (authToken) {
+        url += `?access_token=${authToken}`;
+      }
 
-    stompClient.connect(
-      {},
-      () => {
-        console.warn('STOMP client connected successfully');
-        stompClientRef.current = stompClient;
-        setIsConnected(true);
-      },
-      (error: any) => {
-        console.error('STOMP connection error:', error);
-      },
-    );
+      const socket = new SockJS(url);
+      const stompClient = Stomp.over(socket, { protocols: ['v12.stomp'] });
+      stompClient.debug = () => {}; // tắt log STOMP spam
+
+      stompClient.connect(
+        {},
+        () => {
+          stompClientRef.current = stompClient;
+          setIsConnected(true);
+        },
+        (error: any) => {
+          console.error('STOMP connection error, retrying in 3s:', error);
+          stompClientRef.current = null;
+          setIsConnected(false);
+          // Tự thử kết nối lại sau 3s
+          retryTimeout = setTimeout(connectStomp, 3000);
+        },
+      );
+    };
+
+    connectStomp();
 
     return () => {
+      clearTimeout(retryTimeout);
       if (stompClientRef.current) {
         if (stompClientRef.current.connected) {
           stompClientRef.current.disconnect();
@@ -208,20 +219,43 @@ export function ChatPage() {
     };
   }, [selectedChat, isConnected]);
 
-  // 4. Send Message Handler wrapped with Form Submission preventDefault
-  const handleSendMessage = (e: React.FormEvent) => {
+  // 4. Send Message Handler - dùng STOMP nếu đã connect, fallback sang REST API
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageInput.trim() || !activeRoom || !stompClientRef.current) return;
+    if (!messageInput.trim() || !activeRoom) return;
 
+    const content = messageInput.trim();
+    setMessageInput('');
+
+    // Ưu tiên gửi qua WebSocket (realtime)
+    if (stompClientRef.current && stompClientRef.current.connected) {
+      try {
+        const payload = {
+          content,
+          room: { id: activeRoom.id },
+        };
+        stompClientRef.current.send('/chat.send/' + activeRoom.id, JSON.stringify(payload), {});
+        return;
+      } catch (err) {
+        console.error('STOMP send failed, falling back to REST:', err);
+      }
+    }
+
+    // Fallback: gửi qua REST API khi STOMP chưa connect hoặc lỗi
     try {
-      const payload = {
-        content: messageInput.trim(),
+      const res = await axios.post<IChatMessage>('/api/chat-messages', {
+        content,
         room: { id: activeRoom.id },
-      };
-      stompClientRef.current.send('/chat.send/' + activeRoom.id, JSON.stringify(payload), {});
-      setMessageInput(''); // Clear input box instantly and smoothly
+      });
+      // Thêm tin nhắn vừa gửi vào danh sách hiển thị ngay
+      setMessages(prev => {
+        if (prev.some(m => m.id === res.data.id)) return prev;
+        return [...prev, res.data];
+      });
     } catch (err) {
-      console.error('STOMP transmission broken:', err);
+      console.error('REST send also failed:', err);
+      // Hoàn trả lại nội dung nếu gửi thất bại
+      setMessageInput(content);
     }
   };
 

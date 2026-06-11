@@ -16,8 +16,10 @@ export const PremiumHistoryDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const premiumHistoryEntity = useAppSelector(state => state.premiumHistory.entity);
   return (

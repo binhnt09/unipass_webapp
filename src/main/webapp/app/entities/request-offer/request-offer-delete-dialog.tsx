@@ -18,9 +18,11 @@ export const RequestOfferDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const requestOfferEntity = useAppSelector(state => state.requestOffer.entity);
   const updateSuccess = useAppSelector(state => state.requestOffer.updateSuccess);

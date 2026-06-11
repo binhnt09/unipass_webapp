@@ -17,9 +17,11 @@ export const AiChatSessionDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const aiChatSessionEntity = useAppSelector(state => state.aiChatSession.entity);
   const updateSuccess = useAppSelector(state => state.aiChatSession.updateSuccess);

@@ -18,9 +18,11 @@ export const PremiumPackageDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const premiumPackageEntity = useAppSelector(state => state.premiumPackage.entity);
   const updateSuccess = useAppSelector(state => state.premiumPackage.updateSuccess);

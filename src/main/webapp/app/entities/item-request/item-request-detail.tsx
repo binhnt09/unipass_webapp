@@ -16,8 +16,10 @@ export const ItemRequestDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const itemRequestEntity = useAppSelector(state => state.itemRequest.entity);
   return (

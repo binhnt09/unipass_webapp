@@ -18,9 +18,11 @@ export const PremiumHistoryDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const premiumHistoryEntity = useAppSelector(state => state.premiumHistory.entity);
   const updateSuccess = useAppSelector(state => state.premiumHistory.updateSuccess);

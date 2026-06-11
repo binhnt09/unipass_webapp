@@ -16,8 +16,10 @@ export const TradeRequestDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [dispatch, id]);
 
   const tradeRequestEntity = useAppSelector(state => state.tradeRequest.entity);
   return (

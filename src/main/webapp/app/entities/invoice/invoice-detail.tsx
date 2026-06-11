@@ -16,8 +16,10 @@ export const InvoiceDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const invoiceEntity = useAppSelector(state => state.invoice.entity);
   return (

@@ -16,8 +16,10 @@ export const RequestOfferDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const requestOfferEntity = useAppSelector(state => state.requestOffer.entity);
   return (

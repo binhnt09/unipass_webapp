@@ -18,9 +18,11 @@ export const ReportDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const reportEntity = useAppSelector(state => state.report.entity);
   const updateSuccess = useAppSelector(state => state.report.updateSuccess);

@@ -16,8 +16,10 @@ export const ReportDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const reportEntity = useAppSelector(state => state.report.entity);
   return (

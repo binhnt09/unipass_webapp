@@ -15,8 +15,10 @@ export const CategoryDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const categoryEntity = useAppSelector(state => state.category.entity);
   return (

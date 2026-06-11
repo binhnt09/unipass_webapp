@@ -16,8 +16,10 @@ export const ProductDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const productEntity = useAppSelector(state => state.product.entity);
   return (

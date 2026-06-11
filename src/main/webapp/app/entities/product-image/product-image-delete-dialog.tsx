@@ -18,9 +18,11 @@ export const ProductImageDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const productImageEntity = useAppSelector(state => state.productImage.entity);
   const updateSuccess = useAppSelector(state => state.productImage.updateSuccess);

@@ -16,8 +16,10 @@ export const AiChatSessionDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const aiChatSessionEntity = useAppSelector(state => state.aiChatSession.entity);
   return (

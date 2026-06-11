@@ -18,9 +18,11 @@ export const UniversityDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const universityEntity = useAppSelector(state => state.university.entity);
   const updateSuccess = useAppSelector(state => state.university.updateSuccess);

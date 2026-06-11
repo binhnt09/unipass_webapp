@@ -18,9 +18,11 @@ export const CartItemDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const cartItemEntity = useAppSelector(state => state.cartItem.entity);
   const updateSuccess = useAppSelector(state => state.cartItem.updateSuccess);

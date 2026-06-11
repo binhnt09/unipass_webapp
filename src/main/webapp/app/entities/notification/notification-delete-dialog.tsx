@@ -17,9 +17,11 @@ export const NotificationDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const notificationEntity = useAppSelector(state => state.notification.entity);
   const updateSuccess = useAppSelector(state => state.notification.updateSuccess);

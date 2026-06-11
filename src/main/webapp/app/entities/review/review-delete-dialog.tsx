@@ -18,9 +18,11 @@ export const ReviewDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const reviewEntity = useAppSelector(state => state.review.entity);
   const updateSuccess = useAppSelector(state => state.review.updateSuccess);

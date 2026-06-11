@@ -18,9 +18,11 @@ export const OrdersDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const ordersEntity = useAppSelector(state => state.orders.entity);
   const updateSuccess = useAppSelector(state => state.orders.updateSuccess);

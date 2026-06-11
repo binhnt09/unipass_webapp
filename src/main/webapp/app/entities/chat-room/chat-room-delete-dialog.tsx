@@ -18,9 +18,11 @@ export const ChatRoomDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const chatRoomEntity = useAppSelector(state => state.chatRoom.entity);
   const updateSuccess = useAppSelector(state => state.chatRoom.updateSuccess);

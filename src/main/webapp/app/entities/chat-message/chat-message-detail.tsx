@@ -16,8 +16,10 @@ export const ChatMessageDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const chatMessageEntity = useAppSelector(state => state.chatMessage.entity);
   return (

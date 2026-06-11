@@ -18,9 +18,11 @@ export const SystemPaymentTransactionDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const systemPaymentTransactionEntity = useAppSelector(state => state.systemPaymentTransaction.entity);
   const updateSuccess = useAppSelector(state => state.systemPaymentTransaction.updateSuccess);

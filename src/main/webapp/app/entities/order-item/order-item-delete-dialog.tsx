@@ -18,9 +18,11 @@ export const OrderItemDeleteDialog = () => {
   const [loadModal, setLoadModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getEntity(id));
-    setLoadModal(true);
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+      setLoadModal(true);
+    }
+  }, [id, dispatch]);
 
   const orderItemEntity = useAppSelector(state => state.orderItem.entity);
   const updateSuccess = useAppSelector(state => state.orderItem.updateSuccess);

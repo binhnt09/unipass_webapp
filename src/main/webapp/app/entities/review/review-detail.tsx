@@ -16,8 +16,10 @@ export const ReviewDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [id, dispatch]);
 
   const reviewEntity = useAppSelector(state => state.review.entity);
   return (

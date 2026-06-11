@@ -15,8 +15,10 @@ export const TradeOfferedItemDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      dispatch(getEntity(id));
+    }
+  }, [dispatch, id]);
 
   const tradeOfferedItemEntity = useAppSelector(state => state.tradeOfferedItem.entity);
   return (
