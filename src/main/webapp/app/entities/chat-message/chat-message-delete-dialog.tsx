@@ -19,6 +19,7 @@ export const ChatMessageDeleteDialog = () => {
   useEffect(() => {
     if (id) {
       dispatch(getEntity(id));
+      setLoadModal(true);
     }
   }, [id, dispatch]);
 
