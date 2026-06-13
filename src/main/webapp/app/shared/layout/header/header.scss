@@ -1,6 +1,15 @@
-$header-color: #fff;
-$header-color-secondary: #bbb;
-$header-color-hover: darken($header-color, 20%);
+/* ============================================================
+   UniPass Header — Cosmic Dark Theme
+   Deep Space · Neon Cyan · Glassmorphism
+   ============================================================ */
+
+$header-color:           #fff;
+$header-color-secondary: rgba(255, 255, 255, 0.65);
+$header-color-hover:     rgba(255, 255, 255, 0.9);
+$cosmic-deep:            #090418;
+$neon-cyan:              #00F5FF;
+$neon-pink:              #FF2D78;
+$neon-purple:            #9B4DFF;
 
 /* ==========================================================================
 Development Ribbon
@@ -35,14 +44,16 @@ Development Ribbon
 }
 
 /* ==========================================================================
-Navbar styles
+Navbar styles (Glassmorphism)
 ========================================================================== */
 .app-header-navbar {
-  background-color: #0a2647 !important;
+  background: rgba(9, 4, 24, 0.88) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   color: #fff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(0, 245, 255, 0.1);
   padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 245, 255, 0.1);
   position: fixed;
   width: 100%;
   z-index: 1040;
@@ -60,6 +71,7 @@ Navbar styles
   color: #fff;
 }
 
+/* ── Brand Logo ── */
 .brand-logo {
   &:hover {
     text-decoration: none;
@@ -68,13 +80,14 @@ Navbar styles
     width: 40px;
     height: 40px;
     border-radius: 0.75rem;
-    background: #ff6b35;
-    color: #fff;
+    background: linear-gradient(135deg, $neon-cyan, $neon-purple);
+    color: $cosmic-deep;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
   }
 }
 
@@ -83,29 +96,42 @@ Navbar styles
   font-weight: 700;
   color: #fff;
   margin: 0;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  background: linear-gradient(135deg, #fff 40%, rgba(0, 245, 255, 0.85) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .navbar-version {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.5);
 }
 
+/* ── Header Search Bar ── */
 .header-search {
   min-width: 420px;
   max-width: 560px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 245, 255, 0.15);
   border-radius: 1rem;
   padding: 0.4rem 0.5rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: rgba(0, 245, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.08);
+  }
 }
 
 .header-search-category {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.18);
+  border-right: 1px solid rgba(0, 245, 255, 0.18);
   background: transparent;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.82);
   padding: 0.55rem 0.8rem;
   border-radius: 0.75rem;
   font-size: 0.85rem;
@@ -114,14 +140,14 @@ Navbar styles
 }
 
 .header-search-category:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 245, 255, 0.06);
 }
 
 .header-search-icon,
 .search-icon {
   width: 18px;
   height: 18px;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(0, 245, 255, 0.6);
 }
 
 .header-search-input {
@@ -140,36 +166,70 @@ Navbar styles
 }
 
 .header-search-field::placeholder {
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.45);
 }
 
+/* ── Header Right Actions ── */
 .header-right {
   display: flex;
   align-items: center;
   gap: 0.65rem;
 }
 
+/* ── Generic chip (Sell / Admin) ── */
 .header-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   padding: 0.55rem 0.9rem;
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.07);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.85rem;
   font-size: 0.85rem;
   text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(0, 245, 255, 0.25);
+  }
 }
 
-.header-chip:hover {
-  background: rgba(255, 255, 255, 0.16);
-}
-
+/* Premium chip — keep gold */
 .header-chip-premium {
-  background: linear-gradient(90deg, #ffd700, #ffa500);
-  color: #0a2647;
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  color: $cosmic-deep;
   border-color: transparent;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
+
+  &:hover {
+    opacity: 0.9;
+    background: linear-gradient(135deg, #ffd700, #ffa500);
+  }
+}
+
+/* Become-Seller chip */
+.header-chip-seller {
+  background: linear-gradient(135deg, $neon-pink, $neon-purple);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 20px rgba(255, 45, 120, 0.25);
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+/* Admin chip */
+.header-chip-admin {
+  background: rgba(155, 77, 255, 0.16);
+  color: #c49bff;
+  border-color: rgba(155, 77, 255, 0.35);
+
+  &:hover {
+    background: rgba(155, 77, 255, 0.25);
+  }
 }
 
 .chip-icon,
@@ -178,6 +238,7 @@ Navbar styles
   height: 18px;
 }
 
+/* ── Icon buttons (cart / bell / messages) ── */
 .header-icon-button {
   position: relative;
   display: inline-flex;
@@ -189,40 +250,49 @@ Navbar styles
   color: #fff;
   text-decoration: none;
   transition: background 0.2s ease;
-}
 
-.header-icon-button:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
+  &:hover {
+    background: rgba(0, 245, 255, 0.08);
+  }
 
-.header-icon-button .badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: #ff6b35;
-  color: #fff;
-  font-size: 0.65rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  .badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, $neon-cyan, $neon-purple);
+    color: $cosmic-deep;
+    font-size: 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+
+  .badge-alert {
+    background: linear-gradient(135deg, $neon-pink, $neon-purple);
+    color: #fff;
+  }
 }
 
 .home-link {
   color: #fff;
   padding: 0.6rem 0.85rem;
   border-radius: 0.85rem;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 245, 255, 0.08);
+  }
 }
 
-.home-link:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
+/* ── Loading bar — neon cyan ── */
 .loading-bar {
   height: 3px;
-  background-color: #009cd8;
+  background: linear-gradient(90deg, $neon-cyan, $neon-purple);
+  box-shadow: 0 0 8px rgba(0, 245, 255, 0.6);
   position: absolute;
   top: 0;
   z-index: 1031;

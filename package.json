@@ -123,6 +123,8 @@
     "@radix-ui/react-tooltip": "1.1.8",
     "@react-google-maps/api": "^2.20.8",
     "@reduxjs/toolkit": "2.11.2",
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.12.97",
     "@stomp/stompjs": "^7.3.0",
     "axios": "1.13.6",
     "bootstrap": "5.3.8",

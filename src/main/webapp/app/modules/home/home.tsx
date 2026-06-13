@@ -2,6 +2,7 @@ import './home.scss';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search, X } from 'lucide-react';
+import { motion } from 'motion/react';
 import { HeroSection } from './components/HeroSection';
 import { FiltersSidebar } from './components/FiltersSidebar';
 import { BrowsingTabs } from './components/BrowsingTabs';
@@ -123,7 +124,15 @@ export const Home = () => {
   };
 
   return (
-    <>
+    /* ── Home Page Root: Ocean Campus light background ── */
+    <div
+      id="home-page-root"
+      className="home-content-wrapper min-h-screen"
+      style={{
+        background: 'linear-gradient(160deg, #F8FAFC 0%, #F0F9FF 35%, #EDE9FE 70%, #FDF2F8 100%)',
+        color: '#1e293b',
+      }}
+    >
       <HeroSection />
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -143,37 +152,67 @@ export const Home = () => {
             }}
             onClearFilters={handleClearFilters}
           />
+
           {/* Main Content Area */}
           <div className="flex-1 min-w-0">
-            {/* Search Input Bar (Premium Aesthetics) */}
-            <div className="relative mb-6">
+            {/* Search Input Bar (Glassmorphism Cosmic) */}
+            <motion.div
+              id="home-search-input-wrapper"
+              className="relative mb-6"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            >
               <input
                 type="text"
                 placeholder="Tìm sách giáo khoa, điện tử, gia dụng và nhiều hơn nữa..."
                 value={searchKeyword}
                 onChange={e => setSearchKeyword(e.target.value)}
-                className="w-full pl-12 pr-10 py-3.5 bg-white rounded-xl shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-sm text-gray-900 placeholder:text-gray-400 transition-all font-medium"
+                className="w-full pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.7)',
+                  border: '1px solid rgba(0,245,255,0.3)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  color: '#1e293b',
+                  outline: 'none',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = 'rgba(0,245,255,0.6)';
+                  e.target.style.background = '#fff';
+                  e.target.style.boxShadow = '0 0 20px rgba(0,245,255,0.15)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = 'rgba(0,245,255,0.3)';
+                  e.target.style.background = 'rgba(255,255,255,0.7)';
+                  e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.03)';
+                }}
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'rgba(0,245,255,0.8)' }} />
               {searchKeyword && (
                 <button
                   onClick={() => setSearchKeyword('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors border-none bg-transparent outline-none cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 border-none bg-transparent outline-none cursor-pointer transition-colors"
+                  style={{ color: '#94a3b8' }}
+                  onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = '#1e293b')}
+                  onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = '#94a3b8')}
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
-            </div>
+            </motion.div>
 
             <BrowsingTabs categories={categories} activeCategoryId={selectedCategoryId} onCategoryChange={setSelectedCategoryId} />
 
             <ProductGrid products={products} loading={loading} />
           </div>
+
           {/* Augmented Features Sidebar */}
           <AugmentedFeatures />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

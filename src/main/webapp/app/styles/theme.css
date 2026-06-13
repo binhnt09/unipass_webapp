@@ -1,81 +1,106 @@
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================
+   UNIPASS COSMIC COLOR SYSTEM
+   Dark Purple · Neon Cyan · Hot Pink · Neon Purple
+   ============================================================ */
 :root {
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
-  --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
-  --destructive: #d4183d;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
-  --input: transparent;
-  --input-background: #f3f3f5;
-  --switch-background: #cbced4;
+
+  /* === Core Cosmic Palette === */
+  --cosmic-deep:    #090418;
+  --cosmic-mid:     #0F0829;
+  --cosmic-purple:  #1A0B3B;
+  --neon-cyan:      #00F5FF;
+  --neon-pink:      #FF2D78;
+  --neon-purple:    #9B4DFF;
+  --neon-gold:      #FFD700;
+
+  /* === Glass Surface === */
+  --glass-surface:  rgba(255, 255, 255, 0.04);
+  --glass-border:   rgba(0, 245, 255, 0.15);
+  --glass-border-hover: rgba(0, 245, 255, 0.35);
+  --glass-blur:     12px;
+
+  /* === Tailwind Design Tokens (mapped to cosmic) === */
+  --background:         var(--cosmic-deep);
+  --foreground:         #FFFFFF;
+  --card:               var(--cosmic-mid);
+  --card-foreground:    #FFFFFF;
+  --popover:            var(--cosmic-mid);
+  --popover-foreground: #FFFFFF;
+  --primary:            var(--neon-cyan);
+  --primary-foreground: var(--cosmic-deep);
+  --secondary:          var(--cosmic-purple);
+  --secondary-foreground: rgba(255, 255, 255, 0.85);
+  --muted:              rgba(255, 255, 255, 0.06);
+  --muted-foreground:   rgba(255, 255, 255, 0.5);
+  --accent:             var(--neon-purple);
+  --accent-foreground:  #FFFFFF;
+  --destructive:        var(--neon-pink);
+  --destructive-foreground: #FFFFFF;
+  --border:             rgba(0, 245, 255, 0.12);
+  --input:              rgba(255, 255, 255, 0.05);
+  --input-background:   rgba(255, 255, 255, 0.06);
+  --switch-background:  rgba(0, 245, 255, 0.3);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --ring:               var(--neon-cyan);
+
+  /* === Charts (updated to neon palette) === */
+  --chart-1: oklch(0.75 0.3 185);   /* cyan */
+  --chart-2: oklch(0.65 0.35 320);  /* pink */
+  --chart-3: oklch(0.6  0.28 290);  /* purple */
+  --chart-4: oklch(0.82 0.19 84);   /* gold */
+  --chart-5: oklch(0.7  0.25 210);  /* blue-cyan */
+
+  --radius: 0.75rem;
+
+  /* === Sidebar === */
+  --sidebar:                    var(--cosmic-mid);
+  --sidebar-foreground:         rgba(255, 255, 255, 0.85);
+  --sidebar-primary:            var(--neon-cyan);
+  --sidebar-primary-foreground: var(--cosmic-deep);
+  --sidebar-accent:             rgba(0, 245, 255, 0.08);
+  --sidebar-accent-foreground:  rgba(255, 255, 255, 0.85);
+  --sidebar-border:             rgba(0, 245, 255, 0.1);
+  --sidebar-ring:               var(--neon-cyan);
+
+  /* === Neon Glow Shadows === */
+  --glow-cyan:   0 0 20px rgba(0, 245, 255, 0.35), 0 0 60px rgba(0, 245, 255, 0.15);
+  --glow-pink:   0 0 20px rgba(255, 45, 120, 0.35), 0 0 60px rgba(255, 45, 120, 0.15);
+  --glow-purple: 0 0 20px rgba(155, 77, 255, 0.35), 0 0 60px rgba(155, 77, 255, 0.15);
 }
 
+/* Dark variant maps to same cosmic palette */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background:         var(--cosmic-deep);
+  --foreground:         #FFFFFF;
+  --card:               var(--cosmic-mid);
+  --card-foreground:    #FFFFFF;
+  --popover:            var(--cosmic-mid);
+  --popover-foreground: #FFFFFF;
+  --primary:            var(--neon-cyan);
+  --primary-foreground: var(--cosmic-deep);
+  --secondary:          var(--cosmic-purple);
+  --secondary-foreground: rgba(255, 255, 255, 0.85);
+  --muted:              rgba(255, 255, 255, 0.08);
+  --muted-foreground:   rgba(255, 255, 255, 0.5);
+  --accent:             var(--neon-purple);
+  --accent-foreground:  #FFFFFF;
+  --destructive:        var(--neon-pink);
+  --destructive-foreground: #FFFFFF;
+  --border:             rgba(0, 245, 255, 0.12);
+  --input:              rgba(255, 255, 255, 0.06);
+  --ring:               var(--neon-cyan);
+  --sidebar:            var(--cosmic-mid);
+  --sidebar-foreground: rgba(255, 255, 255, 0.85);
+  --sidebar-primary:    var(--neon-cyan);
+  --sidebar-primary-foreground: var(--cosmic-deep);
+  --sidebar-accent:     rgba(0, 245, 255, 0.08);
+  --sidebar-accent-foreground: rgba(255, 255, 255, 0.85);
+  --sidebar-border:     rgba(0, 245, 255, 0.1);
+  --sidebar-ring:       var(--neon-cyan);
 }
 
 @theme inline {
@@ -128,25 +153,22 @@
     @apply bg-background text-foreground;
   }
 
-  /**
-  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
-  */
-
   html {
     font-size: var(--font-size);
   }
 
   h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
     font-size: var(--text-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-weight: 700;
+    line-height: 1.2;
   }
 
   h2 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   h3 {

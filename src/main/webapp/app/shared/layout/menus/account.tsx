@@ -107,7 +107,12 @@ export const AccountMenu = ({
         <button
           type="button"
           onClick={onRegisterClick ?? onLoginClick}
-          className="px-5 py-2 rounded-2xl text-sm font-medium bg-[#FF6B35] text-[#0A2647] hover:bg-[#FF5722] transition-colors"
+          className="px-5 py-2.5 rounded-full text-sm font-bold text-[#090418] transition-all duration-300 hover:scale-105 cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
+            boxShadow: '0 0 15px rgba(0,245,255,0.3)',
+            fontFamily: "'Space Grotesk', sans-serif",
+          }}
         >
           <Translate contentKey="global.menu.account.register">Register</Translate>
         </button>

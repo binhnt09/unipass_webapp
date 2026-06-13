@@ -27,8 +27,8 @@ a {
   box-sizing: border-box;
   .view-container {
     width: 100%;
-    height: calc(100% - 40px);
-    overflow-y: auto;
+    /* Removed overflow-y: auto and fixed height — they caused a double scrollbar.
+       The browser's native body scroll is the single scroll authority. */
     overflow-x: hidden;
     padding: 1rem;
     .card {

@@ -10,6 +10,7 @@ import { login as loginRedux } from 'app/shared/reducers/authentication'; // Act
 import { handleRegister, reset as resetRegister } from 'app/modules/account/register/register.reducer';
 import { getEntities as getUniversityEntities } from 'app/entities/university/university.reducer';
 import PasswordStrengthBar from 'app/shared/layout/password/password-strength-bar';
+import logoImg from '../../../content/images/Icon_logo.png';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -412,8 +413,8 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-[#FF6B35] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">U</span>
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white shadow-sm overflow-hidden p-1">
+              <img src={logoImg} alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-2xl font-bold">
               <Translate contentKey="global.title">UniPass</Translate>
@@ -569,7 +570,18 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-[#FF6B35] hover:bg-[#FF5722] disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors shadow-md disabled:cursor-not-allowed"
+                className={`w-full py-3 rounded-full font-bold text-[0.95rem] text-[#090418] transition-all duration-300 ${
+                  loading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.03]'
+                }`}
+                style={
+                  loading
+                    ? { background: '#94a3b8', fontFamily: "'Space Grotesk', sans-serif" }
+                    : {
+                        background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
+                        boxShadow: '0 0 15px rgba(0,245,255,0.3)',
+                        fontFamily: "'Space Grotesk', sans-serif",
+                      }
+                }
               >
                 {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
@@ -888,7 +900,18 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
               <button
                 type="submit"
                 disabled={registerLoading}
-                className="w-full py-3 bg-[#FF6B35] hover:bg-[#FF5722] disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors shadow-md disabled:cursor-not-allowed"
+                className={`w-full py-3 rounded-full font-bold text-[0.95rem] text-[#090418] transition-all duration-300 ${
+                  registerLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.03]'
+                }`}
+                style={
+                  registerLoading
+                    ? { background: '#94a3b8', fontFamily: "'Space Grotesk', sans-serif" }
+                    : {
+                        background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
+                        boxShadow: '0 0 15px rgba(0,245,255,0.3)',
+                        fontFamily: "'Space Grotesk', sans-serif",
+                      }
+                }
               >
                 {registerLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
               </button>

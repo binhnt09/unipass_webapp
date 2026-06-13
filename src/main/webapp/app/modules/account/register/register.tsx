@@ -224,9 +224,21 @@ export const RegisterPage = () => {
               type="submit"
               data-cy="submit"
               disabled={!termsAccepted}
-              className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition ${
-                termsAccepted ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-400 cursor-not-allowed'
+              className={`inline-flex items-center justify-center rounded-full px-6 py-3 text-[0.95rem] font-bold text-[#090418] transition-all duration-300 ${
+                termsAccepted ? 'hover:scale-105 cursor-pointer' : 'opacity-50 cursor-not-allowed'
               }`}
+              style={
+                termsAccepted
+                  ? {
+                      background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
+                      boxShadow: '0 0 20px rgba(0,245,255,0.4)',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                    }
+                  : {
+                      background: '#94a3b8',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                    }
+              }
             >
               <Translate contentKey="register.form.button">Register</Translate>
             </button>

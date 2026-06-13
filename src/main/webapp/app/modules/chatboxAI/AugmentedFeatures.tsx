@@ -17,7 +17,7 @@ export function AugmentedFeatures() {
       {/* AI Chat Support Widget */}
       <div className="bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-xl shadow-lg p-6 text-white">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-[#FF6B35] rounded-full flex items-center justify-center">
+          <div className="w-12 h-12 bg-[#5e059d] rounded-full flex items-center justify-center">
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
@@ -30,7 +30,12 @@ export function AugmentedFeatures() {
         </p>
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('open-ai-chat'))}
-          className="w-full bg-[#FF6B35] hover:bg-[#FF5722] text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors"
+          className="w-full text-[#090418] py-2.5 px-4 rounded-full font-bold text-[0.95rem] transition-all duration-300 hover:scale-105"
+          style={{
+            background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
+            boxShadow: '0 0 15px rgba(0,245,255,0.3)',
+            fontFamily: "'Space Grotesk', sans-serif",
+          }}
         >
           Bắt đầu trò chuyện
         </button>
@@ -88,7 +93,7 @@ export function AugmentedFeatures() {
         </p>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-[#FF6B35] rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-[#57069e] rounded-lg flex items-center justify-center flex-shrink-0">
               <TrendingUp className="w-4 h-4 text-white" />
             </div>
             <div>

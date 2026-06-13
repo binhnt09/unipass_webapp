@@ -1,10 +1,124 @@
 /* ==========================================================================
-Main page styles
-========================================================================== */
+   UniPass — Cosmic Home Page Styles
+   Dark purple · Neon Cyan · Hot Pink · Floating Orbs · 3D Cards
+   ========================================================================== */
+
+/* ---- Hero Canvas Layer ---- */
+.hero-canvas-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ---- Floating Orbs (backdrop light blobs) ---- */
+.floating-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+  animation: floatY 8s ease-in-out infinite;
+}
+
+.orb-cyan {
+  width: 650px;
+  height: 650px;
+  background: radial-gradient(circle, rgba(0, 245, 255, 0.18) 0%, transparent 70%);
+  top: -200px;
+  left: -150px;
+  animation-delay: 0s;
+  animation-duration: 9s;
+}
+
+.orb-pink {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(255, 45, 120, 0.14) 0%, transparent 70%);
+  top: -100px;
+  right: -100px;
+  animation-delay: -3s;
+  animation-duration: 11s;
+}
+
+.orb-purple {
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(155, 77, 255, 0.12) 0%, transparent 70%);
+  bottom: -250px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: -6s;
+  animation-duration: 13s;
+}
+
+/* ---- 3D Tilt Feature Cards ---- */
+.feature-card-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 245, 255, 0.06) 0%,
+      rgba(155, 77, 255, 0.06) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+/* ---- Home Page Root ---- */
+#home-page-root {
+  min-height: 100vh;
+  background-color: #090418;
+  color: #fff;
+}
+
+/* ---- Main Content Area (below hero) ---- */
+.home-content-wrapper {
+  background: linear-gradient(
+    180deg,
+    #090418 0%,
+    #0a0620 40%,
+    #090418 100%
+  );
+}
+
+/* ---- Glassmorphism Panels (sidebar/tabs/search) ---- */
+.cosmic-glass {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(0, 245, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.cosmic-glass:hover {
+  border-color: rgba(0, 245, 255, 0.22);
+}
+
+/* ---- Neon Text Gradient ---- */
+.neon-gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #00f5ff 50%, #9b4dff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- Legacy .hipster (keep but hidden) ---- */
 .hipster {
-  display: inline-block;
-  width: 100%;
-  height: 497px;
-  background: url('/content/images/jhipster_family_member_2.svg') no-repeat center top;
-  background-size: contain;
+  display: none;
 }

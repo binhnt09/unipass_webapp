@@ -1,3 +1,43 @@
+/* ==========================================================================
+   UniPass — Cosmic Animation Keyframes
+   ========================================================================== */
+
+/* Orb vertical float (sine wave bob) */
+@keyframes floatY {
+  0%   { transform: translateY(0px)   translateX(0px);   }
+  25%  { transform: translateY(-14px) translateX(6px);   }
+  50%  { transform: translateY(-20px) translateX(0px);   }
+  75%  { transform: translateY(-10px) translateX(-6px);  }
+  100% { transform: translateY(0px)   translateX(0px);   }
+}
+
+/* Neon glow pulse ring expand */
+@keyframes cosmicPulse {
+  0%   { box-shadow: 0 0 0px  0px   rgba(0, 245, 255, 0.0),  0 0 0px  0px   rgba(155, 77, 255, 0.0);  }
+  40%  { box-shadow: 0 0 25px 10px  rgba(0, 245, 255, 0.35), 0 0 50px 20px  rgba(155, 77, 255, 0.15); }
+  100% { box-shadow: 0 0 0px  0px   rgba(0, 245, 255, 0.0),  0 0 0px  0px   rgba(155, 77, 255, 0.0);  }
+}
+
+/* Subtle neon text / border flicker */
+@keyframes neonFlicker {
+  0%,  19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: 0.82; }
+}
+
+/* Starfield / particle drift */
+@keyframes starfieldDrift {
+  0%   { transform: translate(0px, 0px);   }
+  33%  { transform: translate(8px, -5px);  }
+  66%  { transform: translate(-6px, 8px);  }
+  100% { transform: translate(0px, 0px);   }
+}
+
+/* CTA button ambient glow pulse */
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 245, 255, 0.35), 0 0 50px rgba(155, 77, 255, 0.15); }
+  50%       { box-shadow: 0 0 40px rgba(0, 245, 255, 0.6),  0 0 80px rgba(155, 77, 255, 0.3);  }
+}
+
 /* Success Modal Animations */
 @keyframes fadeIn {
   from {
@@ -83,21 +123,24 @@
   animation-delay: 0.2s;
 }
 
-/* NEW FEATURE: Dark Mode - CSS custom properties for theme colors */
+/* NEW FEATURE: Cosmic Theme - CSS custom properties */
 :root {
-  --primary-bg: #ffffff;
-  --secondary-bg: #f9fafb;
-  --primary-text: #0a2647;
-  --secondary-text: #6b7280;
-  --border-color: #e5e7eb;
+  --primary-bg:    #090418;
+  --secondary-bg:  #0f0829;
+  --primary-text:  #ffffff;
+  --secondary-text: rgba(255, 255, 255, 0.6);
+  --border-color:  rgba(0, 245, 255, 0.12);
+  --accent-cyan:   #00F5FF;
+  --accent-pink:   #FF2D78;
+  --accent-purple: #9B4DFF;
 }
 
 .dark {
-  --primary-bg: #1f2937;
-  --secondary-bg: #111827;
-  --primary-text: #ffffff;
-  --secondary-text: #d1d5db;
-  --border-color: #374151;
+  --primary-bg:    #090418;
+  --secondary-bg:  #0f0829;
+  --primary-text:  #ffffff;
+  --secondary-text: rgba(255, 255, 255, 0.6);
+  --border-color:  rgba(0, 245, 255, 0.12);
 }
 
 /* NEW FEATURE: Dark Mode - Smooth transition for theme changes */
@@ -188,13 +231,13 @@
 }
 
 .animate-pulse {
-  background: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+  background: linear-gradient(90deg, #1a0b3b 0%, #2a1050 50%, #1a0b3b 100%);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
 }
 
 .dark .animate-pulse {
-  background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #374151 100%);
+  background: linear-gradient(90deg, #1a0b3b 0%, #2a1050 50%, #1a0b3b 100%);
   background-size: 1000px 100%;
 }
 

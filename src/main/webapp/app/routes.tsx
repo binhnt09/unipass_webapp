@@ -8,6 +8,7 @@ import PasswordResetFinish from 'app/modules/account/password-reset/finish/passw
 import PasswordResetInit from 'app/modules/account/password-reset/init/password-reset-init';
 import Register from 'app/modules/account/register/register';
 import Home from 'app/modules/home/home';
+import Welcome3D from 'app/modules/home/components/Welcome3D';
 import Login from 'app/modules/login/login';
 import Logout from 'app/modules/login/logout';
 import PrivateRoute from 'app/shared/auth/private-route';
@@ -108,26 +109,45 @@ const RootLayout = () => {
   const navigate = useNavigate();
   const { authModalOpen, authModalOpenedByPrivateRoute, authModalNavigateBackOnClose, closeAuthModal } = useAuth();
 
-  const paddingTop = '60px';
+  // Landing page gets its own floating navbar — suppress the global chrome
+  const isLandingPage = pageLocation.pathname === '/';
+  const paddingTop = isLandingPage ? '0' : '60px';
+
   return (
     <div className="app-container" style={{ paddingTop }}>
-      <ErrorBoundary>
-        <Header
-          isAuthenticated={isAuthenticated}
-          isAdmin={isAdmin}
-          currentLocale={currentLocale}
-          ribbonEnv={ribbonEnv}
-          isInProduction={isInProduction}
-          isOpenAPIEnabled={isOpenAPIEnabled}
-        />
-      </ErrorBoundary>
-      <div className="container-fluid view-container" id="app-view-container">
+      {/* Global header: hidden on landing page (Welcome3D has its own floating navbar) */}
+      {!isLandingPage && (
+        <ErrorBoundary>
+          <Header
+            isAuthenticated={isAuthenticated}
+            isAdmin={isAdmin}
+            currentLocale={currentLocale}
+            ribbonEnv={ribbonEnv}
+            isInProduction={isInProduction}
+            isOpenAPIEnabled={isOpenAPIEnabled}
+          />
+        </ErrorBoundary>
+      )}
+
+      {/*
+        Landing page: no container padding, no Bootstrap container-fluid class.
+        Other pages: keep container-fluid + view-container for existing layouts.
+      */}
+      <div
+        className={isLandingPage ? '' : 'container-fluid view-container'}
+        id="app-view-container"
+        style={isLandingPage ? { padding: 0, margin: 0 } : {}}
+      >
         <ErrorBoundary>
           <Suspense fallback={loading}>
             <Outlet />
           </Suspense>
         </ErrorBoundary>
-        <Footer />
+
+        {/* Global footer: hidden on landing page (Welcome3D has its own minimal footer) */}
+        {!isLandingPage && <Footer />}
+
+        {/* AuthModal: always available regardless of page */}
         {authModalOpen ? (
           <AuthModal
             onClose={() => {
@@ -154,7 +174,8 @@ export const router = createBrowserRouter([
     path: '/',
     element: <RootLayout />,
     children: [
-      { index: true, element: <Home /> },
+      { index: true, element: <Welcome3D /> },
+      { path: 'market', element: <Home /> },
       { path: 'login', element: <Login /> },
       { path: 'logout', element: <Logout /> },
       { path: 'product/:id', element: <ProductDetailPage /> },

@@ -144,8 +144,17 @@ export function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={isAdding}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 text-white
-              ${isAdding ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#FF6B35] hover:bg-[#FF5722]'}`}
+            className={`flex-1 py-2 px-3 rounded-full font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-[#090418]
+              ${isAdding ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105'}`}
+            style={
+              isAdding
+                ? { background: '#94a3b8', fontFamily: "'Space Grotesk', sans-serif" }
+                : {
+                    background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
+                    boxShadow: '0 0 15px rgba(0,245,255,0.3)',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                  }
+            }
           >
             <ShoppingCart className="w-4 h-4" />
             {isAdding ? 'Đang thêm...' : 'Thêm vào giỏ'}
