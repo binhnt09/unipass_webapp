@@ -285,8 +285,8 @@ export function CheckoutPage() {
     if (!showAddressModal) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-0 md:p-4">
+        <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="sticky top-0 bg-[#0A2647] text-white p-6 flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
@@ -457,8 +457,8 @@ export function CheckoutPage() {
     if (!showOrderPreviewModal || !checkoutGroup) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-0 md:p-4">
+        <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="sticky top-0 bg-gradient-to-r from-[#0A2647] to-[#144272] text-white p-6 flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
@@ -621,8 +621,8 @@ export function CheckoutPage() {
     if (!showSuccessModal || !checkoutGroup) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-slideUp">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-0 md:p-4 animate-fadeIn">
+        <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-slideUp">
           {/* Success Animation */}
           <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 text-center relative overflow-hidden">
             {/* Animated Background Circles */}

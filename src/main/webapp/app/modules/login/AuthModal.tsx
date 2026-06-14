@@ -405,8 +405,10 @@ export function AuthModal({ onClose, onLoginSuccess, defaultTab = 'login', close
   };
 
   return (
+    // <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 pb-24 sm:pb-4">
+    // <div className="bg-white rounded-2xl shadow-2xl w-full md:w-[44vh] h-[66vh] max-h-[66vh] overflow-hidden flex flex-col">
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-[86vw] sm:w-full overflow-hidden max-h-[66vh] md:max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-[#0A2647] text-white p-6 sticky top-0 z-10">
           <button onClick={onClose} className="absolute top-4 right-4 p-1 hover:bg-white/10 rounded-lg transition-colors">

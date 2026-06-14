@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Send, Paperclip, Smile, BadgeCheck, AlertCircle, Flag, Star } from 'lucide-react';
+import { Search, Send, Paperclip, Smile, BadgeCheck, AlertCircle, Flag, Star, ArrowLeft } from 'lucide-react';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 import { useLocation } from 'react-router';
 import axios from 'axios';
@@ -260,9 +260,11 @@ export function ChatPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-64px)] bg-gray-50 flex">
+    <div className="h-[calc(100vh-64px)] bg-gray-50 flex relative overflow-hidden">
       {/* Sidebar - Conversations List */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div
+        className={`w-full md:w-80 bg-white border-r border-gray-200 flex-col absolute md:static inset-0 z-10 transition-transform duration-300 ${selectedChat ? '-translate-x-full md:translate-x-0 hidden md:flex' : 'translate-x-0 flex'}`}
+      >
         {/* Sidebar Header */}
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-[#0A2647] mb-3">Tin nhắn</h2>
@@ -323,7 +325,7 @@ export function ChatPage() {
 
       {/* Main Chat Area */}
       {!activeRoom ? (
-        <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+        <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-gray-50 p-8">
           <div className="text-center space-y-4">
             <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto text-4xl text-[#FF6B35]">💬</div>
             <h3 className="text-xl font-bold text-gray-900">Không có cuộc trò chuyện nào</h3>
@@ -333,11 +335,20 @@ export function ChatPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col">
+        <div
+          className={`flex-1 flex flex-col absolute md:static inset-0 z-20 md:z-0 bg-gray-50 transition-transform duration-300 ${!selectedChat ? 'translate-x-full md:translate-x-0' : 'translate-x-0'}`}
+        >
           {/* Chat Header */}
           <div className="bg-white border-b border-gray-200 shadow-sm">
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
+                {/* Back button for mobile */}
+                <button
+                  onClick={() => setSelectedChat(null)}
+                  className="md:hidden p-2 -ml-2 mr-1 hover:bg-gray-100 rounded-lg text-gray-600"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
                 <div className="w-12 h-12 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white font-medium overflow-hidden flex-shrink-0">
                   {chatPartner?.imageUrl ? (
                     <img src={chatPartner.imageUrl} alt={chatPartnerName} className="w-full h-full object-cover" />

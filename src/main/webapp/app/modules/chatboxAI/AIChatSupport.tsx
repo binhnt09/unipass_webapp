@@ -180,7 +180,8 @@ export function AIChatSupport({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 w-[420px] h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden">
+    <div className="fixed bottom-[80px] md:bottom-6 right-4 md:right-6 w-[80vw] md:w-[420px] h-[60vh] md:h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-[70] overflow-hidden">
+      {/* <div className="fixed bottom-[100px] md:bottom-24 right-0 md:right-6 w-full md:w-[44vh] h-[66vh] bg-white rounded-t-2xl md:rounded-2xl shadow-2xl border-t md:border border-gray-200 flex flex-col z-[70] overflow-hidden"> */}
       {/* Header */}
       <div className="bg-gradient-to-r from-[#0A2647] to-[#0D3A6B] text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -306,7 +307,7 @@ export function AIChatSupport({ onClose }: { onClose: () => void }) {
             onChange={e => setInputText(e.target.value)}
             onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
             placeholder="Nhập câu hỏi của bạn..."
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-sm"
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-sm text-gray-900"
           />
           <button
             onClick={handleSendMessage}

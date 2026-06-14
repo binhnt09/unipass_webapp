@@ -21,6 +21,15 @@ const HERO_STYLES = `
     0%,100% { opacity: 0.50; }
     50%      { opacity: 0.80; }
   }
+  /* Mobile responsive tweaks */
+  @media (max-width: 640px) {
+    #hero-section-wrapper .hero-slide-inner {
+      padding: 1rem 1.25rem 1.5rem !important;
+    }
+    #hero-section-wrapper .hero-student-col {
+      display: none !important;
+    }
+  }
 `;
 
 /* ============================================================
@@ -262,13 +271,13 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
               animate="center"
               exit="exit"
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+              className="hero-slide-inner"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '1.5rem',
                 flexWrap: 'wrap',
-                /* ── Reduced padding: was 4.5rem → 1.5rem top/bottom ── */
                 padding: '1.5rem 3.5rem 2rem',
                 maxWidth: 1100,
                 margin: '0 auto',
@@ -403,8 +412,10 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
                 </motion.div>
               </div>
 
-              {/* ── RIGHT: mini student character ── */}
-              <MiniStudentHero key={`student-${idx}`} color={slide.color} />
+              {/* ── RIGHT: mini student character — hidden on mobile via CSS ── */}
+              <div className="hero-student-col">
+                <MiniStudentHero key={`student-${idx}`} color={slide.color} />
+              </div>
             </motion.div>
           </AnimatePresence>
         </div>

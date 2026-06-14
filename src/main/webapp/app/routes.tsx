@@ -17,6 +17,7 @@ import PageNotFound from 'app/shared/error/page-not-found';
 import { Authority } from 'app/shared/jhipster/constants';
 import Footer from 'app/shared/layout/footer/footer';
 import Header from 'app/shared/layout/header/header';
+import { MobileBottomNav } from 'app/shared/layout/header/MobileBottomNav';
 import { useAuth } from 'app/contexts/AuthContext';
 import { AuthModal } from 'app/modules/login/AuthModal';
 import { useAppSelector, useAppDispatch } from 'app/config/store';
@@ -136,7 +137,10 @@ const RootLayout = () => {
       <div
         className={isLandingPage ? '' : 'container-fluid view-container'}
         id="app-view-container"
-        style={isLandingPage ? { padding: 0, margin: 0 } : {}}
+        style={{
+          ...(isLandingPage ? { padding: 0, margin: 0 } : {}),
+          // Extra bottom padding on mobile so content is not hidden behind bottom nav
+        }}
       >
         <ErrorBoundary>
           <Suspense fallback={loading}>
@@ -165,6 +169,9 @@ const RootLayout = () => {
           />
         ) : null}
       </div>
+
+      {/* Mobile Bottom Navigation — only visible on small screens (< 768px) */}
+      <MobileBottomNav isAuthenticated={isAuthenticated} />
     </div>
   );
 };

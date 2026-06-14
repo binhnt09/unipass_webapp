@@ -3,7 +3,7 @@ import './footer.scss';
 import React from 'react';
 import { Link } from 'react-router';
 import { Mail, Phone, MapPin, Heart, ArrowRight } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaYoutube } from 'react-icons/fa';
+import { FaFacebook } from 'react-icons/fa';
 import logoImg from '../../../../content/images/Icon_logo.png';
 
 const Footer = () => (
@@ -39,11 +39,11 @@ const Footer = () => (
             </span>
           </div>
           <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            Chợ trường an toàn dành riêng cho sinh viên ĐH FPT. Mua bán đồ cũ, sách giáo khoa, và nhiều hơn nữa.
+            Chợ trường an toàn dành riêng cho sinh viên ĐH khu vực Hòa Lạc. Mua bán đồ cũ, sách giáo khoa, và nhiều hơn nữa.
           </p>
           {/* Social icons */}
           <div className="flex items-center gap-3">
-            {[FaFacebook, FaInstagram, FaYoutube].map((Icon, i) => (
+            {[FaFacebook].map((Icon, i) => (
               <a
                 key={i}
                 href="#"
@@ -133,23 +133,23 @@ const Footer = () => (
             <li className="flex items-center gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
               <Mail className="w-5 h-5 flex-shrink-0" style={{ color: '#9B4DFF' }} />
               <a
-                href="mailto:support@unipass.vn"
+                href="unipass0910@gmail.com"
                 style={{ textDecoration: 'none', color: 'inherit', transition: 'color 0.2s' }}
                 onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#00F5FF')}
                 onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.55)')}
               >
-                support@unipass.vn
+                unipass0910@gmail.com
               </a>
             </li>
             <li className="flex items-center gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
               <Phone className="w-5 h-5 flex-shrink-0" style={{ color: '#FF2D78' }} />
               <a
-                href="tel:+842473001866"
+                href="tel:+84328633494"
                 style={{ textDecoration: 'none', color: 'inherit', transition: 'color 0.2s' }}
                 onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#00F5FF')}
                 onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.55)')}
               >
-                024 7300 1866
+                032 863 3494
               </a>
             </li>
           </ul>
@@ -206,7 +206,7 @@ const Footer = () => (
               className="w-4 h-4"
               style={{ fill: '#FF2D78', stroke: '#FF2D78', filter: 'drop-shadow(0 0 6px rgba(255,45,120,0.6))' }}
             />
-            <span>for FPT Students</span>
+            <span>for University Students</span>
           </div>
         </div>
       </div>

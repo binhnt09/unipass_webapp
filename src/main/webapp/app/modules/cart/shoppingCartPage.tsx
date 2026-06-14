@@ -610,7 +610,7 @@ export function ShoppingCartPage() {
 
         {/* Sticky Summary - Fixed at bottom on mobile, sidebar on desktop */}
         {sellerGroups.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t-2 border-gray-200 p-4 shadow-lg z-40">
+          <div className="fixed bottom-[80px] left-0 right-0 md:hidden bg-white border-t-2 border-gray-200 p-4 shadow-lg z-40">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-600">
                 Đã chọn: {Object.values(selectedItems).reduce((sum, set) => sum + set.size, 0)} sản phẩm

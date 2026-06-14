@@ -3,7 +3,7 @@ import { NavItem, NavLink, NavbarBrand } from 'react-bootstrap';
 import { Translate } from 'react-jhipster';
 import { NavLink as Link } from 'react-router';
 
-import { faHome, faStore } from '@fortawesome/free-solid-svg-icons';
+import { faStore } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import logoImg from '../../../../content/images/Icon_logo.png';
@@ -31,10 +31,10 @@ export const Home = () => (
   <NavItem>
     <NavLink
       as={Link as any}
-      to="/"
+      to="/market"
       className="flex items-center gap-2 px-3 py-2 rounded-2xl text-white hover:bg-white/10 hover:text-white"
     >
-      <FontAwesomeIcon icon={faHome} />
+      <FontAwesomeIcon icon={faStore} />
       <span>
         <Translate contentKey="global.menu.home.title_home">Home</Translate>
       </span>

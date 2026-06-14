@@ -201,3 +201,55 @@
     line-height: 1.5;
   }
 }
+
+/* ==========================================================================
+   Global Mobile / Responsive Utilities
+   ========================================================================== */
+
+/* --- Body padding for mobile bottom navigation bar --- */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 70px; /* Space for the fixed bottom nav on mobile */
+  }
+
+  html {
+    font-size: 14px; /* Slightly smaller base font on mobile */
+  }
+
+  /* Improve touch targets globally */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* --- Scrollbar: hide on mobile for smoother look --- */
+@media (max-width: 767px) {
+  .overflow-x-auto::-webkit-scrollbar {
+    display: none;
+  }
+  .overflow-x-auto {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* --- Mobile utility classes --- */
+.mobile-only {
+  display: block;
+}
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  display: block;
+}
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+

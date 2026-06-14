@@ -49,14 +49,7 @@ export function AIChatButton() {
       {!showChat && (
         <div
           id="ai-robot-btn-wrapper"
-          style={{
-            position: 'fixed',
-            bottom: '1.5rem',
-            right: '1.5rem',
-            zIndex: 50,
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
+          className="fixed bottom-[80px] md:bottom-6 right-4 md:right-6 z-50 cursor-pointer select-none"
           onClick={() => setShowChat(true)}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
