@@ -11,6 +11,10 @@ import { toast } from 'react-toastify';
 
 let stompClient: any = null;
 
+// Export for reuse in other components (like chatPage)
+export const getStompClient = () => stompClient;
+export const isStompConnected = () => stompClient !== null && stompClient.connected;
+
 let subscriber: any = null;
 let notificationSubscriber: any = null;
 let connection: Promise<any>;

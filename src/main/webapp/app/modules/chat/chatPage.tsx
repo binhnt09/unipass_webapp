@@ -3,15 +3,16 @@ import { Search, Send, Paperclip, Smile, BadgeCheck, AlertCircle, Flag, Star, Ar
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 import { useLocation } from 'react-router';
 import axios from 'axios';
-import { Storage } from 'react-jhipster';
-import SockJS from 'sockjs-client';
-import Stomp from 'webstomp-client';
+// import { Storage } from 'react-jhipster';
+// import SockJS from 'sockjs-client';
+// import Stomp from 'webstomp-client';
 import { IChatRoom } from 'app/shared/model/chat-room.model';
 import { IChatMessage } from 'app/shared/model/chat-message.model';
 import { IProduct } from 'app/shared/model/product.model';
-import { useAuth } from '../../contexts/AuthContext';
 import { useAppSelector } from 'app/config/store';
 import dayjs from 'dayjs';
+import { getStompClient, isStompConnected } from 'app/config/websocket-middleware';
+import { useAuth } from '../../contexts/AuthContext';
 
 export function ChatPage() {
   const account = useAppSelector(state => state.authentication.account);
@@ -80,50 +81,30 @@ export function ChatPage() {
     return 'https://images.unsplash.com/flagged/photo-1576697010739-6373b63f3204?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXB0b3AlMjBjb21wdXRlciUyMGRlc2t8ZW58MXx8fHwxNzczODQzMjg0fDA&ixlib=rb-4.1.0&q=80&w=1080';
   };
 
-  // 1. WebSocket STOMP Connection Lifecycle
+  // 1. WebSocket STOMP Connection Lifecycle (Reusing shared connection)
   useEffect(() => {
-    let retryTimeout: ReturnType<typeof setTimeout>;
+    let checkInterval: ReturnType<typeof setInterval>;
 
-    const connectStomp = () => {
-      const loc = globalThis.location;
-      const baseHref = document.querySelector('base')?.getAttribute('href')?.replace(/\/$/, '') || '';
-      let url = `//${loc.host}${baseHref}/websocket/tracker`;
-
-      const authToken = Storage.local.get('jhi-authenticationToken') || Storage.session.get('jhi-authenticationToken');
-      if (authToken) {
-        url += `?access_token=${authToken}`;
+    const checkConnection = () => {
+      if (isStompConnected()) {
+        stompClientRef.current = getStompClient();
+        setIsConnected(true);
+        clearInterval(checkInterval);
+      } else {
+        setIsConnected(false);
       }
-
-      const socket = new SockJS(url);
-      const stompClient = Stomp.over(socket, { protocols: ['v12.stomp'] });
-      stompClient.debug = () => {}; // tắt log STOMP spam
-
-      stompClient.connect(
-        {},
-        () => {
-          stompClientRef.current = stompClient;
-          setIsConnected(true);
-        },
-        (error: any) => {
-          console.error('STOMP connection error, retrying in 3s:', error);
-          stompClientRef.current = null;
-          setIsConnected(false);
-          // Tự thử kết nối lại sau 3s
-          retryTimeout = setTimeout(connectStomp, 3000);
-        },
-      );
     };
 
-    connectStomp();
+    // Check immediately
+    checkConnection();
+
+    // If not connected, poll every 1s until it connects
+    if (!isStompConnected()) {
+      checkInterval = setInterval(checkConnection, 1000);
+    }
 
     return () => {
-      clearTimeout(retryTimeout);
-      if (stompClientRef.current) {
-        if (stompClientRef.current.connected) {
-          stompClientRef.current.disconnect();
-        }
-        stompClientRef.current = null;
-      }
+      clearInterval(checkInterval);
       setIsConnected(false);
     };
   }, []);
