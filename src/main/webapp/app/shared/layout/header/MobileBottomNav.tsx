@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { Home, PlusSquare, MessageCircle, ShoppingCart, User } from 'lucide-react';
+import { Home, MessageCircle, ShoppingCart, Star, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import axios from 'axios';
 import { useAppSelector } from 'app/config/store';
@@ -23,7 +23,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'home', to: '/market', label: 'Trang chủ', Icon: Home },
-  { id: 'sell', to: '/create-listing', label: 'Đăng bán', Icon: PlusSquare, requireAuth: true },
+  { id: 'sell', to: '/premium', label: 'Premium', Icon: Star, requireAuth: true },
   { id: 'messages', to: '/messages', label: 'Tin nhắn', Icon: MessageCircle, requireAuth: true },
   { id: 'cart', to: '/cart', label: 'Giỏ hàng', Icon: ShoppingCart, requireAuth: true },
   { id: 'profile', to: '/profile', label: 'Hồ sơ', Icon: User, requireAuth: true },

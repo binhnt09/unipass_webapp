@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Storage } from 'react-jhipster';
 import { NavLink as Link, useNavigate } from 'react-router';
-import { Bell, ShoppingCart, Crown, MessageCircle, Shield, Loader2, Plus } from 'lucide-react';
+import { Bell, ShoppingCart, Crown, MessageCircle, Shield, Loader2, Plus, Download, X, Smartphone } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -37,6 +37,43 @@ const Header = (props: IHeaderProps) => {
   const [cartCount, setCartCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const unreadNotificationCount = useAppSelector(state => state.notification.unreadCount);
+
+  // ====== PWA INSTALL PROMPT ======
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showCustomInstallModal, setShowCustomInstallModal] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInitialInstallClick = () => {
+    // Show our custom beautifully designed modal instead of the browser's native prompt immediately
+    if (deferredPrompt) {
+      setShowCustomInstallModal(true);
+    }
+  };
+
+  const handleConfirmInstall = async () => {
+    setShowCustomInstallModal(false);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.warn('User accepted the install prompt');
+      } else {
+        console.warn('User dismissed the install prompt');
+      }
+      setDeferredPrompt(null);
+    }
+  };
+  // ================================
 
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const navigate = useNavigate();
@@ -189,6 +226,18 @@ const Header = (props: IHeaderProps) => {
 
             {/* Right side */}
             <div className="flex items-center gap-1">
+              {deferredPrompt && (
+                <button
+                  type="button"
+                  onClick={handleInitialInstallClick}
+                  className="p-2 rounded-2xl transition-colors flex items-center justify-center border-none cursor-pointer"
+                  style={{ color: '#00F5FF', background: 'rgba(0,245,255,0.1)' }}
+                  title="Tải App"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+              )}
+
               {/* Notification bell (Always show on mobile as requested) */}
               <IconLink
                 to={isUserLoggedIn ? '/notifications' : '/login'}
@@ -240,6 +289,23 @@ const Header = (props: IHeaderProps) => {
 
             {/* ── Right side actions ── */}
             <div className="flex items-center gap-2 flex-shrink-0">
+              {deferredPrompt && (
+                <button
+                  type="button"
+                  onClick={handleInitialInstallClick}
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium border-none cursor-pointer hover:bg-cyan-900/40"
+                  style={{
+                    background: 'rgba(0,245,255,0.15)',
+                    color: '#00F5FF',
+                    border: '1px solid rgba(0,245,255,0.3)',
+                    boxShadow: '0 0 10px rgba(0,245,255,0.2)',
+                  }}
+                  title="Tải Ứng Dụng"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Tải App</span>
+                </button>
+              )}
               <Home />
               {/* Seller: sell button */}
               {isUserLoggedIn && isUserSeller && (
@@ -361,6 +427,68 @@ const Header = (props: IHeaderProps) => {
       {showAuthModal && <AuthModal onClose={closeAuthModal} defaultTab={authModalDefaultTab} />}
       <SellerRegistrationModal isOpen={showSellerRegModal} onClose={() => setShowSellerRegModal(false)} />
       <AIChatButton />
+
+      {/* CUSTOM INSTALL MODAL */}
+      {showCustomInstallModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCustomInstallModal(false)}></div>
+          <div
+            className="relative w-full max-w-sm rounded-[24px] p-6 shadow-2xl overflow-hidden transform transition-all"
+            style={{
+              background: 'linear-gradient(160deg, rgba(20,10,40,0.95) 0%, rgba(9,4,24,0.98) 100%)',
+              border: '1px solid rgba(0, 245, 255, 0.2)',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05)',
+            }}
+          >
+            {/* Decorative background glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#00F5FF]/20 rounded-full blur-[40px] pointer-events-none"></div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowCustomInstallModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors border-none cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex flex-col items-center text-center mt-2">
+              <div
+                className="w-20 h-20 rounded-[20px] p-1 shadow-lg mb-4 relative"
+                style={{ background: 'linear-gradient(135deg, #00F5FF, #9B4DFF)' }}
+              >
+                <div className="w-full h-full bg-[#090418] rounded-[16px] flex items-center justify-center overflow-hidden">
+                  <img src="/content/images/Icon_logo_1.png" alt="Uni Pass App" className="w-12 h-12 object-contain" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-[#FF2D78] text-white p-1.5 rounded-full border-2 border-[#090418]">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+              </div>
+
+              <h3 className="text-xl font-bold text-white mb-2 font-space">Cài đặt Uni Pass</h3>
+              <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+                Trải nghiệm mượt mà hơn, nhanh hơn và tiện lợi hơn với phiên bản ứng dụng Uni Pass trên thiết bị của bạn.
+              </p>
+
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => setShowCustomInstallModal(false)}
+                  className="flex-1 py-3 px-4 rounded-xl font-medium text-white transition-colors border-none cursor-pointer"
+                  style={{ background: 'rgba(255,255,255,0.08)' }}
+                >
+                  Để sau
+                </button>
+                <button
+                  onClick={handleConfirmInstall}
+                  className="flex-1 py-3 px-4 rounded-xl font-bold text-[#090418] transition-transform hover:scale-105 border-none cursor-pointer shadow-[0_0_20px_rgba(0,245,255,0.3)]"
+                  style={{ background: 'linear-gradient(135deg, #00F5FF, #9B4DFF)' }}
+                >
+                  Cài đặt ngay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
