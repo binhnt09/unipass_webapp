@@ -100,7 +100,7 @@ export const AccountMenu = ({
         <button
           type="button"
           onClick={onLoginClick}
-          className="px-4 py-2 rounded-2xl text-sm font-medium text-white hover:bg-white/10 transition-colors"
+          className="px-4 py-2 rounded-2xl text-sm font-medium text-[#075071] hover:bg-[#075071]/10 transition-colors"
         >
           <Translate contentKey="global.menu.account.login">Sign in</Translate>
         </button>
@@ -132,7 +132,8 @@ export const AccountMenu = ({
       <div className="relative group">
         <button
           onClick={() => setShowUserMenu(!showUserMenu)}
-          className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium text-white hover:bg-white/10 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium text-[#075071] hover:bg-[#075071]/10 transition-colors"
+          style={{ border: '3px solid rgba(0,245,255,0.7)' }}
         >
           <User size={16} />
           <span>{currentUser?.name || 'User'}</span>

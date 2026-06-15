@@ -11,14 +11,14 @@ export const LocaleMenu = ({ currentLocale, onClick }: { currentLocale: string; 
     <NavDropdown
       icon="globe"
       name={currentLocale ? languages[currentLocale].name : undefined}
-      toggleClassName="text-white hover:bg-white/10"
+      toggleClassName="text-[#075071] hover:bg-[#075071]/10"
       menuClassName="min-w-[180px]"
     >
       {locales.map(locale => (
         <Dropdown.Item
           key={locale}
           onClick={() => onClick(locale)}
-          className="flex w-full items-center px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border-0"
+          className="flex w-full items-center px-4 py-2 text-sm text-[#075071] hover:bg-[#075071]/10 hover:text-[#075071] border-0"
         >
           {languages[locale].name}
         </Dropdown.Item>

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Trophy, Info, Award, Star, TrendingUp } from 'lucide-react';
 import axios from 'axios';
+import { Link } from 'react-router';
 
 export function AugmentedFeatures() {
-  const [premiumSellers, setPremiumSellers] = useState<{ name: string; university: string; sales: number; rating: number }[]>([]);
+  const [premiumSellers, setPremiumSellers] = useState<
+    { name: string; university: string; sales: number; rating: number; userLogin?: string; userId?: number }[]
+  >([]);
 
   useEffect(() => {
     axios
@@ -48,32 +51,43 @@ export function AugmentedFeatures() {
           <h3 className="font-medium text-gray-900">Người bán Premium</h3>
         </div>
         <div className="space-y-3">
-          {premiumSellers.map((seller, index) => (
-            <div key={seller.name} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-center w-6 h-6">
-                {index === 0 && <Award className="w-5 h-5 text-[#FFD700]" />}
-                {index === 1 && <Award className="w-5 h-5 text-[#C0C0C0]" />}
-                {index === 2 && <Award className="w-5 h-5 text-[#CD7F32]" />}
-                {index > 2 && <span className="text-sm font-medium text-gray-500">{index + 1}</span>}
-              </div>
-              <div className="w-8 h-8 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
-                {seller.name.charAt(0)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900 truncate">{seller.name}</span>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-3 h-3 fill-[#FF6B35] text-[#FF6B35]" />
-                    <span className="text-xs font-medium text-gray-700">{seller.rating}</span>
+          {premiumSellers.map((seller, index) => {
+            const profileUrl = seller.userLogin
+              ? `/profile/${seller.userLogin}`
+              : seller.userId
+                ? `/profile/${seller.userId}`
+                : `/profile/${seller.name}`;
+            return (
+              <Link
+                key={seller.name}
+                to={profileUrl}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center justify-center w-6 h-6">
+                  {index === 0 && <Award className="w-5 h-5 text-[#FFD700]" />}
+                  {index === 1 && <Award className="w-5 h-5 text-[#C0C0C0]" />}
+                  {index === 2 && <Award className="w-5 h-5 text-[#CD7F32]" />}
+                  {index > 2 && <span className="text-sm font-medium text-gray-500">{index + 1}</span>}
+                </div>
+                <div className="w-8 h-8 bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                  {seller.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-900 truncate">{seller.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-[#FF6B35] text-[#FF6B35]" />
+                      <span className="text-xs font-medium text-gray-700">{seller.rating}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">{seller.university}</span>
+                    <span className="text-xs text-gray-500">{seller.sales} sales</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">{seller.university}</span>
-                  <span className="text-xs text-gray-500">{seller.sales} sales</span>
-                </div>
-              </div>
-            </div>
-          ))}
+              </Link>
+            );
+          })}
         </div>
         <div className="mt-4 pt-4 border-t border-gray-200">
           <button className="w-full text-sm text-[#FF6B35] hover:text-[#FF5722] font-medium transition-colors">

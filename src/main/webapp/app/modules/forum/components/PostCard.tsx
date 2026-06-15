@@ -56,7 +56,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, reactions }) => {
 
       <div className="mb-4">
         {post.title && <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{post.title}</h2>}
-        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{post.content}</p>
+        <div
+          className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-a:text-blue-500 hover:prose-a:text-blue-600 prose-ul:my-1 prose-li:my-0"
+          dangerouslySetInnerHTML={{ __html: post.content || '' }}
+        />
       </div>
 
       <div className="flex items-center gap-6 text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800 pt-3 relative">

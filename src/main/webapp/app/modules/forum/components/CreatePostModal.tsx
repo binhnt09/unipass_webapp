@@ -1,66 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bold, Italic, Link as LinkIcon, Image as ImageIcon, List, ListOrdered, Send } from 'lucide-react';
+import { X, Bold, Italic, Link as LinkIcon, Image as ImageIcon, List, ListOrdered } from 'lucide-react';
+import { useAppSelector } from 'app/config/store';
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (title: string, content: string) => void;
+  onSubmit: (title: string, content: string, categoryId?: number) => void;
 }
 
 export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const account = useAppSelector(state => state.authentication.account);
+  const categories = useAppSelector(state => state.postCategory.entities);
+
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    ul: false,
+    ol: false,
+  });
+
+  const checkFormats = () => {
+    setActiveFormats({
+      bold: document.queryCommandState('bold'),
+      italic: document.queryCommandState('italic'),
+      ul: document.queryCommandState('insertUnorderedList'),
+      ol: document.queryCommandState('insertOrderedList'),
+    });
+  };
 
   const handleToolbarClick = (action: string) => {
-    const textarea = document.getElementById('post-content') as HTMLTextAreaElement;
-    if (!textarea) return;
+    const editor = document.getElementById('post-content');
+    if (!editor) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    const selectedText = text.substring(start, end);
-
-    let replacement = '';
-    let newCursorPos = start;
-
-    switch (action) {
-      case 'bold':
-        replacement = `**${selectedText || 'text'}**`;
-        newCursorPos = start + 2 + (selectedText ? selectedText.length + 2 : 0);
-        break;
-      case 'italic':
-        replacement = `*${selectedText || 'text'}*`;
-        newCursorPos = start + 1 + (selectedText ? selectedText.length + 1 : 0);
-        break;
-      case 'link':
-        replacement = `[${selectedText || 'text'}](url)`;
-        newCursorPos = start + 1 + (selectedText ? selectedText.length + 3 : 0);
-        break;
-      case 'image':
-        replacement = `![${selectedText || 'alt'}](image_url)`;
-        newCursorPos = start + 2 + (selectedText ? selectedText.length + 3 : 0);
-        break;
-      case 'ul':
-        replacement = `\n- ${selectedText || 'item'}`;
-        newCursorPos = start + 3 + (selectedText ? selectedText.length : 0);
-        break;
-      case 'ol':
-        replacement = `\n1. ${selectedText || 'item'}`;
-        newCursorPos = start + 4 + (selectedText ? selectedText.length : 0);
-        break;
-      default:
-        return;
+    if (action === 'image') {
+      fileInputRef.current?.click();
+      return;
     }
 
-    const newText = text.substring(0, start) + replacement + text.substring(end);
-    setContent(newText);
+    if (action === 'bold') {
+      document.execCommand('bold', false);
+      checkFormats();
+      return;
+    }
 
-    // Set focus back after state updates
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
+    if (action === 'italic') {
+      document.execCommand('italic', false);
+      checkFormats();
+      return;
+    }
+
+    const selection = window.getSelection();
+    const text = selection ? selection.toString() : '';
+
+    if (action === 'link') {
+      document.execCommand('insertText', false, `[${text || 'text'}](url)`);
+      return;
+    }
+
+    if (action === 'ul') {
+      document.execCommand('insertUnorderedList', false);
+      checkFormats();
+      return;
+    }
+
+    if (action === 'ol') {
+      document.execCommand('insertOrderedList', false);
+      checkFormats();
+      return;
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      document.execCommand('insertText', false, `\n![${file.name}](uploading...)\n`);
+    }
   };
 
   if (!isOpen) return null;
@@ -91,87 +110,145 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
             </button>
           </div>
 
-          {/* Body */}
-          <div className="p-4 overflow-y-auto flex-1">
-            <input
-              type="text"
-              placeholder="Tiêu đề (không bắt buộc)"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              className="w-full text-lg font-bold text-gray-900 dark:text-white bg-transparent border-none outline-none mb-4 placeholder-gray-400 dark:placeholder-gray-500"
-            />
+          {/* User & Category Info */}
+          <div className="px-5 pt-5 pb-2">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-md shrink-0">
+                {account?.login?.charAt(0)?.toUpperCase() || 'A'}
+              </div>
+              <div>
+                <div className="font-bold text-gray-900 dark:text-white text-base">{account?.login || 'Người dùng'}</div>
+                <div className="flex flex-wrap gap-2 mt-1.5">
+                  {categories.map(cat => {
+                    const isSelected = selectedCategoryId === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategoryId(isSelected ? undefined : cat.id)}
+                        className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                          isSelected
+                            ? 'bg-blue-500 text-white shadow-md'
+                            : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10'
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <textarea
+          {/* Body */}
+          <div className="px-5 pb-4 overflow-y-auto flex-1">
+            <div
               id="post-content"
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="Chia sẻ suy nghĩ của bạn (hỗ trợ Markdown)..."
-              className="w-full min-h-[200px] text-gray-800 dark:text-gray-200 bg-transparent border-none outline-none resize-none placeholder-gray-400 dark:placeholder-gray-600 font-sans"
+              contentEditable
+              onInput={e => {
+                setContent(e.currentTarget.innerHTML);
+                checkFormats();
+              }}
+              onKeyUp={checkFormats}
+              onMouseUp={checkFormats}
+              onBlur={checkFormats}
+              data-placeholder="Bạn đang nghĩ gì? Chia sẻ với cộng đồng..."
+              className="w-full min-h-[200px] text-lg text-gray-800 dark:text-gray-200 bg-transparent border border-gray-100 dark:border-white/5 rounded-2xl p-4 outline-none resize-none font-sans focus:ring-2 focus:ring-[#00F5FF]/30 transition-shadow empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 dark:empty:before:text-gray-600 cursor-text whitespace-pre-wrap"
             />
           </div>
+
+          {/* Hidden File Input */}
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
           {/* Footer & Toolbar */}
           <div className="p-4 bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
               <button
-                onClick={() => handleToolbarClick('bold')}
-                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                onMouseDown={e => {
+                  e.preventDefault();
+                  handleToolbarClick('image');
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors text-sm font-medium"
+              >
+                <ImageIcon className="w-5 h-5" />
+                <span className="hidden sm:inline">Thêm hình ảnh</span>
+              </button>
+              <div className="w-[1px] h-5 bg-gray-300 dark:bg-gray-700 mx-2"></div>
+              <button
+                onMouseDown={e => {
+                  e.preventDefault();
+                  handleToolbarClick('bold');
+                }}
+                className={`p-2 rounded-lg transition-colors ${activeFormats.bold ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'hover:bg-gray-200 dark:hover:bg-white/10'}`}
                 title="In đậm"
               >
                 <Bold className="w-4 h-4" />
               </button>
               <button
-                onClick={() => handleToolbarClick('italic')}
-                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                onMouseDown={e => {
+                  e.preventDefault();
+                  handleToolbarClick('italic');
+                }}
+                className={`p-2 rounded-lg transition-colors ${activeFormats.italic ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'hover:bg-gray-200 dark:hover:bg-white/10'}`}
                 title="In nghiêng"
               >
                 <Italic className="w-4 h-4" />
               </button>
               <button
-                onClick={() => handleToolbarClick('link')}
+                onMouseDown={e => {
+                  e.preventDefault();
+                  handleToolbarClick('link');
+                }}
                 className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 title="Chèn Link"
               >
                 <LinkIcon className="w-4 h-4" />
               </button>
               <button
-                onClick={() => handleToolbarClick('image')}
-                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
-                title="Chèn Ảnh"
-              >
-                <ImageIcon className="w-4 h-4" />
-              </button>
-              <div className="w-[1px] h-4 bg-gray-300 dark:bg-gray-700 mx-1"></div>
-              <button
-                onClick={() => handleToolbarClick('ul')}
-                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                onMouseDown={e => {
+                  e.preventDefault();
+                  handleToolbarClick('ul');
+                }}
+                className={`p-2 rounded-lg transition-colors ${activeFormats.ul ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'hover:bg-gray-200 dark:hover:bg-white/10'}`}
                 title="Danh sách"
               >
                 <List className="w-4 h-4" />
               </button>
               <button
-                onClick={() => handleToolbarClick('ol')}
-                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                onMouseDown={e => {
+                  e.preventDefault();
+                  handleToolbarClick('ol');
+                }}
+                className={`p-2 rounded-lg transition-colors ${activeFormats.ol ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'hover:bg-gray-200 dark:hover:bg-white/10'}`}
                 title="Danh sách số"
               >
                 <ListOrdered className="w-4 h-4" />
               </button>
             </div>
 
-            <button
-              onClick={() => {
-                onSubmit(title, content);
-                setTitle('');
-                setContent('');
-                onClose();
-              }}
-              disabled={!content.trim()}
-              className="flex items-center gap-2 px-6 py-2 rounded-xl text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #00F5FF, #9B4DFF)' }}
-            >
-              <span>Đăng</span>
-              <Send className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-gray-500 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  onSubmit('', content, selectedCategoryId);
+                  setContent('');
+                  const editor = document.getElementById('post-content');
+                  if (editor) editor.innerHTML = '';
+                  setSelectedCategoryId(undefined);
+                  onClose();
+                }}
+                disabled={!content.trim()}
+                className="flex items-center gap-2 px-6 py-2 rounded-xl text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #00F5FF, #9B4DFF)' }}
+              >
+                <span>Đăng bài</span>
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
