@@ -15,7 +15,7 @@ describe('Product e2e test', () => {
   const productPageUrlPattern = new RegExp('/product(\\?.*)?$');
   let username: string;
   let password: string;
-  const productSample = { name: 'mammoth quarterly', price: 14203.59, stock: 13291 };
+  const productSample = { name: 'yum haircut', price: 27064.06, stock: 32616 };
 
   let product;
 
@@ -61,11 +61,6 @@ describe('Product e2e test', () => {
   });
 
   describe('Product page', () => {
-    it('should have translated page title', () => {
-      cy.visit(productPageUrl);
-      cy.getEntityHeading('Product').should('not.contain', 'unipassWebApp.product.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(productPageUrl);
@@ -191,13 +186,19 @@ describe('Product e2e test', () => {
       cy.get(`[data-cy="stock"]`).type('16305');
       cy.get(`[data-cy="stock"]`).should('have.value', '16305');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T10:27');
-      cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T10:27');
+      cy.get(`[data-cy="latitude"]`).type('18135.83');
+      cy.get(`[data-cy="latitude"]`).should('have.value', '18135.83');
 
-      cy.get(`[data-cy="updatedAt"]`).type('2026-05-18T23:43');
+      cy.get(`[data-cy="longitude"]`).type('3482.83');
+      cy.get(`[data-cy="longitude"]`).should('have.value', '3482.83');
+
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T07:34');
+      cy.get(`[data-cy="createdAt"]`).blur();
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T07:34');
+
+      cy.get(`[data-cy="updatedAt"]`).type('2026-05-19T15:52');
       cy.get(`[data-cy="updatedAt"]`).blur();
-      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-18T23:43');
+      cy.get(`[data-cy="updatedAt"]`).should('have.value', '2026-05-19T15:52');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

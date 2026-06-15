@@ -61,11 +61,6 @@ describe('ItemRequest e2e test', () => {
   });
 
   describe('ItemRequest page', () => {
-    it('should have translated page title', () => {
-      cy.visit(itemRequestPageUrl);
-      cy.getEntityHeading('ItemRequest').should('not.contain', 'unipassWebApp.itemRequest.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(itemRequestPageUrl);

@@ -1,0 +1,28 @@
+{
+  "unipassWebApp": {
+    "postComment": {
+      "home": {
+        "title": "Post Comments",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Post Comment",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Post Comment",
+        "notFound": "No Post Comments found"
+      },
+      "created": "Một Post Comment mới được tạo với định danh {{ param }}",
+      "updated": "Một Post Comment cập nhật với định danh {{ param }}",
+      "deleted": "Một Post Comment đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Post Comment {{ id }}?"
+      },
+      "detail": {
+        "title": "Post Comment"
+      },
+      "id": "ID",
+      "content": "Content",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "post": "Post",
+      "author": "Author"
+    }
+  }
+}

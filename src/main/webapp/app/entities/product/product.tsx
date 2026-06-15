@@ -84,7 +84,7 @@ export const Product = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -139,6 +139,14 @@ export const Product = () => {
                   <Translate contentKey="unipassWebApp.product.stock">Stock</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('stock')} />
                 </th>
+                <th className="hand" onClick={sort('latitude')}>
+                  <Translate contentKey="unipassWebApp.product.latitude">Latitude</Translate>{' '}
+                  <FontAwesomeIcon icon={getSortIconByFieldName('latitude')} />
+                </th>
+                <th className="hand" onClick={sort('longitude')}>
+                  <Translate contentKey="unipassWebApp.product.longitude">Longitude</Translate>{' '}
+                  <FontAwesomeIcon icon={getSortIconByFieldName('longitude')} />
+                </th>
                 <th className="hand" onClick={sort('createdAt')}>
                   <Translate contentKey="unipassWebApp.product.createdAt">Created At</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
@@ -170,6 +178,8 @@ export const Product = () => {
                   <td>{product.status}</td>
                   <td>{product.condition}</td>
                   <td>{product.stock}</td>
+                  <td>{product.latitude}</td>
+                  <td>{product.longitude}</td>
                   <td>{product.createdAt ? <TextFormat type="date" value={product.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{product.updatedAt ? <TextFormat type="date" value={product.updatedAt} format={APP_DATE_FORMAT} /> : null}</td>
                   <td>{product.category ? <Link to={`/category/${product.category.id}`}>{product.category.name}</Link> : ''}</td>
@@ -196,7 +206,7 @@ export const Product = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (globalThis.location.href = `/product/${product.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (window.location.href = `/product/${product.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

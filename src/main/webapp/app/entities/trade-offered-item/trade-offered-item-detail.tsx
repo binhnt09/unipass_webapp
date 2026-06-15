@@ -35,13 +35,13 @@ export const TradeOfferedItemDetail = () => {
           </dt>
           <dd>{tradeOfferedItemEntity.id}</dd>
           <dt>
-            <Translate contentKey="unipassWebApp.tradeOfferedItem.tradeRequest">Trade Request</Translate>
-          </dt>
-          <dd>{tradeOfferedItemEntity.tradeRequest ? tradeOfferedItemEntity.tradeRequest.id : ''}</dd>
-          <dt>
             <Translate contentKey="unipassWebApp.tradeOfferedItem.offeredProduct">Offered Product</Translate>
           </dt>
           <dd>{tradeOfferedItemEntity.offeredProduct ? tradeOfferedItemEntity.offeredProduct.name : ''}</dd>
+          <dt>
+            <Translate contentKey="unipassWebApp.tradeOfferedItem.tradeRequest">Trade Request</Translate>
+          </dt>
+          <dd>{tradeOfferedItemEntity.tradeRequest ? tradeOfferedItemEntity.tradeRequest.id : ''}</dd>
         </dl>
         <Button as={Link as any} to="/trade-offered-item" replace variant="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}

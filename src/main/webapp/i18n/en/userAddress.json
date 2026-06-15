@@ -1,0 +1,31 @@
+{
+  "unipassWebApp": {
+    "userAddress": {
+      "home": {
+        "title": "User Addresses",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new User Address",
+        "createOrEditLabel": "Create or edit a User Address",
+        "notFound": "No User Addresses found"
+      },
+      "created": "A new User Address is created with identifier {{ param }}",
+      "updated": "A User Address is updated with identifier {{ param }}",
+      "deleted": "A User Address is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete User Address {{ id }}?"
+      },
+      "detail": {
+        "title": "User Address"
+      },
+      "id": "ID",
+      "name": "Name",
+      "address": "Address",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "isDefault": "Is Default",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "user": "User"
+    }
+  }
+}

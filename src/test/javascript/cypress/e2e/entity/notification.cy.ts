@@ -61,11 +61,6 @@ describe('Notification e2e test', () => {
   });
 
   describe('Notification page', () => {
-    it('should have translated page title', () => {
-      cy.visit(notificationPageUrl);
-      cy.getEntityHeading('Notification').should('not.contain', 'unipassWebApp.notification.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(notificationPageUrl);

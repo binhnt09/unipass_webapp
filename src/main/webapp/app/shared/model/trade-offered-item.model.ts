@@ -3,8 +3,8 @@ import { ITradeRequest } from 'app/shared/model/trade-request.model';
 
 export interface ITradeOfferedItem {
   id?: number;
-  tradeRequest?: ITradeRequest | null;
   offeredProduct?: IProduct | null;
+  tradeRequest?: ITradeRequest | null;
 }
 
 export const defaultValue: Readonly<ITradeOfferedItem> = {};

@@ -28,12 +28,27 @@
     {
       "fieldName": "updatedAt",
       "fieldType": "Instant"
+    },
+    {
+      "fieldName": "isBuyerConfirmed",
+      "fieldType": "Boolean"
+    },
+    {
+      "fieldName": "isSellerConfirmed",
+      "fieldType": "Boolean"
     }
   ],
   "jpaMetamodelFiltering": true,
   "name": "TradeRequest",
   "pagination": "pagination",
   "relationships": [
+    {
+      "otherEntityName": "tradeOfferedItem",
+      "otherEntityRelationshipName": "tradeRequest",
+      "relationshipName": "offeredItems",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
     {
       "otherEntityField": "name",
       "otherEntityName": "product",

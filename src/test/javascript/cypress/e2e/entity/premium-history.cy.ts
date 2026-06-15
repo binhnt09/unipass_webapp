@@ -61,11 +61,6 @@ describe('PremiumHistory e2e test', () => {
   });
 
   describe('PremiumHistory page', () => {
-    it('should have translated page title', () => {
-      cy.visit(premiumHistoryPageUrl);
-      cy.getEntityHeading('PremiumHistory').should('not.contain', 'unipassWebApp.premiumHistory.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(premiumHistoryPageUrl);

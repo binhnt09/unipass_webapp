@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "postReaction": {
+      "home": {
+        "title": "Post Reactions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Post Reaction",
+        "createOrEditLabel": "Create or edit a Post Reaction",
+        "notFound": "No Post Reactions found"
+      },
+      "created": "A new Post Reaction is created with identifier {{ param }}",
+      "updated": "A Post Reaction is updated with identifier {{ param }}",
+      "deleted": "A Post Reaction is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Post Reaction {{ id }}?"
+      },
+      "detail": {
+        "title": "Post Reaction"
+      },
+      "id": "ID",
+      "reactionType": "Reaction Type",
+      "createdAt": "Created At",
+      "post": "Post",
+      "user": "User"
+    }
+  }
+}

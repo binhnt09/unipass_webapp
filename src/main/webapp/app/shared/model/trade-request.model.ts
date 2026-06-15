@@ -10,9 +10,14 @@ export interface ITradeRequest {
   meetupLocation?: string | null;
   createdAt?: dayjs.Dayjs | null;
   updatedAt?: dayjs.Dayjs | null;
+  isBuyerConfirmed?: boolean | null;
+  isSellerConfirmed?: boolean | null;
   targetProduct?: IProduct | null;
   buyer?: IUser | null;
   seller?: IUser | null;
 }
 
-export const defaultValue: Readonly<ITradeRequest> = {};
+export const defaultValue: Readonly<ITradeRequest> = {
+  isBuyerConfirmed: false,
+  isSellerConfirmed: false,
+};

@@ -1,0 +1,27 @@
+{
+  "unipassWebApp": {
+    "postReaction": {
+      "home": {
+        "title": "Post Reactions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Post Reaction",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Post Reaction",
+        "notFound": "No Post Reactions found"
+      },
+      "created": "Một Post Reaction mới được tạo với định danh {{ param }}",
+      "updated": "Một Post Reaction cập nhật với định danh {{ param }}",
+      "deleted": "Một Post Reaction đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Post Reaction {{ id }}?"
+      },
+      "detail": {
+        "title": "Post Reaction"
+      },
+      "id": "ID",
+      "reactionType": "Reaction Type",
+      "createdAt": "Created At",
+      "post": "Post",
+      "user": "User"
+    }
+  }
+}

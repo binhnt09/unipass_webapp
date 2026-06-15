@@ -20,6 +20,7 @@
       "id": "ID",
       "role": "Role",
       "content": "Content",
+      "recommendedProductIds": "Recommended Product Ids",
       "tokensUsed": "Tokens Used",
       "createdAt": "Created At",
       "session": "Session"

@@ -15,7 +15,7 @@ describe('AiChatMessage e2e test', () => {
   const aiChatMessagePageUrlPattern = new RegExp('/ai-chat-message(\\?.*)?$');
   let username: string;
   let password: string;
-  const aiChatMessageSample = { role: 'ack once confusion', content: 'motivate amid qua' };
+  const aiChatMessageSample = { role: 'upon', content: 'polished' };
 
   let aiChatMessage;
 
@@ -61,11 +61,6 @@ describe('AiChatMessage e2e test', () => {
   });
 
   describe('AiChatMessage page', () => {
-    it('should have translated page title', () => {
-      cy.visit(aiChatMessagePageUrl);
-      cy.getEntityHeading('AiChatMessage').should('not.contain', 'unipassWebApp.aiChatMessage.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(aiChatMessagePageUrl);
@@ -179,12 +174,15 @@ describe('AiChatMessage e2e test', () => {
       cy.get(`[data-cy="content"]`).type('behind enormously');
       cy.get(`[data-cy="content"]`).should('have.value', 'behind enormously');
 
-      cy.get(`[data-cy="tokensUsed"]`).type('13779');
-      cy.get(`[data-cy="tokensUsed"]`).should('have.value', '13779');
+      cy.get(`[data-cy="recommendedProductIds"]`).type('psst alongside');
+      cy.get(`[data-cy="recommendedProductIds"]`).should('have.value', 'psst alongside');
 
-      cy.get(`[data-cy="createdAt"]`).type('2026-05-18T23:36');
+      cy.get(`[data-cy="tokensUsed"]`).type('16602');
+      cy.get(`[data-cy="tokensUsed"]`).should('have.value', '16602');
+
+      cy.get(`[data-cy="createdAt"]`).type('2026-05-19T09:22');
       cy.get(`[data-cy="createdAt"]`).blur();
-      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-18T23:36');
+      cy.get(`[data-cy="createdAt"]`).should('have.value', '2026-05-19T09:22');
 
       cy.get(entityCreateSaveButtonSelector).click();
 

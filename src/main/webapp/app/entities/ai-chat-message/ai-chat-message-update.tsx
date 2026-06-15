@@ -124,6 +124,16 @@ export const AiChatMessageUpdate = () => {
                 }}
               />
               <ValidatedField
+                label={translate('unipassWebApp.aiChatMessage.recommendedProductIds')}
+                id="ai-chat-message-recommendedProductIds"
+                name="recommendedProductIds"
+                data-cy="recommendedProductIds"
+                type="text"
+                validate={{
+                  maxLength: { value: 5000, message: translate('entity.validation.maxlength', { max: 5000 }) },
+                }}
+              />
+              <ValidatedField
                 label={translate('unipassWebApp.aiChatMessage.tokensUsed')}
                 id="ai-chat-message-tokensUsed"
                 name="tokensUsed"

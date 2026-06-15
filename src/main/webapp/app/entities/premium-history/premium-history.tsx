@@ -84,7 +84,7 @@ export const PremiumHistory = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -187,7 +187,7 @@ export const PremiumHistory = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (globalThis.location.href = `/premium-history/${premiumHistory.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (window.location.href = `/premium-history/${premiumHistory.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

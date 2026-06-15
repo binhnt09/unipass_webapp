@@ -24,6 +24,8 @@
       "status": "Status",
       "condition": "Condition",
       "stock": "Stock",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
       "category": "Category",

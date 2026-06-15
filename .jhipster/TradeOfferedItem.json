@@ -10,16 +10,17 @@
   "pagination": "pagination",
   "relationships": [
     {
-      "otherEntityName": "tradeRequest",
-      "relationshipName": "tradeRequest",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one"
-    },
-    {
       "otherEntityField": "name",
       "otherEntityName": "product",
       "relationshipName": "offeredProduct",
       "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "tradeRequest",
+      "otherEntityRelationshipName": "offeredItems",
+      "relationshipName": "tradeRequest",
+      "relationshipSide": "right",
       "relationshipType": "many-to-one"
     }
   ],

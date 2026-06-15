@@ -1,0 +1,26 @@
+{
+  "unipassWebApp": {
+    "postCategory": {
+      "home": {
+        "title": "Post Categories",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Post Category",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Post Category",
+        "notFound": "No Post Categories found"
+      },
+      "created": "Một Post Category mới được tạo với định danh {{ param }}",
+      "updated": "Một Post Category cập nhật với định danh {{ param }}",
+      "deleted": "Một Post Category đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Post Category {{ id }}?"
+      },
+      "detail": {
+        "title": "Post Category"
+      },
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "status": "Status"
+    }
+  }
+}

@@ -42,6 +42,8 @@ entity Product {
   status String maxlength(50)
   condition String maxlength(50)
   stock Integer required
+  latitude BigDecimal
+  longitude BigDecimal
   createdAt Instant
   updatedAt Instant
 }
@@ -196,6 +198,7 @@ entity AiChatSession {
 entity AiChatMessage {
   role String required maxlength(50)
   content String maxlength(5000) required
+  recommendedProductIds String maxlength(5000)
   tokensUsed Integer
   createdAt Instant
 }
@@ -242,16 +245,62 @@ entity TradeRequest {
   meetupLocation String maxlength(255)
   createdAt Instant
   updatedAt Instant
+  isBuyerConfirmed Boolean
+  isSellerConfirmed Boolean
 }
 
 entity TradeOfferedItem {
   // Thực thể này chỉ đóng vai trò làm bảng nối 1-N (Sẽ nhận Data qua Relationship)
 }
 
+entity UserAddress {
+  name String required maxlength(100)
+  address String required maxlength(5000)
+  latitude BigDecimal
+  longitude BigDecimal
+  isDefault Boolean
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity PostCategory {
+  name String required maxlength(255)
+  description String maxlength(5000)
+  status String maxlength(50)
+}
+
+entity CommunityPost {
+  title String required maxlength(255)
+  content String required maxlength(5000)
+  status String maxlength(50)
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity PostComment {
+  content String required maxlength(5000)
+  createdAt Instant
+  updatedAt Instant
+}
+
+entity PostReaction {
+  reactionType String required maxlength(50)
+  createdAt Instant
+}
+
+entity CommentReaction {
+  reactionType String required maxlength(50)
+  createdAt Instant
+}
+
 // ============================================================================
 // RELATIONSHIPS CONFIGURATION (Mối quan hệ)
 // ============================================================================
 
+relationship OneToMany {
+//  Product{images} to ProductImage{product(name)}
+  TradeRequest{offeredItems} to TradeOfferedItem{tradeRequest}
+}
 // 1. Mối quan hệ giữa các Entity tự tạo thông thường
 relationship ManyToOne {
   Campus{university(name)} to University
@@ -273,9 +322,14 @@ relationship ManyToOne {
   ChatMessage{room} to ChatRoom
   AiChatMessage{session} to AiChatSession
 
+  // Quan hệ cho Community Forum
+  CommunityPost{category(name)} to PostCategory
+  PostComment{post(title)} to CommunityPost
+  PostReaction{post(title)} to CommunityPost
+  CommentReaction{comment} to PostComment
+
   // Quan hệ cho phần Trade (Trao đổi)
   TradeRequest{targetProduct(name)} to Product
-  TradeOfferedItem{tradeRequest} to TradeRequest
   TradeOfferedItem{offeredProduct(name)} to Product
 }
 
@@ -311,6 +365,13 @@ relationship ManyToOne {
   UserSearchHistory{user(login)} to User with builtInEntity
   Notification{user(login)} to User with builtInEntity
 
+  // Quan hệ User cho Community Forum & Address
+  UserAddress{user(login)} to User with builtInEntity
+  CommunityPost{author(login)} to User with builtInEntity
+  PostComment{author(login)} to User with builtInEntity
+  PostReaction{user(login)} to User with builtInEntity
+  CommentReaction{user(login)} to User with builtInEntity
+
   // Quan hệ User cho các bảng History & Trade mới
   StatusHistory{actor(login)} to User with builtInEntity // Lưu ai là người thực hiện đổi status
   TradeRequest{buyer(login)} to User with builtInEntity
@@ -325,8 +386,8 @@ dto * with mapstruct
 service * with serviceImpl
 filter *
 
-paginate ChatMessage, AiChatMessage, Notification, UserSearchHistory, WalletTransaction, AiChatSession, StatusHistory with infinite-scroll
+paginate ChatMessage, AiChatMessage, Notification, UserSearchHistory, WalletTransaction, AiChatSession, StatusHistory, PostReaction, CommentReaction, CommunityPost with infinite-scroll
 paginate University, Campus, UserProfile, Category, Product, ProductImage, ItemRequest, RequestOffer, Orders, UserWallet, UserPremium with pagination
-paginate OrderItem, Review, Report, UserBankAccount, PremiumPackage, SystemPaymentTransaction, Invoice, ChatRoom, CartItem, PremiumHistory with pagination
+paginate OrderItem, Review, Report, UserBankAccount, PremiumPackage, SystemPaymentTransaction, Invoice, ChatRoom, CartItem, PremiumHistory, PostComment, PostCategory, UserAddress with pagination
 
 paginate SellerRequest, TradeOfferedItem, TradeRequest with pagination // Thêm dòng cấu hình phân trang riêng biệt cho bảng mới ở cuối file

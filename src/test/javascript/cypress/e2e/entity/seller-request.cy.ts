@@ -36,7 +36,7 @@ describe('SellerRequest e2e test', () => {
     cy.authenticatedRequest({
       method: 'POST',
       url: '/api/users',
-      body: {"login":"Hildegard7","firstName":"Judge","lastName":"Dickens","email":"Mona.Zboncak@gmail.com","langKey":"modulo zea","imageUrl":"happy"},
+      body: {"login":"Hester7","firstName":"Judd","lastName":"Dickens","email":"Molly.Zboncak@gmail.com","langKey":"modulo zea","imageUrl":"happy"},
     }).then(({ body }) => {
       user = body;
     });
@@ -99,11 +99,6 @@ describe('SellerRequest e2e test', () => {
   });
 
   describe('SellerRequest page', () => {
-    it('should have translated page title', () => {
-      cy.visit(sellerRequestPageUrl);
-      cy.getEntityHeading('SellerRequest').should('not.contain', 'unipassWebApp.sellerRequest.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(sellerRequestPageUrl);

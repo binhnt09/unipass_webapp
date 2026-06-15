@@ -84,7 +84,7 @@ export const UserWallet = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -182,7 +182,7 @@ export const UserWallet = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (globalThis.location.href = `/user-wallet/${userWallet.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (window.location.href = `/user-wallet/${userWallet.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

@@ -70,6 +70,18 @@ export const TradeRequestDetail = () => {
             {tradeRequestEntity.updatedAt ? <TextFormat value={tradeRequestEntity.updatedAt} type="date" format={APP_DATE_FORMAT} /> : null}
           </dd>
           <dt>
+            <span id="isBuyerConfirmed">
+              <Translate contentKey="unipassWebApp.tradeRequest.isBuyerConfirmed">Is Buyer Confirmed</Translate>
+            </span>
+          </dt>
+          <dd>{tradeRequestEntity.isBuyerConfirmed ? 'true' : 'false'}</dd>
+          <dt>
+            <span id="isSellerConfirmed">
+              <Translate contentKey="unipassWebApp.tradeRequest.isSellerConfirmed">Is Seller Confirmed</Translate>
+            </span>
+          </dt>
+          <dd>{tradeRequestEntity.isSellerConfirmed ? 'true' : 'false'}</dd>
+          <dt>
             <Translate contentKey="unipassWebApp.tradeRequest.targetProduct">Target Product</Translate>
           </dt>
           <dd>{tradeRequestEntity.targetProduct ? tradeRequestEntity.targetProduct.name : ''}</dd>

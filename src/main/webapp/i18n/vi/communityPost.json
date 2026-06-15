@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "communityPost": {
+      "home": {
+        "title": "Community Posts",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Thêm mới một Community Post",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Community Post",
+        "notFound": "No Community Posts found"
+      },
+      "created": "Một Community Post mới được tạo với định danh {{ param }}",
+      "updated": "Một Community Post cập nhật với định danh {{ param }}",
+      "deleted": "Một Community Post đã xóa với định danh {{ param }}",
+      "delete": {
+        "question": "Bạn có chắc là muốn xóa Community Post {{ id }}?"
+      },
+      "detail": {
+        "title": "Community Post"
+      },
+      "id": "ID",
+      "title": "Title",
+      "content": "Content",
+      "status": "Status",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "category": "Category",
+      "author": "Author"
+    }
+  }
+}

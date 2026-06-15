@@ -11,6 +11,8 @@ export interface IProduct {
   status?: string | null;
   condition?: string | null;
   stock?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   createdAt?: dayjs.Dayjs | null;
   updatedAt?: dayjs.Dayjs | null;
   category?: ICategory | null;

@@ -26,6 +26,7 @@ import { getProfile } from 'app/shared/reducers/application-profile';
 import { getSession } from 'app/shared/reducers/authentication';
 
 import PremiumPlansPage from 'app/modules/premium-plans/premiumPlansPage';
+import { ForumRoutes } from 'app/modules/forum/ForumRoutes';
 import { CreateListingPage } from './modules/listing/create-listing/createListingPage';
 import { LoginInfoPage } from './modules/login/LoginInfoPage';
 import { ChatPage } from './modules/chat/chatPage';
@@ -202,6 +203,7 @@ export const router = createBrowserRouter([
           </PrivateRoute>
         ),
         children: [
+          { path: 'forum/*', element: <ForumRoutes /> },
           { path: 'cart', element: <ShoppingCartPage /> },
           { path: 'checkout', element: <CheckoutPage /> },
           { path: 'purchase-success', element: <PurchaseSuccessPage /> },

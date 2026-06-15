@@ -1,0 +1,30 @@
+{
+  "unipassWebApp": {
+    "communityPost": {
+      "home": {
+        "title": "Community Posts",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Community Post",
+        "createOrEditLabel": "Create or edit a Community Post",
+        "notFound": "No Community Posts found"
+      },
+      "created": "A new Community Post is created with identifier {{ param }}",
+      "updated": "A Community Post is updated with identifier {{ param }}",
+      "deleted": "A Community Post is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Community Post {{ id }}?"
+      },
+      "detail": {
+        "title": "Community Post"
+      },
+      "id": "ID",
+      "title": "Title",
+      "content": "Content",
+      "status": "Status",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "category": "Category",
+      "author": "Author"
+    }
+  }
+}

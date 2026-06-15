@@ -61,11 +61,6 @@ describe('ChatRoom e2e test', () => {
   });
 
   describe('ChatRoom page', () => {
-    it('should have translated page title', () => {
-      cy.visit(chatRoomPageUrl);
-      cy.getEntityHeading('ChatRoom').should('not.contain', 'unipassWebApp.chatRoom.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(chatRoomPageUrl);

@@ -61,11 +61,6 @@ describe('Category e2e test', () => {
   });
 
   describe('Category page', () => {
-    it('should have translated page title', () => {
-      cy.visit(categoryPageUrl);
-      cy.getEntityHeading('Category').should('not.contain', 'unipassWebApp.category.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(categoryPageUrl);

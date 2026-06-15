@@ -61,11 +61,6 @@ describe('CartItem e2e test', () => {
   });
 
   describe('CartItem page', () => {
-    it('should have translated page title', () => {
-      cy.visit(cartItemPageUrl);
-      cy.getEntityHeading('CartItem').should('not.contain', 'unipassWebApp.cartItem.home.title');
-    });
-
     describe('create button click', () => {
       beforeEach(() => {
         cy.visit(cartItemPageUrl);

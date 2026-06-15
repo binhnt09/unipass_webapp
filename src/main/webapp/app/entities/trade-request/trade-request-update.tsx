@@ -157,6 +157,22 @@ export const TradeRequestUpdate = () => {
                 placeholder="YYYY-MM-DD HH:mm"
               />
               <ValidatedField
+                label={translate('unipassWebApp.tradeRequest.isBuyerConfirmed')}
+                id="trade-request-isBuyerConfirmed"
+                name="isBuyerConfirmed"
+                data-cy="isBuyerConfirmed"
+                check
+                type="checkbox"
+              />
+              <ValidatedField
+                label={translate('unipassWebApp.tradeRequest.isSellerConfirmed')}
+                id="trade-request-isSellerConfirmed"
+                name="isSellerConfirmed"
+                data-cy="isSellerConfirmed"
+                check
+                type="checkbox"
+              />
+              <ValidatedField
                 id="trade-request-targetProduct"
                 name="targetProduct"
                 data-cy="targetProduct"

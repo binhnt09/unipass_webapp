@@ -58,6 +58,12 @@ export const ProductUpdate = () => {
     if (values.stock !== undefined && typeof values.stock !== 'number') {
       values.stock = Number(values.stock);
     }
+    if (values.latitude !== undefined && typeof values.latitude !== 'number') {
+      values.latitude = Number(values.latitude);
+    }
+    if (values.longitude !== undefined && typeof values.longitude !== 'number') {
+      values.longitude = Number(values.longitude);
+    }
     values.createdAt = convertDateTimeToServer(values.createdAt);
     values.updatedAt = convertDateTimeToServer(values.updatedAt);
 
@@ -176,6 +182,20 @@ export const ProductUpdate = () => {
                   required: { value: true, message: translate('entity.validation.required') },
                   validate: v => isNumber(v) || translate('entity.validation.number'),
                 }}
+              />
+              <ValidatedField
+                label={translate('unipassWebApp.product.latitude')}
+                id="product-latitude"
+                name="latitude"
+                data-cy="latitude"
+                type="text"
+              />
+              <ValidatedField
+                label={translate('unipassWebApp.product.longitude')}
+                id="product-longitude"
+                name="longitude"
+                data-cy="longitude"
+                type="text"
               />
               <ValidatedField
                 label={translate('unipassWebApp.product.createdAt')}

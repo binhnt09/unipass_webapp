@@ -95,7 +95,7 @@ export const AiChatSession = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -194,7 +194,7 @@ export const AiChatSession = () => {
                           </span>
                         </Button>
                         <Button
-                          onClick={() => (globalThis.location.href = `/ai-chat-session/${aiChatSession.id}/delete`)}
+                          onClick={() => (window.location.href = `/ai-chat-session/${aiChatSession.id}/delete`)}
                           variant="danger"
                           size="sm"
                           data-cy="entityDeleteButton"

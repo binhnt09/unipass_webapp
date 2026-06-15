@@ -16,10 +16,8 @@ export const ProductDetail = () => {
   const { id } = useParams<'id'>();
 
   useEffect(() => {
-    if (id) {
-      dispatch(getEntity(id));
-    }
-  }, [id, dispatch]);
+    dispatch(getEntity(id));
+  }, []);
 
   const productEntity = useAppSelector(state => state.product.entity);
   return (
@@ -71,6 +69,18 @@ export const ProductDetail = () => {
             </span>
           </dt>
           <dd>{productEntity.stock}</dd>
+          <dt>
+            <span id="latitude">
+              <Translate contentKey="unipassWebApp.product.latitude">Latitude</Translate>
+            </span>
+          </dt>
+          <dd>{productEntity.latitude}</dd>
+          <dt>
+            <span id="longitude">
+              <Translate contentKey="unipassWebApp.product.longitude">Longitude</Translate>
+            </span>
+          </dt>
+          <dd>{productEntity.longitude}</dd>
           <dt>
             <span id="createdAt">
               <Translate contentKey="unipassWebApp.product.createdAt">Created At</Translate>

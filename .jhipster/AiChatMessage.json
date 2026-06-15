@@ -18,6 +18,12 @@
       "fieldValidateRulesMaxlength": "5000"
     },
     {
+      "fieldName": "recommendedProductIds",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "5000"
+    },
+    {
       "fieldName": "tokensUsed",
       "fieldType": "Integer"
     },

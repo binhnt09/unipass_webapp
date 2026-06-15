@@ -48,6 +48,12 @@ export const AiChatMessageDetail = () => {
           </dt>
           <dd>{aiChatMessageEntity.content}</dd>
           <dt>
+            <span id="recommendedProductIds">
+              <Translate contentKey="unipassWebApp.aiChatMessage.recommendedProductIds">Recommended Product Ids</Translate>
+            </span>
+          </dt>
+          <dd>{aiChatMessageEntity.recommendedProductIds}</dd>
+          <dt>
             <span id="tokensUsed">
               <Translate contentKey="unipassWebApp.aiChatMessage.tokensUsed">Tokens Used</Translate>
             </span>

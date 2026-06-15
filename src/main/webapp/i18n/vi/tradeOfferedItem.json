@@ -18,8 +18,8 @@
         "title": "Trade Offered Item"
       },
       "id": "ID",
-      "tradeRequest": "Trade Request",
-      "offeredProduct": "Offered Product"
+      "offeredProduct": "Offered Product",
+      "tradeRequest": "Trade Request"
     }
   }
 }

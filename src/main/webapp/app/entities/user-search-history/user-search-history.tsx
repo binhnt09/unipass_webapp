@@ -95,7 +95,7 @@ export const UserSearchHistory = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -199,7 +199,7 @@ export const UserSearchHistory = () => {
                           </span>
                         </Button>
                         <Button
-                          onClick={() => (globalThis.location.href = `/user-search-history/${userSearchHistory.id}/delete`)}
+                          onClick={() => (window.location.href = `/user-search-history/${userSearchHistory.id}/delete`)}
                           variant="danger"
                           size="sm"
                           data-cy="entityDeleteButton"

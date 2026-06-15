@@ -40,6 +40,14 @@
       "fieldValidateRules": ["required"]
     },
     {
+      "fieldName": "latitude",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "longitude",
+      "fieldType": "BigDecimal"
+    },
+    {
       "fieldName": "createdAt",
       "fieldType": "Instant"
     },

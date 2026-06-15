@@ -95,7 +95,7 @@ export const AiChatMessage = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -141,6 +141,10 @@ export const AiChatMessage = () => {
                     <Translate contentKey="unipassWebApp.aiChatMessage.content">Content</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('content')} />
                   </th>
+                  <th className="hand" onClick={sort('recommendedProductIds')}>
+                    <Translate contentKey="unipassWebApp.aiChatMessage.recommendedProductIds">Recommended Product Ids</Translate>{' '}
+                    <FontAwesomeIcon icon={getSortIconByFieldName('recommendedProductIds')} />
+                  </th>
                   <th className="hand" onClick={sort('tokensUsed')}>
                     <Translate contentKey="unipassWebApp.aiChatMessage.tokensUsed">Tokens Used</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('tokensUsed')} />
@@ -165,6 +169,7 @@ export const AiChatMessage = () => {
                     </td>
                     <td>{aiChatMessage.role}</td>
                     <td>{aiChatMessage.content}</td>
+                    <td>{aiChatMessage.recommendedProductIds}</td>
                     <td>{aiChatMessage.tokensUsed}</td>
                     <td>
                       {aiChatMessage.createdAt ? <TextFormat type="date" value={aiChatMessage.createdAt} format={APP_DATE_FORMAT} /> : null}
@@ -203,7 +208,7 @@ export const AiChatMessage = () => {
                           </span>
                         </Button>
                         <Button
-                          onClick={() => (globalThis.location.href = `/ai-chat-message/${aiChatMessage.id}/delete`)}
+                          onClick={() => (window.location.href = `/ai-chat-message/${aiChatMessage.id}/delete`)}
                           variant="danger"
                           size="sm"
                           data-cy="entityDeleteButton"

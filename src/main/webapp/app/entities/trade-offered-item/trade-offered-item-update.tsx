@@ -19,8 +19,8 @@ export const TradeOfferedItemUpdate = () => {
   const { id } = useParams<'id'>();
   const isNew = id === undefined;
 
-  const tradeRequests = useAppSelector(state => state.tradeRequest.entities);
   const products = useAppSelector(state => state.product.entities);
+  const tradeRequests = useAppSelector(state => state.tradeRequest.entities);
   const tradeOfferedItemEntity = useAppSelector(state => state.tradeOfferedItem.entity);
   const loading = useAppSelector(state => state.tradeOfferedItem.loading);
   const updating = useAppSelector(state => state.tradeOfferedItem.updating);
@@ -37,8 +37,8 @@ export const TradeOfferedItemUpdate = () => {
       dispatch(getEntity(id));
     }
 
-    dispatch(getTradeRequests({}));
     dispatch(getProducts({}));
+    dispatch(getTradeRequests({}));
   }, []);
 
   useEffect(() => {
@@ -55,8 +55,8 @@ export const TradeOfferedItemUpdate = () => {
     const entity = {
       ...tradeOfferedItemEntity,
       ...values,
-      tradeRequest: tradeRequests.find(it => it.id.toString() === values.tradeRequest?.toString()),
       offeredProduct: products.find(it => it.id.toString() === values.offeredProduct?.toString()),
+      tradeRequest: tradeRequests.find(it => it.id.toString() === values.tradeRequest?.toString()),
     };
 
     if (isNew) {
@@ -71,8 +71,8 @@ export const TradeOfferedItemUpdate = () => {
       ? {}
       : {
           ...tradeOfferedItemEntity,
-          tradeRequest: tradeOfferedItemEntity?.tradeRequest?.id,
           offeredProduct: tradeOfferedItemEntity?.offeredProduct?.id,
+          tradeRequest: tradeOfferedItemEntity?.tradeRequest?.id,
         };
 
   return (
@@ -101,22 +101,6 @@ export const TradeOfferedItemUpdate = () => {
                 />
               )}
               <ValidatedField
-                id="trade-offered-item-tradeRequest"
-                name="tradeRequest"
-                data-cy="tradeRequest"
-                label={translate('unipassWebApp.tradeOfferedItem.tradeRequest')}
-                type="select"
-              >
-                <option value="" key="0" />
-                {tradeRequests
-                  ? tradeRequests.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
-                        {otherEntity.id}
-                      </option>
-                    ))
-                  : null}
-              </ValidatedField>
-              <ValidatedField
                 id="trade-offered-item-offeredProduct"
                 name="offeredProduct"
                 data-cy="offeredProduct"
@@ -128,6 +112,22 @@ export const TradeOfferedItemUpdate = () => {
                   ? products.map(otherEntity => (
                       <option value={otherEntity.id} key={otherEntity.id}>
                         {otherEntity.name}
+                      </option>
+                    ))
+                  : null}
+              </ValidatedField>
+              <ValidatedField
+                id="trade-offered-item-tradeRequest"
+                name="tradeRequest"
+                data-cy="tradeRequest"
+                label={translate('unipassWebApp.tradeOfferedItem.tradeRequest')}
+                type="select"
+              >
+                <option value="" key="0" />
+                {tradeRequests
+                  ? tradeRequests.map(otherEntity => (
+                      <option value={otherEntity.id} key={otherEntity.id}>
+                        {otherEntity.id}
                       </option>
                     ))
                   : null}

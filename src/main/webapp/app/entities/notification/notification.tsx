@@ -95,7 +95,7 @@ export const Notification = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -202,7 +202,7 @@ export const Notification = () => {
                           </span>
                         </Button>
                         <Button
-                          onClick={() => (globalThis.location.href = `/notification/${notification.id}/delete`)}
+                          onClick={() => (window.location.href = `/notification/${notification.id}/delete`)}
                           variant="danger"
                           size="sm"
                           data-cy="entityDeleteButton"

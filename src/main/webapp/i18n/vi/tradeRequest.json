@@ -23,6 +23,9 @@
       "meetupLocation": "Meetup Location",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
+      "isBuyerConfirmed": "Is Buyer Confirmed",
+      "isSellerConfirmed": "Is Seller Confirmed",
+      "offeredItems": "Offered Items",
       "targetProduct": "Target Product",
       "buyer": "Buyer",
       "seller": "Seller"

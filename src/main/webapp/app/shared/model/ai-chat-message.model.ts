@@ -6,6 +6,7 @@ export interface IAiChatMessage {
   id?: number;
   role?: string;
   content?: string;
+  recommendedProductIds?: string | null;
   tokensUsed?: number | null;
   createdAt?: dayjs.Dayjs | null;
   session?: IAiChatSession | null;

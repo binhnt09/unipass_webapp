@@ -84,7 +84,7 @@ export const ItemRequest = () => {
 
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
-    const { order } = paginationState;
+    const order = paginationState.order;
     if (sortFieldName !== fieldName) {
       return faSort;
     }
@@ -192,7 +192,7 @@ export const ItemRequest = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (globalThis.location.href = `/item-request/${itemRequest.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (window.location.href = `/item-request/${itemRequest.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

@@ -94,6 +94,33 @@ const EntitiesMenu = () => {
       <MenuItem icon="asterisk" to="/seller-request">
         <Translate contentKey="global.menu.entities.sellerRequest" />
       </MenuItem>
+      <MenuItem icon="asterisk" to="/status-history">
+        <Translate contentKey="global.menu.entities.statusHistory" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/trade-request">
+        <Translate contentKey="global.menu.entities.tradeRequest" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/trade-offered-item">
+        <Translate contentKey="global.menu.entities.tradeOfferedItem" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/user-address">
+        <Translate contentKey="global.menu.entities.userAddress" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/post-category">
+        <Translate contentKey="global.menu.entities.postCategory" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/community-post">
+        <Translate contentKey="global.menu.entities.communityPost" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/post-comment">
+        <Translate contentKey="global.menu.entities.postComment" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/post-reaction">
+        <Translate contentKey="global.menu.entities.postReaction" />
+      </MenuItem>
+      <MenuItem icon="asterisk" to="/comment-reaction">
+        <Translate contentKey="global.menu.entities.commentReaction" />
+      </MenuItem>
       {/* jhipster-needle-add-entity-to-menu - JHipster will add entities to the menu here */}
     </>
   );

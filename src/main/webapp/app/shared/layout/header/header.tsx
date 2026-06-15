@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Storage } from 'react-jhipster';
 import { NavLink as Link, useNavigate } from 'react-router';
-import { Bell, ShoppingCart, Crown, MessageCircle, Shield, Loader2, Plus, Download, X, Smartphone } from 'lucide-react';
+import { Bell, ShoppingCart, Crown, MessageCircle, Shield, Loader2, Plus, Download, X, Smartphone, Users } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -307,6 +307,25 @@ const Header = (props: IHeaderProps) => {
                 </button>
               )}
               <Home />
+
+              {/* Forum Link */}
+              {isUserLoggedIn && (
+                <Link
+                  to="/forum"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-bold shadow-[0_0_15px_rgba(0,245,255,0.2)] hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5"
+                  style={{
+                    background: 'rgba(0,245,255,0.1)',
+                    color: '#00F5FF',
+                    border: '1px solid rgba(0,245,255,0.3)',
+                    textDecoration: 'none',
+                  }}
+                  title="Community Forum"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Cộng đồng</span>
+                </Link>
+              )}
+
               {/* Seller: sell button */}
               {isUserLoggedIn && isUserSeller && (
                 <Link
