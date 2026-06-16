@@ -17,6 +17,7 @@ interface Product {
   reviews: number;
   condition: string;
   stock?: number;
+  distance?: number;
 }
 
 interface ProductCardProps {
@@ -113,8 +114,8 @@ export function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
 
-        {/* Price */}
-        <div className="flex items-baseline gap-2 mb-3">
+        {/* Price & Distance */}
+        <div className="flex items-baseline justify-between gap-2 mb-3">
           <span className="text-2xl font-bold text-[#0A2647]">{product.price.toLocaleString('vi-VN')}đ</span>
         </div>
 
@@ -137,6 +138,11 @@ export function ProductCard({ product }: ProductCardProps) {
           <Star className="w-4 h-4 fill-[#FF6B35] text-[#FF6B35]" />
           <span className="text-sm font-medium text-gray-900">{product.rating}</span>
           <span className="text-xs text-gray-500">({product.reviews})</span>
+          {product.distance !== undefined && product.distance !== null && (
+            <span className="text-xs font-medium text-[#4855b9] bg-[#FF6B35]/10 px-2 py-1 rounded-md">
+              Cách {product.distance < 1 ? Math.round(product.distance * 1000) + 'm' : product.distance.toFixed(1) + 'km'}
+            </span>
+          )}
         </div>
 
         {/* Actions */}

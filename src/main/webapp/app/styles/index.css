@@ -16,3 +16,12 @@
 .dropdown-menu.show {
   display: block;
 }
+
+/* ==========================================================================
+   Fix cho chữ trong ô nhập liệu (input, textarea, select) bị ẩn do trùng màu nền
+   ========================================================================== */
+input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  color: #1f2937; /* Tailwind gray-800 */
+}
