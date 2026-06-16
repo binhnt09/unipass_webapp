@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
-
+import { LocationPickerMap } from '../../shared/map/LocationPickerMap';
+import { toast } from 'react-toastify';
 // import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 
 import {
@@ -18,6 +19,8 @@ import {
   Package,
   Clock,
   Eye,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { getConditionLabel } from '../../shared/util/condition-util';
@@ -56,6 +59,8 @@ interface ShippingAddress {
   name: string;
   phone: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
   isDefault: boolean;
 }
 
@@ -92,25 +97,46 @@ export function CheckoutPage() {
 
   const [checkoutGroup, setCheckoutGroup] = useState<CheckoutSellerGroup | null>(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [addresses, setAddresses] = useState<ShippingAddress[]>(() => {
-    // 1. Khi F5 hoặc tải trang, tìm xem trong máy có lưu địa chỉ nào trước đó chưa
-    const savedAddresses = localStorage.getItem('checkout_addresses');
-    // 2. Nếu ĐÃ CÓ lưu (người dùng đã từng nhập rồi), thì lấy ra dùng lại
-    if (savedAddresses) {
-      return JSON.parse(savedAddresses);
-    }
-    return [];
-  });
-  // Thêm cái này ngay bên dưới để tự động lưu mỗi khi người dùng Thêm/Sửa/Xóa địa chỉ
+  const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
+
   useEffect(() => {
-    localStorage.setItem('checkout_addresses', JSON.stringify(addresses));
-  }, [addresses]);
+    const fetchAddresses = async () => {
+      try {
+        const res = await axios.get('/api/user-addresses');
+        if (res.data) {
+          const mapped = res.data.map((addr: any) => {
+            const parts = addr.name ? addr.name.split('|') : [];
+            return {
+              id: String(addr.id),
+              name: parts[0] || addr.name || '',
+              phone: parts.length > 1 ? parts[1] : '',
+              address: addr.address || '',
+              latitude: addr.latitude,
+              longitude: addr.longitude,
+              isDefault: addr.isDefault || false,
+            };
+          });
+          setAddresses(mapped);
+          if (mapped.length > 0) {
+            const def = mapped.find((a: any) => a.isDefault);
+            setSelectedAddressId(def ? def.id : mapped[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching addresses:', error);
+      }
+    };
+    fetchAddresses();
+  }, []);
+
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
-  const [newAddress, setNewAddress] = useState({
+  const [newAddress, setNewAddress] = useState<{ name: string; phone: string; address: string; latitude?: number; longitude?: number }>({
     name: '',
     phone: '',
     address: '',
+    latitude: undefined,
+    longitude: undefined,
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderId, setOrderId] = useState('');
@@ -142,13 +168,7 @@ export function CheckoutPage() {
   // NEW FEATURE: Order preview modal - show order summary before final confirmation
   const [showOrderPreviewModal, setShowOrderPreviewModal] = useState(false);
   const [addressValidationError, setAddressValidationError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Show toast notification
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
   // NEW FEATURE: Delivery time estimate - calculate based on delivery method
   const getDeliveryEstimate = () => {
     if (!checkoutGroup?.deliveryMethod) {
@@ -319,6 +339,9 @@ export function CheckoutPage() {
                       onClick={() => {
                         setSelectedAddressId(addr.id);
                         setAddressValidationError(null);
+                        if (selectedAddressId !== addr.id) {
+                          toast.success('Đã thay đổi địa chỉ giao hàng!');
+                        }
                       }}
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -334,9 +357,9 @@ export function CheckoutPage() {
                               e.stopPropagation();
                               handleEditAddress(addr);
                             }}
-                            className="text-[#FF6B35] hover:text-[#FF5722] text-sm font-medium"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-[#FF6B35] hover:bg-[#FF6B35] hover:text-white rounded-md text-sm font-medium transition-colors"
                           >
-                            Sửa
+                            <Edit2 className="w-4 h-4" /> Sửa
                           </button>
                           {addresses.length > 1 && (
                             <button
@@ -344,9 +367,9 @@ export function CheckoutPage() {
                                 e.stopPropagation();
                                 handleDeleteAddress(addr.id);
                               }}
-                              className="text-red-500 hover:text-red-700 text-sm"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-md text-sm font-medium transition-colors"
                             >
-                              Xóa
+                              <Trash2 className="w-4 h-4" /> Xóa
                             </button>
                           )}
                         </div>
@@ -396,7 +419,8 @@ export function CheckoutPage() {
                       value={newAddress.name}
                       onChange={e => setNewAddress({ ...newAddress, name: e.target.value })}
                       placeholder="Nhập họ và tên"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent"
+                      // className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-sm text-gray-900"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-sm text-gray-900"
                     />
                   </div>
                   <div>
@@ -406,7 +430,7 @@ export function CheckoutPage() {
                       value={newAddress.phone}
                       onChange={e => handlePhoneChange(e.target.value)}
                       placeholder="Nhập số điện thoại (bắt đầu bằng 0, 9-10 chữ số)"
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm text-gray-900 ${
                         phoneError ? 'border-red-300 focus:ring-red-300' : 'border-gray-300 focus:ring-[#FF6B35]'
                       }`}
                     />
@@ -418,8 +442,21 @@ export function CheckoutPage() {
                       value={newAddress.address}
                       onChange={e => setNewAddress({ ...newAddress, address: e.target.value })}
                       placeholder="Nhập địa chỉ chi tiết"
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent resize-none"
+                      rows={2}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent resize-none mb-4 text-sm text-gray-900"
+                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Vị trí trên bản đồ</label>
+                    <LocationPickerMap
+                      initialLat={newAddress.latitude}
+                      initialLng={newAddress.longitude}
+                      onLocationSelect={(lat, lng, addrText) => {
+                        setNewAddress(prev => ({
+                          ...prev,
+                          latitude: lat,
+                          longitude: lng,
+                          address: addrText,
+                        }));
+                      }}
                     />
                   </div>
                 </div>
@@ -719,67 +756,120 @@ export function CheckoutPage() {
     );
   };
 
-  const handleAddAddress = () => {
+  const handleAddAddress = async () => {
     if (!newAddress.name || !newAddress.phone || !newAddress.address) {
       return;
     }
 
-    // Validate phone
     if (!validatePhone(newAddress.phone)) {
       setPhoneError('Số điện thoại phải bắt đầu bằng 0 và có 9-10 chữ số');
       return;
     }
 
-    if (editingAddressId) {
-      // Update existing address
-      setAddresses(
-        addresses.map(addr =>
-          addr.id === editingAddressId ? { ...addr, name: newAddress.name, phone: newAddress.phone, address: newAddress.address } : addr,
-        ),
-      );
-      setEditingAddressId(null);
-    } else {
-      // Add new address
-      const newAddr: ShippingAddress = {
-        id: Date.now().toString(),
-        name: newAddress.name,
-        phone: newAddress.phone,
+    try {
+      const payload = {
+        name: `${newAddress.name}|${newAddress.phone}`,
         address: newAddress.address,
+        latitude: newAddress.latitude,
+        longitude: newAddress.longitude,
         isDefault: addresses.length === 0,
       };
-      setAddresses([...addresses, newAddr]);
-      setSelectedAddressId(newAddr.id);
-    }
 
-    setNewAddress({ name: '', phone: '', address: '' });
-    setIsAddingNewAddress(false);
-    setShowAddressModal(false);
-    setAddressValidationError(null);
-    setPhoneError(null);
+      if (editingAddressId) {
+        await axios.put(`/api/user-addresses/${editingAddressId}`, {
+          id: Number(editingAddressId),
+          ...payload,
+          isDefault: addresses.find(a => a.id === editingAddressId)?.isDefault,
+        });
+        setAddresses(
+          addresses.map(addr =>
+            addr.id === editingAddressId
+              ? {
+                  ...addr,
+                  name: newAddress.name,
+                  phone: newAddress.phone,
+                  address: newAddress.address,
+                  latitude: newAddress.latitude,
+                  longitude: newAddress.longitude,
+                }
+              : addr,
+          ),
+        );
+        setEditingAddressId(null);
+        toast.success('Cập nhật địa chỉ thành công!');
+      } else {
+        const res = await axios.post('/api/user-addresses', payload);
+        const newAddr: ShippingAddress = {
+          id: String(res.data.id),
+          name: newAddress.name,
+          phone: newAddress.phone,
+          address: newAddress.address,
+          latitude: newAddress.latitude,
+          longitude: newAddress.longitude,
+          isDefault: res.data.isDefault,
+        };
+        setAddresses([...addresses, newAddr]);
+        setSelectedAddressId(newAddr.id);
+        toast.success('Thêm địa chỉ thành công!');
+      }
+
+      setNewAddress({ name: '', phone: '', address: '', latitude: undefined, longitude: undefined });
+      setIsAddingNewAddress(false);
+      setShowAddressModal(false);
+      setAddressValidationError(null);
+      setPhoneError(null);
+    } catch (error) {
+      console.error('Error saving address:', error);
+      toast.error('Có lỗi xảy ra khi lưu địa chỉ');
+    }
   };
 
   const handleEditAddress = (addr: ShippingAddress) => {
-    setNewAddress({ name: addr.name, phone: addr.phone, address: addr.address });
+    setNewAddress({ name: addr.name, phone: addr.phone, address: addr.address, latitude: addr.latitude, longitude: addr.longitude });
     setEditingAddressId(addr.id);
     setIsAddingNewAddress(true);
     setPhoneError(null);
   };
 
-  const handleSetDefaultAddress = (addressId: string) => {
-    setAddresses(
-      addresses.map(addr => ({
-        ...addr,
-        isDefault: addr.id === addressId,
-      })),
-    );
-    setSelectedAddressId(addressId);
+  const handleSetDefaultAddress = async (addressId: string) => {
+    try {
+      const addr = addresses.find(a => a.id === addressId);
+      if (addr) {
+        await axios.put(`/api/user-addresses/${addressId}`, {
+          id: Number(addressId),
+          name: `${addr.name}|${addr.phone}`,
+          address: addr.address,
+          latitude: addr.latitude,
+          longitude: addr.longitude,
+          isDefault: true,
+        });
+        setAddresses(
+          addresses.map(a => ({
+            ...a,
+            isDefault: a.id === addressId,
+          })),
+        );
+        setSelectedAddressId(addressId);
+        toast.success('Đã đặt làm địa chỉ mặc định!');
+      }
+    } catch (error) {
+      console.error('Error setting default address:', error);
+      toast.error('Có lỗi xảy ra');
+    }
   };
 
-  const handleDeleteAddress = (addressId: string) => {
-    const filtered = addresses.filter(addr => addr.id !== addressId);
-    setAddresses(filtered);
-    if (selectedAddressId === addressId && filtered.length > 0) {
-      setSelectedAddressId(filtered[0].id);
+  const handleDeleteAddress = async (addressId: string) => {
+    try {
+      await axios.delete(`/api/user-addresses/${addressId}`);
+      const filtered = addresses.filter(addr => addr.id !== addressId);
+      setAddresses(filtered);
+      if (selectedAddressId === addressId && filtered.length > 0) {
+        setSelectedAddressId(filtered[0].id);
+      }
+      toast.success('Xóa địa chỉ thành công!');
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      toast.error('Có lỗi xảy ra');
     }
   };
 
@@ -787,7 +877,7 @@ export function CheckoutPage() {
   const handleOpenOrderPreview = () => {
     if (!isAddressValid) {
       const errorMessage = 'Vui lòng nhập đầy đủ thông tin địa chỉ nhận hàng trước khi thanh toán!';
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
       setAddressValidationError(errorMessage);
 
       // Tự động mở Modal bắt người dùng nhập địa chỉ luôn cho tiện (Tăng UX)
@@ -805,7 +895,7 @@ export function CheckoutPage() {
       if (!checkoutGroup) return;
 
       if (!shippingInfo) {
-        showToast('Vui lòng cấu hình địa chỉ giao hàng!', 'error');
+        toast.error('Vui lòng cấu hình địa chỉ giao hàng!');
         return;
       }
 
@@ -838,7 +928,7 @@ export function CheckoutPage() {
     } catch (error) {
       console.error('Lỗi khi đặt hàng:', error);
       const errorMessage = 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!';
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     }
   };
 
@@ -1056,20 +1146,6 @@ export function CheckoutPage() {
 
         {/* Success Modal */}
         {renderSuccessModal()}
-
-        {/* Toast Notification */}
-        {toast && (
-          <div className="fixed bottom-20 md:bottom-6 right-6 z-50 animate-slideUp">
-            <div
-              className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
-                toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-              }`}
-            >
-              <BadgeCheck className="w-5 h-5" />
-              <span className="font-medium">{toast.message}</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

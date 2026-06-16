@@ -3,19 +3,30 @@ import { IPostComment } from 'app/shared/model/post-comment.model';
 import { Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import axios from 'axios';
+
 interface CommentSectionProps {
   postId: string;
   comments: IPostComment[];
+  onCommentAdded?: () => void;
 }
 
-export const CommentSection: React.FC<CommentSectionProps> = ({ comments }) => {
+export const CommentSection: React.FC<CommentSectionProps> = ({ postId, comments, onCommentAdded }) => {
   const [newComment, setNewComment] = useState('');
   const maxLength = 500;
 
-  const handlePostComment = () => {
+  const handlePostComment = async () => {
     if (!newComment.trim()) return;
-    // TODO: dispatch comment creation
-    setNewComment('');
+    try {
+      await axios.post('/api/post-comments', {
+        content: newComment,
+        post: { id: Number(postId) },
+      });
+      setNewComment('');
+      if (onCommentAdded) onCommentAdded();
+    } catch (e) {
+      console.error('Failed to post comment', e);
+    }
   };
 
   return (
@@ -64,8 +75,23 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ comments }) => {
                 <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
               </div>
               <div className="flex items-center gap-4 mt-1 ml-2">
-                <button className="text-[11px] font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Thích</button>
-                <button className="text-[11px] font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Phản hồi</button>
+                <button
+                  onClick={() => {
+                    axios
+                      .post('/api/comment-reactions', {
+                        reactionType: 'LIKE',
+                        comment: { id: comment.id },
+                      })
+                      .then(() => alert('Đã thích bình luận!'))
+                      .catch(e => console.error(e));
+                  }}
+                  className="text-[11px] font-medium text-gray-500 hover:text-[#FF6B35] transition-colors"
+                >
+                  Thích
+                </button>
+                <button className="text-[11px] font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                  Phản hồi
+                </button>
               </div>
             </div>
           </motion.div>

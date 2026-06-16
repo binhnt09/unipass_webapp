@@ -18,8 +18,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaYoutube } from 'react-icons/fa';
-import { useAppSelector } from 'app/config/store';
-import { useAuth } from 'app/contexts/AuthContext';
+// import { useAppSelector } from 'app/config/store';
+// import { useAuth } from 'app/contexts/AuthContext';
 import { AuthModal } from 'app/modules/login/AuthModal';
 import studentHeroImg from '../../../../content/images/student-hero.png';
 import logoImg from '../../../../content/images/Icon_logo.png';
@@ -154,13 +154,11 @@ const StarfieldCanvas = () => {
 /* ================================================================
    FLOATING PILL NAVBAR
    ================================================================ */
-interface NavbarProps {
-  onLogin: () => void;
-  onRegister: () => void;
-  isLoggedIn: boolean;
-}
+// interface NavbarProps {
+//   isLoggedIn: boolean;
+// }
 
-const WelcomeNav = ({ onLogin, onRegister, isLoggedIn }: NavbarProps) => {
+const WelcomeNav = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -266,70 +264,7 @@ const WelcomeNav = ({ onLogin, onRegister, isLoggedIn }: NavbarProps) => {
       </div>
 
       {/* Auth buttons */}
-      <div className="hidden md:flex items-center gap-2">
-        {isLoggedIn ? (
-          <button
-            onClick={() => navigate('/market')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.5rem 1.2rem',
-              borderRadius: '999px',
-              background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
-              color: '#090418',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 0 20px rgba(0,245,255,0.3)',
-            }}
-          >
-            Vào Marketplace <ArrowRight size={14} />
-          </button>
-        ) : (
-          <>
-            <button
-              onClick={onLogin}
-              style={{
-                padding: '0.5rem 1.1rem',
-                borderRadius: '999px',
-                background: 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.85)',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.13)';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)';
-              }}
-            >
-              Đăng nhập
-            </button>
-            <button
-              onClick={onRegister}
-              style={{
-                padding: '0.5rem 1.2rem',
-                borderRadius: '999px',
-                background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
-                color: '#090418',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 0 16px rgba(0,245,255,0.25)',
-              }}
-            >
-              Đăng ký
-            </button>
-          </>
-        )}
-      </div>
+      <div className="hidden md:flex items-center gap-2"></div>
 
       {/* Mobile hamburger */}
       <button
@@ -390,44 +325,6 @@ const WelcomeNav = ({ onLogin, onRegister, isLoggedIn }: NavbarProps) => {
                 {l.label}
               </button>
             ))}
-            <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.5rem' }}>
-              <button
-                onClick={() => {
-                  onLogin();
-                  setOpen(false);
-                }}
-                style={{
-                  flex: 1,
-                  padding: '0.6rem',
-                  borderRadius: '999px',
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Đăng nhập
-              </button>
-              <button
-                onClick={() => {
-                  onRegister();
-                  setOpen(false);
-                }}
-                style={{
-                  flex: 1,
-                  padding: '0.6rem',
-                  borderRadius: '999px',
-                  background: 'linear-gradient(135deg,#00F5FF,#9B4DFF)',
-                  color: '#090418',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  border: 'none',
-                }}
-              >
-                Đăng ký
-              </button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1239,9 +1136,9 @@ export default function Welcome3D() {
   const navigate = useNavigate();
 
   // Auth state
-  const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
-  const { isAuthenticated: isDemoAuth } = useAuth();
-  const isLoggedIn = isAuthenticated || isDemoAuth;
+  // const isAuthenticated = useAppSelector(state => state.authentication.isAuthenticated);
+  // const { isAuthenticated: isDemoAuth } = useAuth();
+  // const isLoggedIn = isAuthenticated || isDemoAuth;
 
   // Local auth modal
   const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
@@ -1350,7 +1247,7 @@ export default function Welcome3D() {
         />
 
         {/* Layer 1: Floating pill navbar */}
-        <WelcomeNav isLoggedIn={isLoggedIn} onLogin={() => setAuthModal('login')} onRegister={() => setAuthModal('register')} />
+        <WelcomeNav />
 
         {/* Layer 2: Page content */}
         <div style={{ position: 'relative', zIndex: 1 }}>

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
-import { Upload, X, Image as ImageIcon, Package, DollarSign, Tag, FileText, Loader2, Link as LinkIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Package, DollarSign, Tag, FileText, Loader2, Link as LinkIcon, MapPin } from 'lucide-react';
 import { ICategory } from 'app/shared/model/category.model';
 import { useAppSelector } from 'app/config/store';
 import { useAuth } from 'app/contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { getConditionLabel } from '../../../shared/util/condition-util';
+import { LocationPickerMap } from '../../../shared/map/LocationPickerMap';
 
 type ExistingImage = {
   id: number;
@@ -46,7 +47,32 @@ export function CreateListingPage() {
     condition: '',
     description: '',
     stock: '1',
+    latitude: undefined as number | undefined,
+    longitude: undefined as number | undefined,
+    address: '',
   });
+
+  // Fetch user default address for pre-filling map on create mode
+  useEffect(() => {
+    if (!isEditMode) {
+      axios
+        .get('/api/user-addresses')
+        .then(res => {
+          if (res.data && res.data.length > 0) {
+            const defaultAddr = res.data.find((a: any) => a.isDefault) || res.data[0];
+            if (defaultAddr?.latitude && defaultAddr?.longitude) {
+              setFormData(prev => ({
+                ...prev,
+                latitude: defaultAddr.latitude,
+                longitude: defaultAddr.longitude,
+                address: defaultAddr.address || '',
+              }));
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isEditMode]);
 
   // Fetch categories dynamically on component mount
   useEffect(() => {
@@ -81,6 +107,9 @@ export function CreateListingPage() {
             condition: product.condition || '',
             description: product.description || '',
             stock: product.stock !== undefined && product.stock !== null ? String(product.stock) : '1',
+            latitude: product.latitude,
+            longitude: product.longitude,
+            address: '',
           });
         })
         .catch(err => {
@@ -242,6 +271,8 @@ export function CreateListingPage() {
         seller: sellerId ? { id: Number(sellerId) } : null,
         status: productData?.status || 'AVAILABLE',
         stock: Number(formData.stock),
+        latitude: formData.latitude,
+        longitude: formData.longitude,
       };
 
       if (isEditMode) {
@@ -630,6 +661,24 @@ export function CreateListingPage() {
                 disabled={isSubmitting}
               />
               <p className="mt-2 text-sm text-gray-500">{(formData.description || '').length}/500 ký tự</p>
+            </div>
+
+            {/* Location Section */}
+            <div>
+              <label className="block text-gray-900 font-medium mb-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#FF6B35]" />
+                  Vị trí sản phẩm (Bản đồ)
+                </div>
+              </label>
+              <LocationPickerMap
+                initialLat={formData.latitude}
+                initialLng={formData.longitude}
+                onLocationSelect={(lat, lng, addrText) => {
+                  setFormData(prev => ({ ...prev, latitude: lat, longitude: lng, address: addrText }));
+                }}
+              />
+              <p className="mt-2 text-sm text-gray-500">Người mua có thể tìm kiếm sản phẩm theo khoảng cách tới vị trí này.</p>
             </div>
           </div>
 

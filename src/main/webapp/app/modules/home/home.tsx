@@ -21,6 +21,58 @@ export const Home = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [sortByDistance, setSortByDistance] = useState<boolean>(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Fetch device location or fallback to default location on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchFallbackLocation = () => {
+      axios
+        .get('/api/user-addresses')
+        .then(res => {
+          if (isMounted && res.data && res.data.length > 0) {
+            const defaultAddr = res.data.find((a: any) => a.isDefault) || res.data[0];
+            if (defaultAddr && defaultAddr.latitude && defaultAddr.longitude) {
+              setUserLocation({ lat: defaultAddr.latitude, lng: defaultAddr.longitude });
+            }
+          }
+        })
+        .catch(() => {
+          // Silently fail if not logged in or no address
+        });
+    };
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          if (isMounted) {
+            setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+          }
+        },
+        error => {
+          console.warn('Geolocation denied or error, falling back to default address.', error);
+          fetchFallbackLocation();
+        },
+        { timeout: 5000 },
+      );
+    } else {
+      fetchFallbackLocation();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Alert user if they try to sort by distance without location
+  useEffect(() => {
+    if (sortByDistance && !userLocation) {
+      alert('Vui lòng đăng nhập và thêm địa chỉ để tìm quanh đây.');
+      setSortByDistance(false);
+    }
+  }, [sortByDistance, userLocation]);
 
   // Count active filters for badge
   const activeFilterCount = [selectedCategoryId !== null, condition !== null, minPrice > 0, maxPrice < 100000000].filter(Boolean).length;
@@ -71,6 +123,17 @@ export const Home = () => {
           params.append('price.lessThanOrEqual', maxPrice.toString());
         }
 
+        if (sortByDistance && userLocation) {
+          params.append('sort', 'distance,asc');
+        } else {
+          params.append('sort', 'createdAt,desc');
+        }
+
+        if (userLocation) {
+          params.append('userLat', userLocation.lat.toString());
+          params.append('userLng', userLocation.lng.toString());
+        }
+
         const resProducts = await axios.get<IProduct[]>(`/api/products?${params.toString()}&page=0&size=50`);
         const fetchedProducts = resProducts.data || [];
         const productIds = fetchedProducts.map((p: any) => p.id).filter(Boolean);
@@ -117,7 +180,7 @@ export const Home = () => {
       isMounted = false;
       clearTimeout(handler);
     };
-  }, [searchKeyword, selectedCategoryId, condition, minPrice, maxPrice]);
+  }, [searchKeyword, selectedCategoryId, condition, minPrice, maxPrice, sortByDistance, userLocation]);
 
   const handleClearFilters = () => {
     setSearchKeyword('');
@@ -266,6 +329,22 @@ export const Home = () => {
                 </button>
               )}
             </motion.div>
+
+            {/* Sorting Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-[#0A2647] hidden md:block">Sản phẩm nổi bật</h2>
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-sm text-gray-600">Sắp xếp:</span>
+                <select
+                  className="bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-[#FF6B35] cursor-pointer"
+                  value={sortByDistance ? 'distance' : 'newest'}
+                  onChange={e => setSortByDistance(e.target.value === 'distance')}
+                >
+                  <option value="newest">Mới nhất</option>
+                  <option value="distance">Gần tôi nhất</option>
+                </select>
+              </div>
+            </div>
 
             <BrowsingTabs categories={categories} activeCategoryId={selectedCategoryId} onCategoryChange={setSelectedCategoryId} />
 
