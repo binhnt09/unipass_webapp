@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Build ứng dụng cho môi trường production
-RUN npm run webapp:prod
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run webapp:prod
 
 # Serve stage
 FROM nginx:alpine

@@ -53,6 +53,7 @@ module.exports = async () =>
       runtimeChunk: false,
       minimizer: [
         new TerserPlugin({
+          parallel: false,
           terserOptions: {
             parse: {
               // We want terser to parse ecma 8 code. However, we don't want it
@@ -89,7 +90,7 @@ module.exports = async () =>
           },
         }),
         new CssMinimizerPlugin({
-          parallel: true,
+          parallel: false,
         }),
       ],
     },
