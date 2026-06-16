@@ -12,15 +12,13 @@ const { merge } = require('webpack-merge');
 const environment = require('./environment');
 const utils = require('./utils.js');
 
-const getTsLoaderRule = () => {
+const getTsLoaderRule = env => {
   return [
     {
       loader: 'thread-loader',
       options: {
-        // There should be 1 cpu for the fork-ts-checker-webpack-plugin.
-        // The value may need to be adjusted (e.g. to 1) in some CI environments,
-        // as cpus() may report more cores than what are available to the build.
-        workers: require('os').cpus().length - 1,
+        // Limit workers to 1 in production to save RAM
+        workers: env === 'development' ? Math.max(1, require('os').cpus().length - 1) : 1,
       },
     },
     {
@@ -104,14 +102,18 @@ module.exports = async options => {
           VERSION: JSON.stringify(environment.VERSION),
           SERVER_API_URL: JSON.stringify(environment.SERVER_API_URL),
         }),
-        new ESLintPlugin({
-          configType: 'flat',
-          extensions: ['ts', 'tsx', 'js', 'jsx'],
-          failOnWarning: false, // Quan trọng: Có cảnh báo vẫn chạy tiếp
-          failOnError: false, // Quan trọng: Có lỗi vẫn chạy tiếp (để dev cho sướng)
-          emitWarning: true,
-        }),
-        new ForkTsCheckerWebpackPlugin(),
+        ...(development
+          ? [
+              new ESLintPlugin({
+                configType: 'flat',
+                extensions: ['ts', 'tsx', 'js', 'jsx'],
+                failOnWarning: false, // Quan trọng: Có cảnh báo vẫn chạy tiếp
+                failOnError: false, // Quan trọng: Có lỗi vẫn chạy tiếp (để dev cho sướng)
+                emitWarning: true,
+              }),
+              new ForkTsCheckerWebpackPlugin(),
+            ]
+          : []),
         new CopyWebpackPlugin({
           patterns: [
             {
