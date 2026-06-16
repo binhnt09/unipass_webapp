@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch } from 'app/config/store';
 import { getEntities as getCategories } from 'app/entities/post-category/post-category.reducer';
+import { createEntity } from 'app/entities/community-post/community-post.reducer';
 import { ForumSidebar } from './components/ForumSidebar';
 import { ForumWidgets } from './components/ForumWidgets';
 import { PostList } from './components/PostList';
@@ -12,13 +13,24 @@ export const ForumFeed = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const dispatch = useAppDispatch();
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   useEffect(() => {
     dispatch(getCategories({ page: 0, size: 20, sort: 'id,asc' }));
   }, [dispatch]);
 
   const handleCreatePost = (title: string, content: string, categoryId?: number) => {
-    // TODO: dispatch action to create post
-    console.warn('Create post:', { title, content, categoryId });
+    dispatch(
+      createEntity({
+        title: title || 'Bài viết từ Cộng đồng',
+        content,
+        category: categoryId ? { id: categoryId } : null,
+      } as any),
+    ).then(res => {
+      if (res.meta.requestStatus === 'fulfilled') {
+        setRefreshTrigger(prev => prev + 1);
+      }
+    });
   };
 
   return (
@@ -31,7 +43,7 @@ export const ForumFeed = () => {
           </div>
           <div className="col-span-1 md:col-span-6 lg:col-span-6">
             <CreatePostTrigger onClick={() => setIsCreateModalOpen(true)} />
-            <PostList />
+            <PostList refreshTrigger={refreshTrigger} />
           </div>
           <div className="hidden lg:block lg:col-span-3">
             <ForumWidgets />

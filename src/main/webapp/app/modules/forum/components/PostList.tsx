@@ -6,7 +6,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
-export const PostList = () => {
+export const PostList = ({ refreshTrigger }: { refreshTrigger?: number }) => {
   const dispatch = useAppDispatch();
   const postList = useAppSelector(state => state.communityPost.entities);
   // const loading = useAppSelector(state => state.communityPost.loading);
@@ -27,7 +27,7 @@ export const PostList = () => {
   useEffect(() => {
     dispatch(reset());
     setPaginationState({ ...paginationState, activePage: 1 });
-  }, []);
+  }, [refreshTrigger]);
 
   useEffect(() => {
     dispatch(
@@ -37,7 +37,7 @@ export const PostList = () => {
         sort: paginationState.sort,
       }),
     );
-  }, [paginationState.activePage]);
+  }, [paginationState.activePage, refreshTrigger]);
 
   return (
     <div className="w-full">

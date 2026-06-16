@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ImageWithFallback } from '../../shared/figma/ImageWithFallback';
 import { LocationPickerMap } from '../../shared/map/LocationPickerMap';
-
+import { toast } from 'react-toastify';
 // import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 
 import {
@@ -168,13 +168,7 @@ export function CheckoutPage() {
   // NEW FEATURE: Order preview modal - show order summary before final confirmation
   const [showOrderPreviewModal, setShowOrderPreviewModal] = useState(false);
   const [addressValidationError, setAddressValidationError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Show toast notification
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
   // NEW FEATURE: Delivery time estimate - calculate based on delivery method
   const getDeliveryEstimate = () => {
     if (!checkoutGroup?.deliveryMethod) {
@@ -345,6 +339,9 @@ export function CheckoutPage() {
                       onClick={() => {
                         setSelectedAddressId(addr.id);
                         setAddressValidationError(null);
+                        if (selectedAddressId !== addr.id) {
+                          toast.success('Đã thay đổi địa chỉ giao hàng!');
+                        }
                       }}
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -799,7 +796,7 @@ export function CheckoutPage() {
           ),
         );
         setEditingAddressId(null);
-        showToast('Cập nhật địa chỉ thành công!', 'success');
+        toast.success('Cập nhật địa chỉ thành công!');
       } else {
         const res = await axios.post('/api/user-addresses', payload);
         const newAddr: ShippingAddress = {
@@ -813,7 +810,7 @@ export function CheckoutPage() {
         };
         setAddresses([...addresses, newAddr]);
         setSelectedAddressId(newAddr.id);
-        showToast('Thêm địa chỉ thành công!', 'success');
+        toast.success('Thêm địa chỉ thành công!');
       }
 
       setNewAddress({ name: '', phone: '', address: '', latitude: undefined, longitude: undefined });
@@ -823,7 +820,7 @@ export function CheckoutPage() {
       setPhoneError(null);
     } catch (error) {
       console.error('Error saving address:', error);
-      showToast('Có lỗi xảy ra khi lưu địa chỉ', 'error');
+      toast.error('Có lỗi xảy ra khi lưu địa chỉ');
     }
   };
 
@@ -853,10 +850,11 @@ export function CheckoutPage() {
           })),
         );
         setSelectedAddressId(addressId);
+        toast.success('Đã đặt làm địa chỉ mặc định!');
       }
     } catch (error) {
       console.error('Error setting default address:', error);
-      showToast('Có lỗi xảy ra', 'error');
+      toast.error('Có lỗi xảy ra');
     }
   };
 
@@ -868,10 +866,10 @@ export function CheckoutPage() {
       if (selectedAddressId === addressId && filtered.length > 0) {
         setSelectedAddressId(filtered[0].id);
       }
-      showToast('Xóa địa chỉ thành công!', 'success');
+      toast.success('Xóa địa chỉ thành công!');
     } catch (error) {
       console.error('Error deleting address:', error);
-      showToast('Có lỗi xảy ra', 'error');
+      toast.error('Có lỗi xảy ra');
     }
   };
 
@@ -879,7 +877,7 @@ export function CheckoutPage() {
   const handleOpenOrderPreview = () => {
     if (!isAddressValid) {
       const errorMessage = 'Vui lòng nhập đầy đủ thông tin địa chỉ nhận hàng trước khi thanh toán!';
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
       setAddressValidationError(errorMessage);
 
       // Tự động mở Modal bắt người dùng nhập địa chỉ luôn cho tiện (Tăng UX)
@@ -897,7 +895,7 @@ export function CheckoutPage() {
       if (!checkoutGroup) return;
 
       if (!shippingInfo) {
-        showToast('Vui lòng cấu hình địa chỉ giao hàng!', 'error');
+        toast.error('Vui lòng cấu hình địa chỉ giao hàng!');
         return;
       }
 
@@ -930,7 +928,7 @@ export function CheckoutPage() {
     } catch (error) {
       console.error('Lỗi khi đặt hàng:', error);
       const errorMessage = 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!';
-      showToast(errorMessage, 'error');
+      toast.error(errorMessage);
     }
   };
 
@@ -1148,20 +1146,6 @@ export function CheckoutPage() {
 
         {/* Success Modal */}
         {renderSuccessModal()}
-
-        {/* Toast Notification */}
-        {toast && (
-          <div className="fixed bottom-20 md:bottom-6 right-6 z-50 animate-slideUp">
-            <div
-              className={`px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
-                toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-              }`}
-            >
-              <BadgeCheck className="w-5 h-5" />
-              <span className="font-medium">{toast.message}</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

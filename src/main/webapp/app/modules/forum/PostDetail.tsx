@@ -12,26 +12,24 @@ export const PostDetail = () => {
   const [post, setPost] = useState<ICommunityPost | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [comments, setComments] = useState<any[]>([]);
+
   useEffect(() => {
-    // Fetch post details (mocking for now, could be real API)
-    const fetchPost = async () => {
+    const fetchData = async () => {
       try {
-        const result = await axios.get(`/api/community-posts/${id}`);
-        setPost(result.data);
+        const [postRes, commentsRes] = await Promise.all([
+          axios.get(`/api/community-posts/${id}`),
+          axios.get(`/api/post-comments?postId.equals=${id}&sort=createdAt,asc`),
+        ]);
+        setPost(postRes.data);
+        setComments(commentsRes.data);
       } catch (e) {
-        console.error(e);
-        // Fallback mock
-        setPost({
-          id: Number(id),
-          title: 'Làm sao để pass Đồ án Web?',
-          content: 'Mọi người cho em xin kinh nghiệm với ạ.',
-          author: { login: 'student123' },
-        } as any);
+        console.error('Failed to fetch post details', e);
       } finally {
         setLoading(false);
       }
     };
-    fetchPost();
+    fetchData();
   }, [id]);
 
   if (loading) {
@@ -54,7 +52,13 @@ export const PostDetail = () => {
         </button>
 
         <PostCard post={post} reactions={[]} />
-        <CommentSection postId={id} comments={[]} />
+        <CommentSection
+          postId={id}
+          comments={comments}
+          onCommentAdded={() => {
+            axios.get(`/api/post-comments?postId.equals=${id}&sort=createdAt,asc`).then(res => setComments(res.data));
+          }}
+        />
       </div>
     </div>
   );
