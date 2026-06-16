@@ -484,19 +484,21 @@ const Header = (props: IHeaderProps) => {
               {props.isAuthenticated && props.isAdmin && <AdminMenu showOpenAPI={props.isOpenAPIEnabled} />}
 
               {/* Premium link */}
-              <Link
-                to="/premium"
-                className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium"
-                style={{
-                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                  color: '#090418',
-                  textDecoration: 'none',
-                  boxShadow: '0 0 15px rgba(255,215,0,0.25)',
-                }}
-              >
-                <Crown className="w-4 h-4" />
-                <span>Premium</span>
-              </Link>
+              {isUserLoggedIn && isUserSeller && (
+                <Link
+                  to="/premium"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium"
+                  style={{
+                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                    color: '#090418',
+                    textDecoration: 'none',
+                    boxShadow: '0 0 15px rgba(255,215,0,0.25)',
+                  }}
+                >
+                  <Crown className="w-4 h-4" />
+                  <span>Premium</span>
+                </Link>
+              )}
 
               {/* Messages */}
               {isUserLoggedIn && (

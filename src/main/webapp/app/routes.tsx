@@ -39,6 +39,7 @@ import { NotificationsPage } from './modules/notifications/notificationsPage';
 import { OrderDetailPage } from './modules/order/pages/orderDetailPage';
 import { CheckoutPage } from './modules/checkout/checkoutPage';
 import { PurchaseSuccessPage } from './modules/checkout/purchaseSuccessPage';
+import { PremiumSuccessPage } from './modules/premium-plans/premiumSuccessPage';
 import { PaymentPage } from './modules/checkout/payment/payment-selection';
 import { MoMoQRPage } from './modules/checkout/payment/momo-qr';
 import { VNPayQRPage } from './modules/checkout/payment/vnpay-qr';
@@ -187,7 +188,7 @@ export const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'logout', element: <Logout /> },
       { path: 'product/:id', element: <ProductDetailPage /> },
-      { path: 'premium', element: <PremiumPlansPage /> },
+
       {
         path: 'entities',
         element: (
@@ -237,6 +238,8 @@ export const router = createBrowserRouter([
           { path: 'seller/orders', element: <SellerOrderManagementPage /> },
           { path: 'seller/products/:productId/trades', element: <TradeRequestsPage /> },
           { path: 'seller/trades/:tradeId', element: <TradeDetailPage /> },
+          { path: 'premium', element: <PremiumPlansPage /> },
+          { path: 'premium-success', element: <PremiumSuccessPage /> },
         ],
       },
       {

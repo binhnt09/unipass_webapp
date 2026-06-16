@@ -1,27 +1,60 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
 import React, { useState } from 'react';
-import { Wallet, CheckCircle, ArrowLeft, Shield } from 'lucide-react';
+import { Wallet, CheckCircle, ArrowLeft, Shield, Loader2 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router';
+import axios from 'axios';
 
 export function PaymentPage() {
   const navigate = useNavigate();
-  const [selectedMethod, setSelectedMethod] = useState<'momo' | null>('momo');
+  const [selectedMethod, setSelectedMethod] = useState<'momo' | 'sepay' | null>('sepay');
+  const [loading, setLoading] = useState(false);
 
   const location = useLocation();
   const orderData = location.state || {
     itemName: 'Gói người bán cao cấp - Hàng tháng',
-    price: 99000,
+    price: 199000,
     description: 'Truy cập đầy đủ vào tính năng Premium trong 30 ngày',
   };
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     if (!selectedMethod) {
       alert('Vui lòng chọn phương thức thanh toán');
       return;
     }
 
-    // Navigate to the corresponding QR page
     if (selectedMethod === 'momo') {
       navigate('/payment/momo', { state: orderData });
+    } else if (selectedMethod === 'sepay') {
+      setLoading(true);
+      try {
+        const response = await axios.post('/api/payment/sepay/initiate-checkout', {
+          itemName: orderData.itemName,
+          price: orderData.price,
+        });
+
+        const { checkoutUrl, fields } = response.data;
+
+        // Tạo form ẩn và submit sang SePay
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = checkoutUrl;
+
+        Object.entries(fields).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = String(value);
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      } catch (error) {
+        console.error('Lỗi khi khởi tạo thanh toán SePay:', error);
+        alert('Có lỗi xảy ra khi khởi tạo thanh toán. Vui lòng thử lại sau.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -29,9 +62,9 @@ export function PaymentPage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
-        <Link to="/checkout" className="inline-flex items-center gap-2 text-[#0A2647] hover:text-[#FF6B35] mb-6 transition-colors">
+        <Link to="/premium" className="inline-flex items-center gap-2 text-[#0A2647] hover:text-[#FF6B35] mb-6 transition-colors">
           <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Quay lại giỏ hàng</span>
+          <span className="font-medium">Quay lại trang đăng ký Premium</span>
         </Link>
 
         {/* Page Title */}
@@ -47,9 +80,33 @@ export function PaymentPage() {
               <h2 className="text-xl font-bold text-[#0A2647] mb-6">Chọn phương thức thanh toán</h2>
 
               <div className="space-y-4">
+                {/* SePay Option */}
+                <button
+                  type="button"
+                  disabled={loading}
+                  className={`block w-full p-5 border-2 rounded-xl transition-all text-left ${
+                    selectedMethod === 'sepay'
+                      ? 'border-[#FF6B35] bg-orange-50 shadow-md'
+                      : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
+                  }`}
+                  onClick={() => setSelectedMethod('sepay')}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Wallet className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="font-bold text-gray-900 text-lg mb-1">Chuyển khoản Ngân hàng (SePay / VietQR)</h3>
+                      <p className="text-sm text-gray-600">Thanh toán tự động bằng cách quét mã QR qua ngân hàng</p>
+                    </div>
+                    {selectedMethod === 'sepay' && <CheckCircle className="w-6 h-6 text-[#FF6B35] flex-shrink-0" />}
+                  </div>
+                </button>
+
                 {/* MoMo Option */}
                 <button
                   type="button"
+                  disabled={loading}
                   className={`block w-full p-5 border-2 rounded-xl transition-all text-left ${
                     selectedMethod === 'momo'
                       ? 'border-[#FF6B35] bg-orange-50 shadow-md'
@@ -126,14 +183,15 @@ export function PaymentPage() {
               {/* Confirm Button */}
               <button
                 onClick={handleConfirmPayment}
-                disabled={!selectedMethod}
-                className={`w-full py-4 rounded-lg font-bold text-lg transition-all shadow-md ${
-                  selectedMethod
+                disabled={!selectedMethod || loading}
+                className={`w-full py-4 rounded-lg font-bold text-lg transition-all shadow-md flex items-center justify-center gap-2 ${
+                  selectedMethod && !loading
                     ? 'bg-gradient-to-r from-[#FF6B35] to-[#FF8C5A] hover:from-[#FF5722] hover:to-[#FF6B35] text-white'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Xác nhận thanh toán
+                {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+                {loading ? 'Đang kết nối cổng thanh toán...' : 'Xác nhận thanh toán'}
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-4">Nhấn xác nhận, bạn đồng ý với điều khoản thanh toán</p>

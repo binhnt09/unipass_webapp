@@ -6,7 +6,6 @@ import axios from 'axios';
 import { useAppSelector } from 'app/config/store';
 import { useAuth } from 'app/contexts/AuthContext';
 import { SellerRegistrationModal } from 'app/modules/seller/registration/SellerRegistrationModal';
-import { toast } from 'react-toastify';
 
 /* ================================================================
    MOBILE BOTTOM NAV — cố định dưới cùng, CHỈ hiển thị trên mobile
@@ -46,7 +45,6 @@ export function MobileBottomNav({ isAuthenticated }: MobileBottomNavProps) {
   const [cartCount, setCartCount] = useState(0);
   const [msgCount, setMsgCount] = useState(0);
   const [showSellerRegModal, setShowSellerRegModal] = useState(false);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
   // Fetch cart count
   useEffect(() => {
@@ -106,51 +104,8 @@ export function MobileBottomNav({ isAuthenticated }: MobileBottomNavProps) {
     return null;
   };
 
-  const handlePress = async (item: NavItem) => {
-    // Navigate for non-sell items
-    if (item.id !== 'sell') {
-      navigate(item.to);
-      return;
-    }
-
-    // Special logic for "sell" button
-    if (!isLoggedIn) {
-      navigate('/login');
-      return;
-    }
-
-    if (isSeller) {
-      navigate('/create-listing');
-      return;
-    }
-
-    // If user is logged in but NOT a seller, check seller request status
-    if (isCheckingStatus) return;
-    setIsCheckingStatus(true);
-    try {
-      const response = await axios.get('/api/seller-requests/my-status');
-      const status = response.data?.status || response.data;
-
-      if (status === 'PENDING' || status === 'REJECTED') {
-        setShowSellerRegModal(false);
-        navigate('/seller-success');
-      } else if (status === 'APPROVED') {
-        toast.info('Tài khoản của bạn đã được phê duyệt làm Người bán.');
-        navigate('/seller-dashboard');
-      } else {
-        setShowSellerRegModal(true);
-      }
-    } catch (err: any) {
-      if (err.response?.status === 404) {
-        setShowSellerRegModal(true);
-      } else {
-        console.error('Lỗi kiểm tra trạng thái đăng ký:', err);
-        const serverMsg = err.response?.data?.title || err.response?.data?.message;
-        toast.error(serverMsg || 'Không thể kiểm tra trạng thái đăng ký. Vui lòng thử lại!');
-      }
-    } finally {
-      setIsCheckingStatus(false);
-    }
+  const handlePress = (item: NavItem) => {
+    navigate(item.to);
   };
 
   return (
@@ -168,7 +123,7 @@ export function MobileBottomNav({ isAuthenticated }: MobileBottomNavProps) {
         }}
       >
         <div className="flex items-stretch justify-around px-1" style={{ height: 60 }}>
-          {NAV_ITEMS.map(item => {
+          {NAV_ITEMS.filter(item => item.id !== 'sell' || isSeller).map(item => {
             const active = isActive(item);
             const badge = getBadge(item.id);
             const { Icon } = item;
