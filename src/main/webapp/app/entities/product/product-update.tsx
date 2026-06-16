@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Button, Col, Row } from 'react-bootstrap';
 import { Translate, ValidatedField, ValidatedForm, isNumber, translate } from 'react-jhipster';
 import { Link, useNavigate, useParams } from 'react-router';
+import { LocationPickerMap } from 'app/shared/map/LocationPickerMap';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -42,6 +44,30 @@ export const ProductUpdate = () => {
     dispatch(getUsers({}));
   }, []);
 
+  const [mapLat, setMapLat] = useState<number | undefined>(undefined);
+  const [mapLng, setMapLng] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (isNew) {
+      axios.get('/api/user-addresses').then(res => {
+        if (res.data) {
+          const defaultAddr = res.data.find((a: any) => a.isDefault) || res.data[0];
+          if (defaultAddr && defaultAddr.latitude && defaultAddr.longitude) {
+            setMapLat(defaultAddr.latitude);
+            setMapLng(defaultAddr.longitude);
+          }
+        }
+      }).catch(e => console.error(e));
+    }
+  }, [isNew]);
+
+  useEffect(() => {
+    if (!isNew && productEntity && productEntity.id === Number(id)) {
+      if (productEntity.latitude) setMapLat(productEntity.latitude);
+      if (productEntity.longitude) setMapLng(productEntity.longitude);
+    }
+  }, [productEntity, isNew, id]);
+
   useEffect(() => {
     if (updateSuccess) {
       handleClose();
@@ -58,11 +84,11 @@ export const ProductUpdate = () => {
     if (values.stock !== undefined && typeof values.stock !== 'number') {
       values.stock = Number(values.stock);
     }
-    if (values.latitude !== undefined && typeof values.latitude !== 'number') {
-      values.latitude = Number(values.latitude);
+    if (mapLat !== undefined) {
+      values.latitude = Number(mapLat);
     }
-    if (values.longitude !== undefined && typeof values.longitude !== 'number') {
-      values.longitude = Number(values.longitude);
+    if (mapLng !== undefined) {
+      values.longitude = Number(mapLng);
     }
     values.createdAt = convertDateTimeToServer(values.createdAt);
     values.updatedAt = convertDateTimeToServer(values.updatedAt);
@@ -183,20 +209,17 @@ export const ProductUpdate = () => {
                   validate: v => isNumber(v) || translate('entity.validation.number'),
                 }}
               />
-              <ValidatedField
-                label={translate('unipassWebApp.product.latitude')}
-                id="product-latitude"
-                name="latitude"
-                data-cy="latitude"
-                type="text"
-              />
-              <ValidatedField
-                label={translate('unipassWebApp.product.longitude')}
-                id="product-longitude"
-                name="longitude"
-                data-cy="longitude"
-                type="text"
-              />
+              <div className="mb-3">
+                <label className="form-label">Vị trí Sản phẩm (Giao hàng)</label>
+                <LocationPickerMap 
+                  initialLat={mapLat}
+                  initialLng={mapLng}
+                  onLocationSelect={(lat, lng) => {
+                    setMapLat(lat);
+                    setMapLng(lng);
+                  }}
+                />
+              </div>
               <ValidatedField
                 label={translate('unipassWebApp.product.createdAt')}
                 id="product-createdAt"

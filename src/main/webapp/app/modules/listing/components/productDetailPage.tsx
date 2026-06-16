@@ -183,6 +183,64 @@ export function ProductDetailPage() {
   const [showReportModal, setShowReportModal] = useState(false);
   // const navigate = useNavigate();
   const [showTradeModal, setShowTradeModal] = useState(false);
+  const [distance, setDistance] = useState<number | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Fetch device location or fallback on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFallbackLocation = () => {
+      axios
+        .get('/api/user-addresses')
+        .then(res => {
+          if (isMounted && res.data && res.data.length > 0) {
+            const defaultAddr = res.data.find((a: any) => a.isDefault) || res.data[0];
+            if (defaultAddr?.latitude && defaultAddr?.longitude) {
+              setUserLocation({ lat: defaultAddr.latitude, lng: defaultAddr.longitude });
+            }
+          }
+        })
+        .catch(() => {});
+    };
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          if (isMounted) {
+            setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+          }
+        },
+        () => {
+          fetchFallbackLocation();
+        },
+        { timeout: 5000 },
+      );
+    } else {
+      fetchFallbackLocation();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (product?.latitude && product?.longitude && userLocation) {
+      const lat1 = userLocation.lat;
+      const lon1 = userLocation.lng;
+      const lat2 = product.latitude;
+      const lon2 = product.longitude;
+
+      const R = 6371; // km
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLon = ((lon2 - lon1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      setDistance(R * c);
+    }
+  }, [product?.latitude, product?.longitude, userLocation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -399,7 +457,11 @@ export function ProductDetailPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
-                  <span>Khuôn viên trường</span>
+                  <span>
+                    {distance !== null
+                      ? `Cách ${distance < 1 ? Math.round(distance * 1000) + 'm' : distance.toFixed(1) + 'km'}`
+                      : 'Khuôn viên trường'}
+                  </span>
                 </div>
                 <span>88 lượt xem</span>
               </div>

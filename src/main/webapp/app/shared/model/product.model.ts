@@ -19,6 +19,7 @@ export interface IProduct {
   seller?: IUser | null;
   sellerRating?: number;
   sellerReviews?: number;
+  distance?: number;
 }
 
 export const defaultValue: Readonly<IProduct> = {};

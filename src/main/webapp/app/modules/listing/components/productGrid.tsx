@@ -59,6 +59,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
       reviews: prod.sellerReviews || 0,
       condition: conditionDisplay,
       stock: prod.stock,
+      distance: prod.distance,
     };
   });
 
