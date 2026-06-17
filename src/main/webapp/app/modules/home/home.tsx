@@ -152,6 +152,19 @@ export const Home = () => {
                 : allImages.filter(img => img.product?.id === prod.id);
             const primaryImage = productImages.find((img: any) => img.isPrimary) || productImages[0];
             let imageUrl = primaryImage ? primaryImage.imageUrl : null;
+            if (!imageUrl && prod.imageUrls && prod.imageUrls.length > 0) {
+              imageUrl = prod.imageUrls[0];
+              if (typeof imageUrl === 'string' && imageUrl.startsWith('["') && imageUrl.endsWith('"]')) {
+                try {
+                  const parsed = JSON.parse(imageUrl);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    imageUrl = parsed[0];
+                  }
+                } catch {
+                  // ignore
+                }
+              }
+            }
             if (imageUrl && imageUrl.startsWith('uploads/')) {
               imageUrl = '/' + imageUrl;
             }

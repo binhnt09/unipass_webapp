@@ -276,30 +276,49 @@ export function ProductDetailPage() {
     };
   }, [id]);
 
-  const imageUrls =
-    product && (product as any).productImages && (product as any).productImages.length > 0
-      ? (product as any).productImages
-          .map((img: any) => {
-            let url = img.imageUrl;
-            if (url && url.startsWith('uploads/')) {
-              url = '/' + url;
-            }
-            return url;
-          })
-          .filter(Boolean)
-      : images.length > 0
-        ? images
-            .map(img => {
-              let url = img.imageUrl;
-              if (url && url.startsWith('uploads/')) {
-                url = '/' + url;
-              }
-              return url;
-            })
-            .filter(Boolean)
-        : [
-            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-          ];
+  const getProductImageUrls = () => {
+    let urls: string[] = [];
+    if (product && (product as any).productImages && (product as any).productImages.length > 0) {
+      urls = (product as any).productImages.map((img: any) => img.imageUrl);
+    } else if (product && (product as any).imageUrls && (product as any).imageUrls.length > 0) {
+      let apiImageUrls = (product as any).imageUrls;
+      if (
+        apiImageUrls.length === 1 &&
+        typeof apiImageUrls[0] === 'string' &&
+        apiImageUrls[0].startsWith('["') &&
+        apiImageUrls[0].endsWith('"]')
+      ) {
+        try {
+          const parsed = JSON.parse(apiImageUrls[0]);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            apiImageUrls = parsed;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      urls = apiImageUrls;
+    } else if (images.length > 0) {
+      urls = images.map(img => img.imageUrl);
+    }
+
+    const processedUrls = urls
+      .map(url => {
+        if (url && url.startsWith('uploads/')) {
+          return '/' + url;
+        }
+        return url;
+      })
+      .filter(Boolean);
+
+    return processedUrls.length > 0
+      ? processedUrls
+      : [
+          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzfGVufDF8fHx8MTczMzg0MzI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
+        ];
+  };
+
+  const imageUrls = getProductImageUrls();
 
   const nextImage = () => {
     setCurrentImageIndex(prev => (prev + 1) % imageUrls.length);

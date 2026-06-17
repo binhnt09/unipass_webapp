@@ -35,6 +35,22 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
         : null;
 
     let imageUrl = primaryImageObj?.imageUrl || (prod as any).imageUrl;
+
+    if (!imageUrl && (prod as any).imageUrls && (prod as any).imageUrls.length > 0) {
+      imageUrl = (prod as any).imageUrls[0];
+      // Xử lý trường hợp backend lưu mảng dạng chuỗi JSON
+      if (typeof imageUrl === 'string' && imageUrl.startsWith('["') && imageUrl.endsWith('"]')) {
+        try {
+          const parsed = JSON.parse(imageUrl);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            imageUrl = parsed[0];
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     if (imageUrl && imageUrl.startsWith('uploads/')) {
       imageUrl = '/' + imageUrl;
     }
