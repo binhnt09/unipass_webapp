@@ -82,6 +82,7 @@ import { SellerOrderManagementPage } from './modules/seller/dashboard/components
 import { MyTradesPage } from './modules/trade/myTrades';
 import { TradeRequestsPage } from './modules/trade/tradeRequests';
 import { TradeDetailPage } from './modules/trade/components/tradeDetail';
+import { AiChatPage } from './modules/ai-chat/AiChatPage';
 
 const loading = <div>loading ...</div>;
 
@@ -220,6 +221,7 @@ export const router = createBrowserRouter([
           { path: 'profile', element: <ProfilePage /> },
           { path: 'profile/:username', element: <ProfilePage /> },
           { path: 'trades/mine', element: <MyTradesPage /> },
+          { path: 'ai-chat', element: <AiChatPage /> },
         ],
       },
       {
