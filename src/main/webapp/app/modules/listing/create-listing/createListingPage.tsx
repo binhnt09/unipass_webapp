@@ -619,9 +619,7 @@ export function CreateListingPage() {
                     <span className="text-xl font-bold text-[#0A2647]">1</span>
                     <span className="text-gray-500 text-sm">sản phẩm</span>
                   </div>
-                  <span className="text-xs text-gray-400 italic">ℹ️ Mỗi tin đăng bán 1 mó</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Khi bán xong, tin đăng sẽ đóng lại và bạn có thể đăng tin mới.</p>
               </div>
 
               {/* Category */}

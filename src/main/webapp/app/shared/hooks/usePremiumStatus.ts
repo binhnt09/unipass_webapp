@@ -37,7 +37,10 @@ export function usePremiumStatus() {
 
     try {
       const response = await axios.get('/api/user-premiums/my-status');
-      setStatus(response.data);
+      setStatus({
+        ...response.data,
+        isPremium: response.data.premium,
+      });
     } catch (error) {
       console.error('Error fetching premium status:', error);
       setStatus(DEFAULT_STATUS);

@@ -796,7 +796,7 @@ export function ProfilePage() {
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {products.map(prod => (
+                            {(isOwner ? products : products.filter(p => p.status === 'AVAILABLE')).map(prod => (
                               <React.Fragment key={`my-prod-${prod.id}`}>
                                 <div className="group flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                                   {/* Top half: Aspect-video thumbnail */}
@@ -833,6 +833,10 @@ export function ProfilePage() {
                                         ) : prod.status === 'SOLD' ? (
                                           <span className="font-bold text-gray-800 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
                                             Đã bán
+                                          </span>
+                                        ) : prod.status === 'INACTIVE' ? (
+                                          <span className="font-bold text-red-800 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+                                            Không hoạt động
                                           </span>
                                         ) : (
                                           <span className="font-bold text-green-800 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
