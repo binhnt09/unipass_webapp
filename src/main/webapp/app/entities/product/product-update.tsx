@@ -49,15 +49,18 @@ export const ProductUpdate = () => {
 
   useEffect(() => {
     if (isNew) {
-      axios.get('/api/user-addresses').then(res => {
-        if (res.data) {
-          const defaultAddr = res.data.find((a: any) => a.isDefault) || res.data[0];
-          if (defaultAddr && defaultAddr.latitude && defaultAddr.longitude) {
-            setMapLat(defaultAddr.latitude);
-            setMapLng(defaultAddr.longitude);
+      axios
+        .get('/api/user-addresses')
+        .then(res => {
+          if (res.data) {
+            const defaultAddr = res.data.find((a: any) => a.isDefault) || res.data[0];
+            if (defaultAddr && defaultAddr.latitude && defaultAddr.longitude) {
+              setMapLat(defaultAddr.latitude);
+              setMapLng(defaultAddr.longitude);
+            }
           }
-        }
-      }).catch(e => console.error(e));
+        })
+        .catch(e => console.error(e));
     }
   }, [isNew]);
 
@@ -211,7 +214,7 @@ export const ProductUpdate = () => {
               />
               <div className="mb-3">
                 <label className="form-label">Vị trí Sản phẩm (Giao hàng)</label>
-                <LocationPickerMap 
+                <LocationPickerMap
                   initialLat={mapLat}
                   initialLng={mapLng}
                   onLocationSelect={(lat, lng) => {

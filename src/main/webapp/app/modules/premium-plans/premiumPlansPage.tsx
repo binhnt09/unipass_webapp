@@ -1,10 +1,12 @@
 import React from 'react';
 import { Check, Crown, Star, TrendingUp, Zap, Shield, Sparkles, AlertCircle } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router';
+import { usePremiumStatus } from 'app/shared/hooks/usePremiumStatus';
 
 export const PremiumPlansPage = () => {
   const [searchParams] = useSearchParams();
   const paymentStatus = searchParams.get('payment');
+  const { isPremium, level, packageName, daysRemaining } = usePremiumStatus();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -32,6 +34,18 @@ export const PremiumPlansPage = () => {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Mở khóa các tính năng mạnh mẽ để tăng khả năng hiển thị và bán hàng nhanh hơn trên UniMart
           </p>
+
+          {isPremium && (
+            <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 max-w-2xl mx-auto shadow-sm">
+              <div className="flex items-center gap-3 justify-center text-[#0A2647]">
+                <Crown className={`w-6 h-6 ${level === 2 ? 'text-[#FFD700]' : 'text-[#FF6B35]'}`} />
+                <p className="font-medium">
+                  Bạn đang sử dụng <strong className="text-lg">{packageName}</strong>. Còn lại{' '}
+                  <strong className="text-lg text-blue-600">{daysRemaining}</strong> ngày.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pricing Cards - 3 Cards Side by Side */}
@@ -153,17 +167,26 @@ export const PremiumPlansPage = () => {
               </div>
             </div>
 
-            <Link
-              to="/payment"
-              state={{
-                itemName: 'Gói Tiêu chuẩn',
-                price: 99000,
-                description: 'Hiển thị tốt hơn',
-              }}
-              className="w-full py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF5722] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-medium transition-all shadow-lg text-center block"
-            >
-              Chọn gói này
-            </Link>
+            {isPremium && level === 1 ? (
+              <button
+                disabled
+                className="w-full py-3 bg-gray-100 text-[#FF6B35] rounded-lg font-bold border border-[#FF6B35] cursor-not-allowed text-center block"
+              >
+                Đang sử dụng ✓
+              </button>
+            ) : (
+              <Link
+                to="/payment"
+                state={{
+                  itemName: 'Gói Tiêu chuẩn',
+                  price: 99000,
+                  description: 'Hiển thị tốt hơn',
+                }}
+                className="w-full py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF5722] hover:from-[#FF5722] hover:to-[#FF6B35] text-white rounded-lg font-medium transition-all shadow-lg text-center block"
+              >
+                Chọn gói này
+              </Link>
+            )}
           </div>
 
           {/* Card 3: Gói VIP Pro (199.000đ) */}
@@ -249,17 +272,26 @@ export const PremiumPlansPage = () => {
               </div>
             </div>
 
-            <Link
-              to="/payment"
-              state={{
-                itemName: 'Gói VIP Pro',
-                price: 199000,
-                description: 'Cấp độ cao nhất',
-              }}
-              className="w-full py-3 bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFC700] hover:to-[#FF9500] text-[#0A2647] rounded-lg font-medium transition-all shadow-lg text-center block"
-            >
-              Chọn gói này
-            </Link>
+            {isPremium && level === 2 ? (
+              <button
+                disabled
+                className="w-full py-3 bg-[#144272] text-[#FFD700] rounded-lg font-bold border border-[#FFD700] cursor-not-allowed text-center block shadow-lg"
+              >
+                Đang sử dụng ✓
+              </button>
+            ) : (
+              <Link
+                to="/payment"
+                state={{
+                  itemName: 'Gói VIP Pro',
+                  price: 199000,
+                  description: 'Cấp độ cao nhất',
+                }}
+                className="w-full py-3 bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFC700] hover:to-[#FF9500] text-[#0A2647] rounded-lg font-medium transition-all shadow-lg text-center block"
+              >
+                Chọn gói này
+              </Link>
+            )}
           </div>
         </div>
 

@@ -71,7 +71,7 @@ const LocationMarker = ({ position, setPosition, onLocationSelect }: any) => {
 export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialLat, initialLng, onLocationSelect }) => {
   const defaultCenter = { lat: 21.01319, lng: 105.52628 }; // Default to FPT University Hoa Lac
   const center = initialLat && initialLng ? { lat: initialLat, lng: initialLng } : defaultCenter;
-  const [position, setPosition] = useState<L.LatLngExpression | null>(initialLat && initialLng ? center : null);
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(initialLat && initialLng ? center : null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);

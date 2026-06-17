@@ -6,6 +6,8 @@ import axios from 'axios';
 import { useAppSelector } from 'app/config/store';
 import { useAuth } from 'app/contexts/AuthContext';
 import { SellerRegistrationModal } from 'app/modules/seller/registration/SellerRegistrationModal';
+import { usePremiumStatus } from 'app/shared/hooks/usePremiumStatus';
+import { Crown } from 'lucide-react';
 
 /* ================================================================
    MOBILE BOTTOM NAV — cố định dưới cùng, CHỈ hiển thị trên mobile
@@ -45,6 +47,8 @@ export function MobileBottomNav({ isAuthenticated }: MobileBottomNavProps) {
   const [cartCount, setCartCount] = useState(0);
   const [msgCount, setMsgCount] = useState(0);
   const [showSellerRegModal, setShowSellerRegModal] = useState(false);
+
+  const { isPremium, level } = usePremiumStatus();
 
   // Fetch cart count
   useEffect(() => {
@@ -126,7 +130,12 @@ export function MobileBottomNav({ isAuthenticated }: MobileBottomNavProps) {
           {NAV_ITEMS.filter(item => item.id !== 'sell' || isSeller).map(item => {
             const active = isActive(item);
             const badge = getBadge(item.id);
-            const { Icon } = item;
+            let { Icon, label } = item;
+
+            if (item.id === 'sell' && isPremium) {
+              Icon = Crown;
+              label = level === 2 ? 'VIP Pro' : 'Tiêu chuẩn';
+            }
 
             return (
               <button
@@ -207,7 +216,7 @@ export function MobileBottomNav({ isAuthenticated }: MobileBottomNavProps) {
                     transition: 'color 0.25s ease',
                   }}
                 >
-                  {item.label}
+                  {label}
                 </span>
               </button>
             );

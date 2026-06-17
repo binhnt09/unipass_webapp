@@ -17,6 +17,8 @@ import { SellerRegistrationModal } from 'app/modules/seller/registration/SellerR
 import { Brand, Home } from './header-components';
 import { useAuth } from 'app/contexts/AuthContext';
 import { AIChatButton } from 'app/modules/chatboxAI/AIChatButton';
+import { usePremiumStatus } from 'app/shared/hooks/usePremiumStatus';
+import { Star } from 'lucide-react';
 
 export interface IHeaderProps {
   isAuthenticated: boolean;
@@ -189,6 +191,7 @@ const MobileHeaderMenu = ({
   );
 };
 
+// eslint-disable-next-line complexity
 const Header = (props: IHeaderProps) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -200,6 +203,8 @@ const Header = (props: IHeaderProps) => {
   const [cartCount, setCartCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const unreadNotificationCount = useAppSelector(state => state.notification.unreadCount);
+
+  const { isPremium, level, daysRemaining } = usePremiumStatus();
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showCustomInstallModal, setShowCustomInstallModal] = useState(false);
@@ -484,10 +489,10 @@ const Header = (props: IHeaderProps) => {
               {props.isAuthenticated && props.isAdmin && <AdminMenu showOpenAPI={props.isOpenAPIEnabled} />}
 
               {/* Premium link */}
-              {isUserLoggedIn && isUserSeller && (
+              {isUserLoggedIn && isUserSeller && !isPremium && (
                 <Link
                   to="/premium"
-                  className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium hover:scale-105 transition-transform"
                   style={{
                     background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
                     color: '#090418',
@@ -497,6 +502,42 @@ const Header = (props: IHeaderProps) => {
                 >
                   <Crown className="w-4 h-4" />
                   <span>Premium</span>
+                </Link>
+              )}
+
+              {isUserLoggedIn && isUserSeller && isPremium && level === 1 && (
+                <Link
+                  to="/premium"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border hover:scale-105 transition-transform"
+                  style={{
+                    background: 'rgba(255,107,53,0.1)',
+                    color: '#FF6B35',
+                    borderColor: 'rgba(255,107,53,0.3)',
+                    textDecoration: 'none',
+                  }}
+                  title={`Còn ${daysRemaining} ngày`}
+                >
+                  <Star className="w-4 h-4 fill-current" />
+                  <span>Tiêu chuẩn</span>
+                </Link>
+              )}
+
+              {isUserLoggedIn && isUserSeller && isPremium && level === 2 && (
+                <Link
+                  to="/premium"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border hover:scale-105 transition-transform relative overflow-hidden group"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,165,0,0.15) 100%)',
+                    color: '#FFA500',
+                    borderColor: 'rgba(255,215,0,0.5)',
+                    textDecoration: 'none',
+                    boxShadow: '0 0 10px rgba(255,215,0,0.2) inset',
+                  }}
+                  title={`Còn ${daysRemaining} ngày`}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <Crown className="w-4 h-4" />
+                  <span>VIP Pro</span>
                 </Link>
               )}
 

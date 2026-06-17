@@ -27,7 +27,11 @@ import {
   X,
   Camera,
   Phone,
+  Crown,
+  TrendingUp,
+  Star,
 } from 'lucide-react';
+import { usePremiumStatus } from 'app/shared/hooks/usePremiumStatus';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { useAuth } from 'app/contexts/AuthContext';
 import { getSession } from 'app/shared/reducers/authentication';
@@ -62,6 +66,8 @@ export function ProfilePage() {
   const isUserSeller = authorities.includes('ROLE_SELLER');
   const isAdmin = authorities.includes('ROLE_ADMIN');
   const isSeller = isUserSeller;
+
+  const { isPremium, level, packageName, daysRemaining, endDate } = usePremiumStatus();
 
   // Edit Profile modal & upload states
   const [showEditModal, setShowEditModal] = useState(false);
@@ -448,7 +454,9 @@ export function ProfilePage() {
               {/* User Meta */}
               <div className="px-6 pb-6 relative">
                 {/* Avatar */}
-                <div className="w-20 h-20 bg-[#FF6B35] rounded-full border-4 border-white flex items-center justify-center text-white font-bold text-2xl shadow-xl absolute -top-10 left-6 hover:scale-105 transition-transform duration-300 overflow-hidden bg-center bg-cover">
+                <div
+                  className={`w-20 h-20 bg-[#FF6B35] rounded-full border-4 ${isPremium ? (level === 2 ? 'border-[#FFD700]' : 'border-[#FF6B35]') : 'border-white'} flex items-center justify-center text-white font-bold text-2xl shadow-xl absolute -top-10 left-6 hover:scale-105 transition-transform duration-300 overflow-hidden bg-center bg-cover`}
+                >
                   {imageUrl ? (
                     <img
                       src={imageUrl.startsWith('uploads/') ? `/${imageUrl}` : imageUrl}
@@ -555,6 +563,46 @@ export function ProfilePage() {
                           <Store className="w-4 h-4" /> Kênh Người Bán <ArrowRight className="w-4 h-4" />
                         </Link>
                       </div>
+
+                      {/* Premium Status Banner */}
+                      {isPremium ? (
+                        <div className="bg-gradient-to-r from-[#FFD700]/10 to-[#FFA500]/10 border border-[#FFD700] rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-yellow-800 font-bold text-lg">
+                              <Crown className="w-5 h-5 text-yellow-600" /> Tài khoản Premium
+                            </div>
+                            <p className="text-yellow-700 text-xs sm:text-sm leading-relaxed max-w-xl">
+                              Bạn đang sử dụng <strong className="font-bold">{packageName}</strong>. Gói của bạn còn{' '}
+                              <strong className="font-bold text-red-600">{daysRemaining}</strong> ngày sử dụng (Hết hạn vào{' '}
+                              {endDate ? new Date(endDate).toLocaleDateString('vi-VN') : ''}).
+                            </p>
+                          </div>
+                          <Link
+                            to="/premium"
+                            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-yellow-200 whitespace-nowrap self-stretch sm:self-auto text-center justify-center"
+                          >
+                            <Star className="w-4 h-4" /> Quản lý gói
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-blue-800 font-bold text-lg">
+                              <TrendingUp className="w-5 h-5 text-blue-600" /> Nâng cấp Premium
+                            </div>
+                            <p className="text-blue-700 text-xs sm:text-sm leading-relaxed max-w-xl">
+                              Tăng tốc doanh số bán hàng với các gói Premium dành cho Người bán. Hiển thị ưu tiên, không giới hạn sản phẩm
+                              và nhiều tính năng đặc quyền khác.
+                            </p>
+                          </div>
+                          <Link
+                            to="/premium"
+                            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-200 whitespace-nowrap self-stretch sm:self-auto text-center justify-center"
+                          >
+                            <Crown className="w-4 h-4" /> Nâng cấp ngay
+                          </Link>
+                        </div>
+                      )}
 
                       {/* Quick Stats Row */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
