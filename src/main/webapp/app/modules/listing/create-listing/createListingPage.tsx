@@ -309,15 +309,24 @@ export function CreateListingPage() {
         const imageRequests = uploadedImages.map(async (item, idx) => {
           let finalImageUrl = item.previewUrl;
 
-          // If the item has a real browser File, upload it first to the endpoint /api/product-images/upload
+          // If the item has a real browser File, upload it directly to Cloudinary
           if (item.file) {
             const imageFormData = new FormData();
             imageFormData.append('file', item.file);
+            imageFormData.append('upload_preset', 'unipass_upload');
 
-            const uploadRes = await axios.post<string>('/api/product-images/upload', imageFormData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
+            // Call Cloudinary API instead of backend
+            const uploadRes = await fetch('https://api.cloudinary.com/v1_1/ddczglojv/image/upload', {
+              method: 'POST',
+              body: imageFormData,
             });
-            finalImageUrl = uploadRes.data; // e.g., "/uploads/uuid.png"
+
+            const data = await uploadRes.json();
+            if (data.secure_url) {
+              finalImageUrl = data.secure_url;
+            } else {
+              throw new Error('Upload to Cloudinary failed: ' + JSON.stringify(data));
+            }
           }
 
           // Create the JSON metadata request payload
