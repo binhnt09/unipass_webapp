@@ -216,7 +216,6 @@ export function CreateListingPage() {
     setExistingImages(prev => prev.filter(img => img.id !== imageId));
   };
 
-  // eslint-disable-next-line complexity
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -234,13 +233,6 @@ export function CreateListingPage() {
     if (!formData.price || formData.price.trim() === '' || Number(formData.price) < 0) {
       setErrorMessage('Giá bán không được để trống hoặc âm');
       toast.error('Giá bán không được để trống hoặc âm');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!formData.stock || formData.stock.trim() === '' || Number(formData.stock) < 0) {
-      setErrorMessage('Số lượng không được để trống hoặc âm');
-      toast.error('Số lượng không được để trống hoặc âm');
       setIsSubmitting(false);
       return;
     }
@@ -276,7 +268,7 @@ export function CreateListingPage() {
         category: formData.category ? { id: Number(formData.category) } : null,
         seller: sellerId ? { id: Number(sellerId) } : null,
         status: productData?.status || 'AVAILABLE',
-        stock: Number(formData.stock),
+        stock: 1, // Mỗi tin đăng cố định 1 sản phẩm
         latitude: formData.latitude,
         longitude: formData.longitude,
       };
@@ -614,25 +606,22 @@ export function CreateListingPage() {
                 />
               </div>
 
-              {/* Stock */}
+              {/* Stock - Cố định 1, hiển thị giải thích */}
               <div>
                 <label className="block text-gray-900 font-medium mb-2">
                   <div className="flex items-center gap-2">
                     <Package className="w-4 h-4 text-[#FF6B35]" />
-                    Số lượng <span className="text-red-500">*</span>
+                    Số lượng
                   </div>
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={formData.stock}
-                  onChange={e => setFormData({ ...formData, stock: e.target.value })}
-                  placeholder="Nhập số lượng"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
-                  required
-                  disabled={isSubmitting}
-                />
+                <div className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-bold text-[#0A2647]">1</span>
+                    <span className="text-gray-500 text-sm">sản phẩm</span>
+                  </div>
+                  <span className="text-xs text-gray-400 italic">ℹ️ Mỗi tin đăng bán 1 mó</span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Khi bán xong, tin đăng sẽ đóng lại và bạn có thể đăng tin mới.</p>
               </div>
 
               {/* Category */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAppSelector } from 'app/config/store';
 
@@ -11,30 +11,26 @@ export interface PremiumStatus {
   daysRemaining: number;
 }
 
+const DEFAULT_STATUS: PremiumStatus = {
+  isPremium: false,
+  level: 0,
+  packageName: null,
+  startDate: null,
+  endDate: null,
+  daysRemaining: 0,
+};
+
 export function usePremiumStatus() {
-  const [status, setStatus] = useState<PremiumStatus>({
-    isPremium: false,
-    level: 0,
-    packageName: null,
-    startDate: null,
-    endDate: null,
-    daysRemaining: 0,
-  });
+  const [status, setStatus] = useState<PremiumStatus>(DEFAULT_STATUS);
   const [loading, setLoading] = useState(true);
 
   const realUser = useAppSelector(state => state.authentication.account);
   const isRealAuth = !!realUser?.login;
 
-  const fetchStatus = async () => {
+  // useCallback giúp fetchStatus luôn capture đúng giá trị isRealAuth mới nhất
+  const fetchStatus = useCallback(async () => {
     if (!isRealAuth) {
-      setStatus({
-        isPremium: false,
-        level: 0,
-        packageName: null,
-        startDate: null,
-        endDate: null,
-        daysRemaining: 0,
-      });
+      setStatus(DEFAULT_STATUS);
       setLoading(false);
       return;
     }
@@ -44,32 +40,21 @@ export function usePremiumStatus() {
       setStatus(response.data);
     } catch (error) {
       console.error('Error fetching premium status:', error);
-      setStatus({
-        isPremium: false,
-        level: 0,
-        packageName: null,
-        startDate: null,
-        endDate: null,
-        daysRemaining: 0,
-      });
+      setStatus(DEFAULT_STATUS);
     } finally {
       setLoading(false);
     }
-  };
+  }, [isRealAuth]);
 
   useEffect(() => {
     fetchStatus();
 
     // Lắng nghe event khi thanh toán premium thành công
-    const handlePremiumUpdate = () => {
-      fetchStatus();
-    };
-
-    window.addEventListener('premiumUpdated', handlePremiumUpdate);
+    window.addEventListener('premiumUpdated', fetchStatus);
     return () => {
-      window.removeEventListener('premiumUpdated', handlePremiumUpdate);
+      window.removeEventListener('premiumUpdated', fetchStatus);
     };
-  }, [isRealAuth]);
+  }, [fetchStatus]);
 
   return { ...status, loading, refetch: fetchStatus };
 }

@@ -22,8 +22,6 @@ import PostComment from './post-comment';
 import PremiumHistory from './premium-history';
 import PremiumPackage from './premium-package';
 import Product from './product';
-import University from './university';
-import UserProfile from './user-profile';
 import ProductImage from './product-image';
 import RequestOffer from './request-offer';
 import Review from './review';
