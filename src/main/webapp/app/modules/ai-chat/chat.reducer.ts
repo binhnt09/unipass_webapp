@@ -13,8 +13,8 @@ export type ChatState = Readonly<typeof initialState>;
 
 export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
-  async ({ sessionId, message }: { sessionId: number | null; message: string }) => {
-    const requestBody = { sessionId, message };
+  async ({ sessionId, message, userLat, userLng }: { sessionId: number | null; message: string; userLat?: number; userLng?: number }) => {
+    const requestBody = { sessionId, message, userLat, userLng };
     const response = await axios.post<any>('/api/ai-chats/message', requestBody);
     return response.data; // { sessionId, content, recommendedProductIds }
   },

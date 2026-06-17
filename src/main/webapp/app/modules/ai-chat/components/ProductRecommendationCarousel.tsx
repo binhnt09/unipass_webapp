@@ -53,8 +53,17 @@ export const ProductRecommendationCarousel = ({ productIds }: { productIds: numb
             <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-4/5 md:basis-1/2">
               <Card className="overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
-                  {/* Placeholder for product image since it might not be eager loaded */}
-                  <div className="text-gray-400 text-xs">No Image</div>
+                  <img
+                    src={`/api/products/images/${product.id}`}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    onError={e => {
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="text-gray-400 text-xs">No Image</div>';
+                      }
+                    }}
+                  />
                 </div>
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-sm truncate" title={product.name}>

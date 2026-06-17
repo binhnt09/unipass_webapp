@@ -6,10 +6,24 @@ import { ProductRecommendationCarousel } from '../ai-chat/components/ProductReco
 
 export function AIChatSupport({ onClose }: { onClose: () => void }) {
   const [inputText, setInputText] = useState('');
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
   const { messages, loading, sessionId } = useAppSelector(state => state.chat);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          setUserLoc({ lat: position.coords.latitude, lng: position.coords.longitude });
+        },
+        error => {
+          console.error('Geolocation error: ', error);
+        },
+      );
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,17 +47,17 @@ export function AIChatSupport({ onClose }: { onClose: () => void }) {
 
     // Dispatch to Redux
     dispatch(addUserMessage(userText));
-    dispatch(sendMessage({ sessionId, message: userText }));
+    dispatch(sendMessage({ sessionId, message: userText, userLat: userLoc?.lat, userLng: userLoc?.lng }));
   };
 
   const handleQuickAction = (query: string) => {
     if (loading) return;
     dispatch(addUserMessage(query));
-    dispatch(sendMessage({ sessionId, message: query }));
+    dispatch(sendMessage({ sessionId, message: query, userLat: userLoc?.lat, userLng: userLoc?.lng }));
   };
 
   return (
-    <div className="fixed bottom-[80px] md:bottom-6 right-4 md:right-6 w-[80vw] md:w-[420px] h-[60vh] md:h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-[70] overflow-hidden">
+    <div className="fixed bottom-[80px] md:bottom-6 right-4 md:right-6 w-[80vw] md:w-[520px] h-[60vh] md:h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-[70] overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#0A2647] to-[#0D3A6B] text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
