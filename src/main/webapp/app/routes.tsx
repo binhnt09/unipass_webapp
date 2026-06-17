@@ -81,8 +81,13 @@ import { ProductOrderManagementPage } from './modules/seller/dashboard/component
 import { SellerOrderDetailPage } from './modules/seller/dashboard/components/sellerOrderDetail';
 import { SellerOrderManagementPage } from './modules/seller/dashboard/components/sellerOrderManagementPage';
 import { MyTradesPage } from './modules/trade/myTrades';
-import { TradeRequestsPage } from './modules/trade/tradeRequests';
+import { AiChatPage } from './modules/ai-chat/AiChatPage';
+import { PolicyPage } from './modules/policy/policy';
+import { FAQPage } from './modules/support/faq';
+import { ReportViolationPage } from './modules/support/report-violation';
+import { GuidePage } from './modules/support/guide';
 import { TradeDetailPage } from './modules/trade/components/tradeDetail';
+import { TradeRequestsPage } from './modules/trade/tradeRequests';
 
 const loading = <div>loading ...</div>;
 
@@ -188,7 +193,11 @@ export const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'logout', element: <Logout /> },
       { path: 'product/:id', element: <ProductDetailPage /> },
-
+      { path: 'premium', element: <PremiumPlansPage /> },
+      { path: 'policy', element: <PolicyPage /> },
+      { path: 'faq', element: <FAQPage /> },
+      { path: 'report', element: <ReportViolationPage /> },
+      { path: 'guide', element: <GuidePage /> },
       {
         path: 'entities',
         element: (
@@ -221,6 +230,7 @@ export const router = createBrowserRouter([
           { path: 'profile', element: <ProfilePage /> },
           { path: 'profile/:username', element: <ProfilePage /> },
           { path: 'trades/mine', element: <MyTradesPage /> },
+          { path: 'ai-chat', element: <AiChatPage /> },
         ],
       },
       {
