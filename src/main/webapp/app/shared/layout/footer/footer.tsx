@@ -104,17 +104,21 @@ const Footer = () => (
             Hỗ trợ
           </h3>
           <ul className="space-y-3">
-            {['Câu hỏi thường gặp', 'Hướng dẫn mua bán', 'Chính sách giao dịch', 'Báo cáo vi phạm'].map(item => (
-              <li key={item}>
-                <a
-                  href="#"
+            {[
+              { label: 'Câu hỏi thường gặp', to: '/faq' },
+              { label: 'Hướng dẫn mua bán', to: '/guide' },
+              { label: 'Báo cáo vi phạm', to: '/report' },
+            ].map(item => (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
                   className="text-sm transition-all"
                   style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}
                   onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#00F5FF')}
                   onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.5)')}
                 >
-                  {item}
-                </a>
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -187,16 +191,20 @@ const Footer = () => (
             © 2026 Unipass. Tất cả các quyền được bảo lưu.
           </p>
           <div className="flex items-center gap-6 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            {['Điều khoản dịch vụ', 'Chính sách bảo mật', 'Quy chế hoạt động'].map(item => (
-              <a
-                key={item}
-                href="#"
+            {[
+              { label: 'Điều khoản dịch vụ', to: '/policy' },
+              { label: 'Chính sách bảo mật', to: '/policy' },
+              { label: 'Quy chế hoạt động', to: '/policy' },
+            ].map(item => (
+              <Link
+                key={item.label}
+                to={item.to}
                 style={{ textDecoration: 'none', color: 'inherit', transition: 'color 0.2s' }}
                 onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#00F5FF')}
                 onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.4)')}
               >
-                {item}
-              </a>
+                {item.label}
+              </Link>
             ))}
           </div>
           <div className="flex items-center gap-1 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
