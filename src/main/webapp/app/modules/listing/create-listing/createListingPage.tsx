@@ -8,6 +8,9 @@ import { useAuth } from 'app/contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { getConditionLabel } from '../../../shared/util/condition-util';
 import { LocationPickerMap } from '../../../shared/map/LocationPickerMap';
+import { useProductQuota } from 'app/shared/hooks/useProductQuota';
+import { Crown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 type ExistingImage = {
   id: number;
@@ -26,6 +29,9 @@ export function CreateListingPage() {
 
   const account = useAppSelector(state => state.authentication.account);
   const { user } = useAuth();
+
+  const { activeCount, limit, canPost, level, loading: quotaLoading } = useProductQuota();
+  const isAtLimit = !isEditMode && !canPost && !quotaLoading;
 
   const [dragActive, setDragActive] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<ImageItem[]>([]);
@@ -387,6 +393,56 @@ export function CreateListingPage() {
           </div>
         )}
 
+        {/* Quota Banner - chỉ hiển thị khi tạo mới */}
+        {!isEditMode && !quotaLoading && (
+          <>
+            {/* Đã đạt giới hạn - hiển thị banner đỏ */}
+            {isAtLimit && (
+              <div className="mb-6 p-4 bg-orange-50 border-2 border-orange-400 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Crown className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-bold text-orange-900 text-base">
+                      Bạn đã đạt giới hạn {limit} sản phẩm của {level === 0 ? 'Gói Miễn phí' : 'Gói Tiêu chuẩn'}
+                    </h3>
+                    <p className="text-sm text-orange-700 mt-0.5">Hãy nâng cấp để đăng thêm sản phẩm không giới hạn.</p>
+                  </div>
+                </div>
+                <Link
+                  to="/premium"
+                  className="px-4 py-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0A2647] rounded-lg text-sm font-bold whitespace-nowrap flex items-center gap-1.5 shadow"
+                >
+                  <Crown className="w-4 h-4" /> Nâng cấp ngay
+                </Link>
+              </div>
+            )}
+
+            {/* Sắp đạt giới hạn (còn 1 slot) - hiển thị banner vàng */}
+            {!isAtLimit && limit !== -1 && limit - activeCount <= 1 && (
+              <div className="mb-6 p-3 bg-yellow-50 border border-yellow-300 rounded-xl flex items-center gap-3">
+                <span className="text-yellow-600 text-sm font-medium">
+                  ⚠️ Bạn đã dùng{' '}
+                  <strong>
+                    {activeCount}/{limit}
+                  </strong>{' '}
+                  sản phẩm. Còn lại 1 slot!
+                </span>
+              </div>
+            )}
+
+            {/* Indicator nhỏ khi còn nhiều slot */}
+            {!isAtLimit && limit !== -1 && limit - activeCount > 1 && (
+              <div className="mb-4 text-xs text-gray-500 text-right">
+                Đã dùng{' '}
+                <strong>
+                  {activeCount}/{limit}
+                </strong>{' '}
+                sản phẩm trong gói hiện tại
+              </div>
+            )}
+          </>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload Section */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -708,7 +764,7 @@ export function CreateListingPage() {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isAtLimit}
                 className="px-8 py-3 bg-[#FF6B35] hover:bg-[#FF5722] text-white rounded-lg font-medium transition-colors shadow-md whitespace-nowrap disabled:bg-orange-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (

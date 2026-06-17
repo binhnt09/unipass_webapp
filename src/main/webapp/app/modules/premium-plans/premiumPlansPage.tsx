@@ -74,7 +74,7 @@ export const PremiumPlansPage = () => {
                 <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Check className="w-3 h-3 text-green-600" />
                 </div>
-                <span className="text-gray-700">Đăng tối đa 10 sản phẩm</span>
+                <span className="text-gray-700">Đăng tối đa 3 sản phẩm</span>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -131,7 +131,7 @@ export const PremiumPlansPage = () => {
                   <Check className="w-3 h-3 text-white" />
                 </div>
                 <div>
-                  <span className="text-gray-900 font-medium">Đăng tối đa 50 sản phẩm</span>
+                  <span className="text-gray-900 font-medium">Đăng tối đa 10 sản phẩm</span>
                   <p className="text-xs text-gray-600 mt-0.5">Tăng giới hạn sản phẩm</p>
                 </div>
               </div>

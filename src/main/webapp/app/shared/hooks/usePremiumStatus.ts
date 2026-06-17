@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAppSelector } from 'app/config/store';
-import { useAuth } from 'app/contexts/AuthContext';
 
 export interface PremiumStatus {
   isPremium: boolean;
@@ -24,11 +23,10 @@ export function usePremiumStatus() {
   const [loading, setLoading] = useState(true);
 
   const realUser = useAppSelector(state => state.authentication.account);
-  const { isAuthenticated: isDemoAuth } = useAuth();
-  const isAuthenticated = !!realUser?.login || isDemoAuth;
+  const isRealAuth = !!realUser?.login;
 
   const fetchStatus = async () => {
-    if (!isAuthenticated) {
+    if (!isRealAuth) {
       setStatus({
         isPremium: false,
         level: 0,
@@ -71,7 +69,7 @@ export function usePremiumStatus() {
     return () => {
       window.removeEventListener('premiumUpdated', handlePremiumUpdate);
     };
-  }, [isAuthenticated]);
+  }, [isRealAuth]);
 
   return { ...status, loading, refetch: fetchStatus };
 }
