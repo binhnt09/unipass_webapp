@@ -11,7 +11,12 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 
+import axios from 'axios';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+
 import { getEntities } from './orders.reducer';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 export const Orders = () => {
   const dispatch = useAppDispatch();
@@ -26,6 +31,17 @@ export const Orders = () => {
   const ordersList = useAppSelector(state => state.orders.entities);
   const loading = useAppSelector(state => state.orders.loading);
   const totalItems = useAppSelector(state => state.orders.totalItems);
+
+  const [statusStats, setStatusStats] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get('/api/orders/stats/status')
+      .then(res => {
+        setStatusStats(res.data);
+      })
+      .catch(e => console.error('Error fetching order stats', e));
+  }, []);
 
   const getAllEntities = () => {
     dispatch(
@@ -100,13 +116,67 @@ export const Orders = () => {
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
             <Translate contentKey="unipassWebApp.orders.home.refreshListLabel">Refresh List</Translate>
           </Button>
-          <Link to="/orders/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
+          {/* <Link to="/admin-orders/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
             <FontAwesomeIcon icon="plus" />
             &nbsp;
             <Translate contentKey="unipassWebApp.orders.home.createLabel">Create new Orders</Translate>
-          </Link>
+          </Link> */}
         </div>
       </h2>
+
+      <div className="summary-grid">
+        <div className="summary-card">
+          <span className="summary-title">Tổng số Đơn hàng</span>
+          <span className="summary-value" style={{ color: '#0b5fff' }}>
+            {statusStats.reduce((sum, item) => sum + item.count, 0)}
+          </span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-title">Thành công (Completed)</span>
+          <span className="summary-value" style={{ color: '#10b981' }}>
+            {statusStats.find(s => s.status === 'COMPLETED' || s.status === 'SUCCESS')?.count || 0}
+          </span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-title">Đang chờ (Pending)</span>
+          <span className="summary-value" style={{ color: '#f59e0b' }}>
+            {statusStats.find(s => s.status === 'PENDING_CONFIRM' || s.status === 'PENDING')?.count || 0}
+          </span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-title">Đã hủy (Cancelled)</span>
+          <span className="summary-value" style={{ color: '#ef4444' }}>
+            {statusStats.find(s => s.status === 'CANCELLED' || s.status === 'REJECTED')?.count || 0}
+          </span>
+        </div>
+      </div>
+
+      <div className="chart-container" style={{ height: '350px' }}>
+        <h4 className="text-center mb-4" style={{ color: '#374151', fontSize: '1.1rem', fontWeight: 600 }}>
+          Phân bố trạng thái Đơn hàng
+        </h4>
+        {statusStats && statusStats.length > 0 ? (
+          <ResponsiveContainer width="100%" height="85%">
+            <BarChart data={statusStats} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <XAxis dataKey="status" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} allowDecimals={false} />
+              <Tooltip
+                cursor={{ fill: '#f3f4f6' }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+              />
+              <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={50} label={{ position: 'top', fill: '#6b7280', fontSize: 12 }}>
+                {statusStats.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center text-muted mt-5">No status data available for chart</div>
+        )}
+      </div>
+
       <div className="table-responsive">
         {ordersList?.length > 0 ? (
           <Table responsive>
@@ -156,7 +226,7 @@ export const Orders = () => {
               {ordersList.map(orders => (
                 <tr key={`entity-${orders.id}`} data-cy="entityTable">
                   <td>
-                    <Button as={Link as any} to={`/orders/${orders.id}`} variant="link" size="sm">
+                    <Button as={Link as any} to={`/admin-orders/${orders.id}`} variant="link" size="sm">
                       {orders.id}
                     </Button>
                   </td>
@@ -171,7 +241,7 @@ export const Orders = () => {
                   <td>{orders.seller ? orders.seller.login : ''}</td>
                   <td className="text-end">
                     <div className="btn-group flex-btn-group-container">
-                      <Button as={Link as any} to={`/orders/${orders.id}`} variant="info" size="sm" data-cy="entityDetailsButton">
+                      <Button as={Link as any} to={`/admin-orders/${orders.id}`} variant="info" size="sm" data-cy="entityDetailsButton">
                         <FontAwesomeIcon icon="eye" />{' '}
                         <span className="d-none d-md-inline">
                           <Translate contentKey="entity.action.view">View</Translate>
@@ -179,7 +249,7 @@ export const Orders = () => {
                       </Button>
                       <Button
                         as={Link as any}
-                        to={`/orders/${orders.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                        to={`/admin-orders/${orders.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
                         variant="primary"
                         size="sm"
                         data-cy="entityEditButton"
@@ -191,7 +261,7 @@ export const Orders = () => {
                       </Button>
                       <Button
                         onClick={() =>
-                          (window.location.href = `/orders/${orders.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          (window.location.href = `/admin-orders/${orders.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
                         }
                         variant="danger"
                         size="sm"

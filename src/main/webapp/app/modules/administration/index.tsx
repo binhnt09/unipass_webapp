@@ -13,18 +13,20 @@ import Tracker from './tracker/tracker';
 // import UserManagement from './user-management';
 
 const AdministrationRoutes = () => (
-  <div>
-    <ErrorBoundaryRoutes>
-      {/* <Route element={<AdminLayout />}> */}
-      {/* <Route path="user-management/*" element={<UserManagement />} /> */}
-      <Route path="tracker" element={<Tracker />} />
-      <Route path="health" element={<Health />} />
-      <Route path="metrics" element={<Metrics />} />
-      <Route path="configuration" element={<Configuration />} />
-      <Route path="logs" element={<Logs />} />
-      <Route path="docs" element={<Docs />} />
-      {/* </Route> */}
-    </ErrorBoundaryRoutes>
+  <div className="bg-slate-50 min-h-screen text-slate-900 w-full p-4 sm:p-8">
+    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-8 min-h-full">
+      <ErrorBoundaryRoutes>
+        {/* <Route element={<AdminLayout />}> */}
+        {/* <Route path="user-management/*" element={<UserManagement />} /> */}
+        <Route path="tracker" element={<Tracker />} />
+        <Route path="health" element={<Health />} />
+        <Route path="metrics" element={<Metrics />} />
+        <Route path="configuration" element={<Configuration />} />
+        <Route path="logs" element={<Logs />} />
+        <Route path="docs" element={<Docs />} />
+        {/* </Route> */}
+      </ErrorBoundaryRoutes>
+    </div>
   </div>
 );
 

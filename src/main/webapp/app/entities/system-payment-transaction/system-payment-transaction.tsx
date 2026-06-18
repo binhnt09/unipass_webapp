@@ -11,6 +11,9 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 
+import axios from 'axios';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 import { getEntities } from './system-payment-transaction.reducer';
 
 export const SystemPaymentTransaction = () => {
@@ -26,6 +29,20 @@ export const SystemPaymentTransaction = () => {
   const systemPaymentTransactionList = useAppSelector(state => state.systemPaymentTransaction.entities);
   const loading = useAppSelector(state => state.systemPaymentTransaction.loading);
   const totalItems = useAppSelector(state => state.systemPaymentTransaction.totalItems);
+
+  const [revenueStats, setRevenueStats] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get('/api/system-payment-transactions/stats/revenue')
+      .then(res => {
+        setRevenueStats(res.data);
+      })
+      .catch(e => console.error('Error fetching revenue stats', e));
+  }, []);
+
+  const totalRevenue = revenueStats.reduce((sum, item) => sum + item.total, 0);
+  const avgRevenue = revenueStats.length > 0 ? (totalRevenue / revenueStats.length).toFixed(0) : 0;
 
   const getAllEntities = () => {
     dispatch(
@@ -114,6 +131,62 @@ export const SystemPaymentTransaction = () => {
           </Link>
         </div>
       </h2>
+
+      <div className="summary-grid">
+        <div className="summary-card">
+          <span className="summary-title">Tổng Doanh thu</span>
+          <span className="summary-value" style={{ color: '#0b5fff' }}>
+            {totalRevenue.toLocaleString()} VNĐ
+          </span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-title">Trung bình / Ngày</span>
+          <span className="summary-value" style={{ color: '#10b981' }}>
+            {Number(avgRevenue).toLocaleString()} VNĐ
+          </span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-title">Số ngày có giao dịch</span>
+          <span className="summary-value" style={{ color: '#f59e0b' }}>
+            {revenueStats.length}
+          </span>
+        </div>
+      </div>
+
+      <div className="chart-container" style={{ height: '350px' }}>
+        <h4 className="text-center mb-4" style={{ color: '#374151', fontSize: '1.1rem', fontWeight: 600 }}>
+          Biến động Doanh thu theo thời gian
+        </h4>
+        {revenueStats && revenueStats.length > 0 ? (
+          <ResponsiveContainer width="100%" height="85%">
+            <AreaChart data={revenueStats} margin={{ top: 20, right: 30, left: 30, bottom: 5 }}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0b5fff" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#0b5fff" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#6b7280', fontSize: 12 }}
+                tickFormatter={value => new Intl.NumberFormat('vi-VN').format(value)}
+              />
+              <Tooltip
+                formatter={value => [new Intl.NumberFormat('vi-VN').format(Number(value) / 1000) + ' VNĐ', 'Doanh thu']}
+                cursor={{ stroke: '#f3f4f6', strokeWidth: 2 }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+              />
+              <Area type="monotone" dataKey="total" stroke="#0b5fff" fillOpacity={1} fill="url(#colorRevenue)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center text-muted mt-5">No revenue data available for chart</div>
+        )}
+      </div>
+
       <div className="table-responsive">
         {systemPaymentTransactionList?.length > 0 ? (
           <Table responsive>

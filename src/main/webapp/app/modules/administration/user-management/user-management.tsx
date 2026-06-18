@@ -10,6 +10,9 @@ import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 
+import axios from 'axios';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 import { getUsersAsAdmin, updateUser } from './user-management.reducer';
 
 const pageButtonClass =
@@ -92,6 +95,18 @@ export const UserManagement = () => {
   const users = useAppSelector(state => state.userManagement.users);
   const totalItems = useAppSelector(state => state.userManagement.totalItems);
   const loading = useAppSelector(state => state.userManagement.loading);
+
+  const [growthStats, setGrowthStats] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get('/api/admin/users/stats/growth')
+      .then(res => {
+        setGrowthStats(res.data);
+      })
+      .catch(e => console.error('Error fetching user growth stats', e));
+  }, []);
+
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = pagination.sort;
     const order = pagination.order;
@@ -135,6 +150,52 @@ export const UserManagement = () => {
             <Translate contentKey="userManagement.home.createLabel">Create a new user</Translate>
           </Link>
         </div>
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <span className="text-sm font-medium text-slate-500">Tổng số người dùng</span>
+          <span className="text-3xl font-bold text-slate-900">{totalItems}</span>
+        </div>
+        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <span className="text-sm font-medium text-slate-500">Đăng ký mới nhất (Ngày)</span>
+          <span className="text-3xl font-bold text-emerald-600">
+            {growthStats.length > 0 ? growthStats[growthStats.length - 1].total : 0}
+          </span>
+        </div>
+        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <span className="text-sm font-medium text-slate-500">Số ngày có user mới</span>
+          <span className="text-3xl font-bold text-indigo-600">{growthStats.length}</span>
+        </div>
+      </div>
+
+      <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h4 className="mb-4 text-center text-lg font-semibold text-slate-700">Biểu đồ Tăng trưởng User Đăng ký mới</h4>
+        {growthStats && growthStats.length > 0 ? (
+          <div style={{ height: '350px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={growthStats} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} allowDecimals={false} />
+                <Tooltip
+                  formatter={value => [value + ' Users', 'Đăng ký mới']}
+                  cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
+                  contentStyle={{ borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                />
+                <Area type="monotone" dataKey="total" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorGrowth)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="mt-5 text-center text-slate-500">No user growth data available for chart</div>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">

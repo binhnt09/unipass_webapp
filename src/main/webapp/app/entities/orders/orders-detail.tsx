@@ -86,14 +86,14 @@ export const OrdersDetail = () => {
           </dt>
           <dd>{ordersEntity.seller ? ordersEntity.seller.login : ''}</dd>
         </dl>
-        <Button as={Link as any} to="/orders" replace variant="info" data-cy="entityDetailsBackButton">
+        <Button as={Link as any} to="/admin-orders" replace variant="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}
           <span className="d-none d-md-inline">
             <Translate contentKey="entity.action.back">Back</Translate>
           </span>
         </Button>
         &nbsp;
-        <Button as={Link as any} to={`/orders/${ordersEntity.id}/edit`} replace variant="primary">
+        <Button as={Link as any} to={`/admin-orders/${ordersEntity.id}/edit`} replace variant="primary">
           <FontAwesomeIcon icon="pencil-alt" />{' '}
           <span className="d-none d-md-inline">
             <Translate contentKey="entity.action.edit">Edit</Translate>

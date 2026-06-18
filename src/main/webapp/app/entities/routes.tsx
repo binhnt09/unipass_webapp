@@ -55,7 +55,7 @@ export default () => {
           <Route path="/cart-item/*" element={<CartItem />} />
           <Route path="/item-request/*" element={<ItemRequest />} />
           <Route path="/request-offer/*" element={<RequestOffer />} />
-          <Route path="/orders/*" element={<Orders />} />
+          <Route path="/admin-orders/*" element={<Orders />} />
           <Route path="/order-item/*" element={<OrderItem />} />
           <Route path="/review/*" element={<Review />} />
           <Route path="/report/*" element={<Report />} />

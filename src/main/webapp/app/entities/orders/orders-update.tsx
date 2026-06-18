@@ -26,7 +26,7 @@ export const OrdersUpdate = () => {
   const updateSuccess = useAppSelector(state => state.orders.updateSuccess);
 
   const handleClose = () => {
-    navigate(`/orders${location.search}`);
+    navigate(`/admin-orders${location.search}`);
   };
 
   useEffect(() => {
@@ -200,7 +200,7 @@ export const OrdersUpdate = () => {
                     ))
                   : null}
               </ValidatedField>
-              <Button as={Link as any} id="cancel-save" data-cy="entityCreateCancelButton" to="/orders" replace variant="info">
+              <Button as={Link as any} id="cancel-save" data-cy="entityCreateCancelButton" to="/admin-orders" replace variant="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;
                 <span className="d-none d-md-inline">

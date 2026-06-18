@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { createBrowserRouter, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
 
 import { sendActivity } from 'app/config/websocket-middleware';
+import { initGA, logPageView } from 'app/config/analytics';
 // import EntitiesRoutes from 'app/entities/routes';
 import Activate from 'app/modules/account/activate/activate';
 import PasswordResetFinish from 'app/modules/account/password-reset/finish/password-reset-finish';
@@ -88,6 +89,7 @@ import { ReportViolationPage } from './modules/support/report-violation';
 import { GuidePage } from './modules/support/guide';
 import { TradeDetailPage } from './modules/trade/components/tradeDetail';
 import { TradeRequestsPage } from './modules/trade/tradeRequests';
+import StatusHistory from './entities/status-history/status-history';
 
 const loading = <div>loading ...</div>;
 
@@ -102,10 +104,12 @@ const RootLayout = () => {
   React.useEffect(() => {
     dispatch(getSession());
     dispatch(getProfile());
+    initGA();
   }, []);
 
   React.useEffect(() => {
     sendActivity(pageLocation.pathname);
+    logPageView(pageLocation.pathname, pageLocation.search);
   }, [pageLocation]);
 
   const currentLocale = useAppSelector(state => state.locale.currentLocale);
@@ -269,7 +273,7 @@ export const router = createBrowserRouter([
           { path: 'cart-item/*', element: <CartItem /> },
           { path: 'item-request/*', element: <ItemRequest /> },
           { path: 'request-offer/*', element: <RequestOffer /> },
-          { path: 'orders/*', element: <Orders /> },
+          { path: 'admin-orders/*', element: <Orders /> },
           { path: 'order-item/*', element: <OrderItem /> },
           { path: 'review/*', element: <Review /> },
           { path: 'report/*', element: <Report /> },
@@ -287,6 +291,8 @@ export const router = createBrowserRouter([
           { path: 'ai-chat-message/*', element: <AiChatMessage /> },
           { path: 'user-search-history/*', element: <UserSearchHistory /> },
           { path: 'notification/*', element: <Notification /> },
+          { path: 'trade-request/*', element: <TradeRequestsPage /> },
+          { path: 'status-history/*', element: <StatusHistory /> },
         ],
       },
       {
