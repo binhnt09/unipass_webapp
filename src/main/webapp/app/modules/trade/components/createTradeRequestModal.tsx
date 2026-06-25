@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Home, Package, AlertCircle, Upload, Loader2, Plus, Trash2 } from 'lucide-react';
-import type { TradeType, MeetingLocationType } from '../../../shared/types/trade';
+import { X, MapPin, Package, AlertCircle, Upload, Loader2, Plus, Trash2 } from 'lucide-react';
+import type { TradeType } from '../../../shared/types/trade';
 // import { useAuth } from '../../../contexts/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { LocationPickerMap } from '../../../shared/map/LocationPickerMap';
 import { useNavigate } from 'react-router';
 
 interface CreateTradeRequestModalProps {
@@ -56,10 +57,60 @@ export function CreateTradeRequestModal({
   const [phone, setPhone] = useState('');
 
   // Meeting location state
-  const [meetingLocationType, setMeetingLocationType] = useState<MeetingLocationType>('public_place');
   const [buyerAddress, setBuyerAddress] = useState('');
-  const [publicPlace, setPublicPlace] = useState('');
+  const [buyerLat, setBuyerLat] = useState<number | undefined>(undefined);
+  const [buyerLng, setBuyerLng] = useState<number | undefined>(undefined);
   const [locationNotes, setLocationNotes] = useState('');
+
+  // Auto-fill location when modal opens
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen) {
+      const fetchFallbackLocation = () => {
+        axios
+          .get('/api/user-addresses')
+          .then(res => {
+            if (isMounted && res.data && res.data.length > 0) {
+              const defaultAddr = res.data.find((a: any) => a.isDefault) || res.data[0];
+              if (defaultAddr?.latitude && defaultAddr?.longitude) {
+                setBuyerLat(defaultAddr.latitude);
+                setBuyerLng(defaultAddr.longitude);
+                setBuyerAddress(defaultAddr.address || '');
+              }
+            }
+          })
+          .catch(() => {});
+      };
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            if (isMounted) {
+              const { latitude, longitude } = position.coords;
+              setBuyerLat(latitude);
+              setBuyerLng(longitude);
+              // fetch address
+              fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=vi`)
+                .then(res => res.json())
+                .then(data => {
+                  if (isMounted) setBuyerAddress(data.display_name || '');
+                })
+                .catch(() => {});
+            }
+          },
+          () => {
+            fetchFallbackLocation();
+          },
+          { timeout: 5000 },
+        );
+      } else {
+        fetchFallbackLocation();
+      }
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
 
   // Validation & submission
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -158,8 +209,7 @@ export function CreateTradeRequestModal({
       newErrors.phone = 'Số điện thoại không hợp lệ';
     }
 
-    if (meetingLocationType === 'buyer_address' && !buyerAddress.trim()) newErrors.buyerAddress = 'Vui lòng nhập địa chỉ';
-    if (meetingLocationType === 'public_place' && !publicPlace.trim()) newErrors.publicPlace = 'Vui lòng nhập địa điểm';
+    if (!buyerAddress.trim()) newErrors.buyerAddress = 'Vui lòng chọn địa điểm';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -206,7 +256,7 @@ export function CreateTradeRequestModal({
           targetProduct: { id: productId },
           seller: sellerId ? { id: sellerId } : undefined,
           topUpAmount: tradeType === 'with_cash' ? parseFloat(cashDifference) : 0,
-          meetupLocation: meetingLocationType === 'buyer_address' ? buyerAddress : publicPlace,
+          meetupLocation: buyerAddress,
           status: 'PENDING',
         },
         newOfferedItems,
@@ -499,65 +549,24 @@ export function CreateTradeRequestModal({
           <div>
             <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Địa điểm gặp mặt đề xuất *</label>
             <div className="space-y-3">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="locationType"
-                  value="buyer_address"
-                  checked={meetingLocationType === 'buyer_address'}
-                  onChange={e => setMeetingLocationType(e.target.value as MeetingLocationType)}
-                  className="w-4 h-4 text-purple-600 mt-1"
-                  disabled={isSubmitting}
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Home className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">Địa chỉ của tôi</span>
-                  </div>
-                  {meetingLocationType === 'buyer_address' && (
-                    <input
-                      type="text"
-                      value={buyerAddress}
-                      onChange={e => setBuyerAddress(e.target.value)}
-                      placeholder="VD: Ký túc xá A"
-                      disabled={isSubmitting}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
-                    />
-                  )}
-                  {errors.buyerAddress && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.buyerAddress}</p>}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Chọn vị trí</span>
                 </div>
-              </label>
-
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="locationType"
-                  value="public_place"
-                  checked={meetingLocationType === 'public_place'}
-                  onChange={e => setMeetingLocationType(e.target.value as MeetingLocationType)}
-                  className="w-4 h-4 text-purple-600 mt-1"
-                  disabled={isSubmitting}
+                <LocationPickerMap
+                  initialLat={buyerLat}
+                  initialLng={buyerLng}
+                  onLocationSelect={(lat, lng, addrText) => {
+                    setBuyerLat(lat);
+                    setBuyerLng(lng);
+                    setBuyerAddress(addrText);
+                  }}
                 />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">Địa điểm công cộng</span>
-                  </div>
-                  {meetingLocationType === 'public_place' && (
-                    <input
-                      type="text"
-                      value={publicPlace}
-                      onChange={e => setPublicPlace(e.target.value)}
-                      placeholder="VD: Thư viện"
-                      disabled={isSubmitting}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
-                    />
-                  )}
-                  {errors.publicPlace && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.publicPlace}</p>}
-                </div>
-              </label>
+                {errors.buyerAddress && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.buyerAddress}</p>}
+              </div>
 
-              <div className="ml-7">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ghi chú thêm (tùy chọn)</label>
                 <input
                   type="text"

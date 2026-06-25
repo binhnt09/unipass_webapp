@@ -48,7 +48,7 @@ export function AugmentedFeatures() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Trophy className="w-5 h-5 text-[#FF6B35]" />
-          <h3 className="font-medium text-gray-900">Người bán Premium</h3>
+          <h3 className="font-medium text-gray-900">Top sellers</h3>
         </div>
         <div className="space-y-3">
           {premiumSellers.map((seller, index) => {

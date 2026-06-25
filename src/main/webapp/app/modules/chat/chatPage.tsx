@@ -154,14 +154,30 @@ export function ChatPage() {
     if (!selectedChat) return;
 
     // Fetch Historical Logs
-    axios
-      .get<IChatMessage[]>(`/api/chat-messages?roomId.equals=${selectedChat}&sort=createdAt,asc`)
-      .then(res => {
-        setMessages(res.data || []);
-      })
-      .catch(err => {
-        console.error('Failed to load chat message history:', err);
-      });
+    const fetchMessages = () => {
+      axios
+        .get<IChatMessage[]>(`/api/chat-messages?roomId.equals=${selectedChat}&sort=createdAt,asc`)
+        .then(res => {
+          setMessages(prev => {
+            // Only update if there are new messages or changes to avoid unnecessary re-renders
+            const newMessages = res.data || [];
+            if (prev.length === newMessages.length && prev[prev.length - 1]?.id === newMessages[newMessages.length - 1]?.id) {
+              return prev;
+            }
+            return newMessages;
+          });
+        })
+        .catch(err => {
+          console.error('Failed to load chat message history:', err);
+        });
+    };
+
+    // Initial fetch
+    fetchMessages();
+
+    // Polling fallback: fetch messages every 5 seconds to guarantee delivery
+    // even if AWS ALB drops the WebSocket connection.
+    const pollingInterval = setInterval(fetchMessages, 5000);
 
     // Handle WebSocket Subscription
     if (isConnected && stompClientRef.current) {
@@ -193,6 +209,7 @@ export function ChatPage() {
     }
 
     return () => {
+      clearInterval(pollingInterval);
       if (subscriptionRef.current) {
         subscriptionRef.current.unsubscribe();
         subscriptionRef.current = null;
