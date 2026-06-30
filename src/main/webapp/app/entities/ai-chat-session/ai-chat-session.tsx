@@ -111,11 +111,6 @@ export const AiChatSession = () => {
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
             <Translate contentKey="unipassWebApp.aiChatSession.home.refreshListLabel">Refresh List</Translate>
           </Button>
-          <Link to="/ai-chat-session/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="unipassWebApp.aiChatSession.home.createLabel">Create new Ai Chat Session</Translate>
-          </Link>
         </div>
       </h2>
       <div className="table-responsive">
@@ -179,29 +174,6 @@ export const AiChatSession = () => {
                           <FontAwesomeIcon icon="eye" />{' '}
                           <span className="d-none d-md-inline">
                             <Translate contentKey="entity.action.view">View</Translate>
-                          </span>
-                        </Button>
-                        <Button
-                          as={Link as any}
-                          to={`/ai-chat-session/${aiChatSession.id}/edit`}
-                          variant="primary"
-                          size="sm"
-                          data-cy="entityEditButton"
-                        >
-                          <FontAwesomeIcon icon="pencil-alt" />{' '}
-                          <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.edit">Edit</Translate>
-                          </span>
-                        </Button>
-                        <Button
-                          onClick={() => (window.location.href = `/ai-chat-session/${aiChatSession.id}/delete`)}
-                          variant="danger"
-                          size="sm"
-                          data-cy="entityDeleteButton"
-                        >
-                          <FontAwesomeIcon icon="trash" />{' '}
-                          <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.delete">Delete</Translate>
                           </span>
                         </Button>
                       </div>

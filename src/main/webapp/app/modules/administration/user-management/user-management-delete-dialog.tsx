@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
-import { Translate } from 'react-jhipster';
 import { useNavigate, useParams } from 'react-router';
 
-import { faBan, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-
 import { deleteUser, getUser } from './user-management.reducer';
 
 export const UserManagementDeleteDialog = () => {
@@ -15,7 +13,7 @@ export const UserManagementDeleteDialog = () => {
   const { login } = useParams<'login'>();
 
   if (!login) {
-    throw new Error('Không tìm thấy thẻ login trong file user-management-delete.html');
+    throw new Error('Không tìm thấy thẻ login');
   }
 
   useEffect(() => {
@@ -32,41 +30,106 @@ export const UserManagementDeleteDialog = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-      <div className="w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200">
-        <div className="border-b border-slate-200 px-6 py-5">
-          <h2 className="text-lg font-semibold text-slate-900" data-cy="userManagementDeleteDialogHeading">
-            <Translate contentKey="entity.delete.title">Confirm delete operation</Translate>
-          </h2>
-        </div>
-        <div className="space-y-4 px-6 py-6 text-slate-700">
-          <p className="text-base leading-relaxed">
-            <Translate contentKey="userManagement.delete.question" interpolate={{ login: user.login }}>
-              Are you sure you want to delete this User?
-            </Translate>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1050,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(4px)',
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 480,
+          backgroundColor: '#fff',
+          borderRadius: 24,
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          overflow: 'hidden',
+          animation: 'entityModalIn 0.2s ease-out',
+        }}
+      >
+        <div style={{ padding: '32px 32px 24px', textAlign: 'center' }}>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              backgroundColor: '#fee2e2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              color: '#dc2626',
+              fontSize: 28,
+            }}
+          >
+            <FontAwesomeIcon icon={faExclamationTriangle} />
+          </div>
+          <h2 style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 700, color: '#111827' }}>Xác nhận xóa người dùng</h2>
+          <p style={{ margin: 0, fontSize: 15, color: '#4b5563', lineHeight: 1.5 }}>
+            Bạn có chắc chắn muốn xóa vĩnh viễn người dùng <strong style={{ color: '#111827' }}>{user.login}</strong> không? Hành động này
+            không thể hoàn tác.
           </p>
         </div>
-        <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 sm:flex-row sm:justify-end">
+
+        <div
+          style={{
+            padding: '20px 32px',
+            backgroundColor: '#f9fafb',
+            borderTop: '1px solid #f3f4f6',
+            display: 'flex',
+            gap: 12,
+            justifyContent: 'flex-end',
+          }}
+        >
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
             onClick={handleClose}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 12,
+              fontSize: 14,
+              fontWeight: 600,
+              border: '1px solid #e5e7eb',
+              backgroundColor: '#fff',
+              color: '#374151',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f3f4f6')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#fff')}
           >
-            <FontAwesomeIcon icon={faBan} />
-            <span className="ml-2">
-              <Translate contentKey="entity.action.cancel">Cancel</Translate>
-            </span>
+            Hủy bỏ
           </button>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
             onClick={confirmDelete}
-            data-cy="entityConfirmDeleteButton"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 20px',
+              borderRadius: 12,
+              fontSize: 14,
+              fontWeight: 600,
+              border: 'none',
+              backgroundColor: '#dc2626',
+              color: '#fff',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.2)',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#b91c1c')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#dc2626')}
           >
             <FontAwesomeIcon icon={faTrash} />
-            <span className="ml-2">
-              <Translate contentKey="entity.action.delete">Delete</Translate>
-            </span>
+            Xóa vĩnh viễn
           </button>
         </div>
       </div>

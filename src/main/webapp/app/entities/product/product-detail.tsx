@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Button, Col, Row } from 'react-bootstrap';
 import { TextFormat, Translate } from 'react-jhipster';
 import { Link, useParams } from 'react-router';
@@ -12,12 +13,21 @@ import { getEntity } from './product.reducer';
 
 export const ProductDetail = () => {
   const dispatch = useAppDispatch();
+  const [images, setImages] = useState<any[]>([]);
 
   const { id } = useParams<'id'>();
 
   useEffect(() => {
     dispatch(getEntity(id));
-  }, []);
+    if (id) {
+      axios
+        .get(`/api/product-images?productId.equals=${id}`)
+        .then(res => {
+          setImages(res.data);
+        })
+        .catch(err => console.error(err));
+    }
+  }, [id]);
 
   const productEntity = useAppSelector(state => state.product.entity);
   return (
@@ -102,6 +112,45 @@ export const ProductDetail = () => {
           </dt>
           <dd>{productEntity.seller ? productEntity.seller.login : ''}</dd>
         </dl>
+        {/* --- Image Gallery --- */}
+        <div className="mt-4 mb-4">
+          <h4 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', marginBottom: '16px' }}>Hình ảnh sản phẩm</h4>
+          {images.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }}>
+              {images.map((img: any) => (
+                <div
+                  key={img.id}
+                  style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb', aspectRatio: '1/1' }}
+                >
+                  <img
+                    src={`http://localhost:8080${img.imageUrl}`}
+                    alt="Product"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  {img.isPrimary && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        backgroundColor: '#2563eb',
+                        color: '#fff',
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      Ảnh chính
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Chưa có hình ảnh nào cho sản phẩm này.</p>
+          )}
+        </div>
         <Button as={Link as any} to="/product" replace variant="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}
           <span className="d-none d-md-inline">

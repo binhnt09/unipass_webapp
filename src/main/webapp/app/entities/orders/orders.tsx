@@ -8,8 +8,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+// import { StatusBadge, TruncatedText, DeleteConfirmModal } from 'app/shared/entity-ui-helpers';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+// import { toast } from 'react-toastify';
 
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, Tooltip, ResponsiveContainer } from 'recharts';
@@ -17,6 +19,19 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, Tooltip, ResponsiveCo
 import { getEntities } from './orders.reducer';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+// const thStyle: React.CSSProperties = {
+//   padding: '12px 16px',
+//   fontSize: 12,
+//   fontWeight: 700,
+//   textTransform: 'uppercase',
+//   letterSpacing: '0.05em',
+//   color: '#6b7280',
+//   whiteSpace: 'nowrap',
+//   cursor: 'pointer',
+// };
+
+// const tdStyle: React.CSSProperties = { padding: '12px 16px', fontSize: 14, verticalAlign: 'middle' };
 
 export const Orders = () => {
   const dispatch = useAppDispatch();

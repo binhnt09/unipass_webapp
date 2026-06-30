@@ -1,50 +1,39 @@
-﻿import React, { useEffect } from 'react';
-import { Translate, ValidatedField, ValidatedForm, isEmail, translate } from 'react-jhipster';
-import { Link, useNavigate, useParams } from 'react-router';
+import React, { useEffect } from 'react';
+import { ValidatedField, ValidatedForm } from 'react-jhipster';
+import { useNavigate, useParams } from 'react-router';
 
-import { faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faSave, faUserShield } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
-import { languages, locales } from 'app/config/translation';
+import { locales, languages } from 'app/config/translation';
 
-import { createUser, getRoles, getUser, reset, updateUser } from './user-management.reducer';
-import './user-management-update.scss';
+import { getRoles, getUser, reset, updateUser } from './user-management.reducer';
 
-const labelClass = 'mb-2 block text-sm font-medium text-slate-700';
+const labelClass = 'mb-2 block text-sm font-semibold text-slate-700';
 const inputClass =
-  'form-control block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition duration-150 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200';
-const checkboxClass = 'form-control h-4 w-4 rounded border border-slate-300 text-slate-600 focus:ring-slate-500';
-const buttonClass =
-  'inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-slate-300';
+  'form-control block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed';
 
 export const UserManagementUpdate = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const { login } = useParams<'login'>();
-  const isNew = login === undefined;
 
   useEffect(() => {
-    if (isNew) {
-      dispatch(reset());
-    } else {
+    if (login) {
       dispatch(getUser(login));
     }
     dispatch(getRoles());
     return () => {
       dispatch(reset());
     };
-  }, [dispatch, isNew, login]);
+  }, [dispatch, login]);
 
   const handleClose = () => navigate('/admin/user-management');
 
   const saveUser = values => {
-    if (isNew) {
-      dispatch(createUser(values));
-    } else {
-      dispatch(updateUser(values));
-    }
+    dispatch(updateUser(values));
     handleClose();
   };
 
@@ -54,185 +43,227 @@ export const UserManagementUpdate = () => {
   const authorities = useAppSelector(state => state.userManagement.authorities);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-8 text-3xl font-semibold text-slate-900" data-cy="UserManagementCreateUpdateHeading">
-          <Translate contentKey="userManagement.home.createOrEditLabel">Create or edit a User</Translate>
-        </h1>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px' }}>
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: 24,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: '32px 40px',
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 16,
+              backgroundColor: '#f3e8ff',
+              color: '#9333ea',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 24,
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+            }}
+          >
+            <FontAwesomeIcon icon={faUserShield} />
+          </div>
+          <div>
+            <h1 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 700, color: '#0f172a' }}>Phân quyền & Trạng thái</h1>
+            <p style={{ margin: 0, fontSize: 14, color: '#64748b' }}>Cập nhật quyền hạn và trạng thái hoạt động cho tài khoản {login}</p>
+          </div>
+        </div>
 
-        {loading ? (
-          <p className="text-slate-600">Loading...</p>
-        ) : (
-          <ValidatedForm onSubmit={saveUser} defaultValues={user}>
-            <div className="space-y-6">
-              {user.id && (
-                <ValidatedField
-                  type="text"
-                  name="id"
-                  data-cy="id"
-                  required
-                  readOnly
-                  label={translate('global.field.id')}
-                  validate={{ required: true }}
-                  inputClass={inputClass}
-                  labelClass={labelClass}
-                />
-              )}
+        {/* Form */}
+        <div style={{ padding: '32px 40px' }}>
+          {loading ? (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: '#64748b' }}>Đang tải dữ liệu...</div>
+          ) : (
+            <ValidatedForm onSubmit={saveUser} defaultValues={user}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px 20px' }}>
+                {/* Read-only Personal Info section */}
+                <div style={{ gridColumn: '1 / -1', marginBottom: 8 }}>
+                  <h3
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: '#64748b',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      borderBottom: '1px solid #e2e8f0',
+                      paddingBottom: 8,
+                    }}
+                  >
+                    Thông tin cá nhân (Chỉ xem)
+                  </h3>
+                </div>
 
-              <ValidatedField
-                type="text"
-                name="login"
-                data-cy="login"
-                label={translate('userManagement.login')}
-                validate={{
-                  required: {
-                    value: true,
-                    message: translate('register.messages.validate.login.required'),
-                  },
-                  pattern: {
-                    value: /^[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$|^[_.@A-Za-z0-9-]+$/,
-                    message: translate('register.messages.validate.login.pattern'),
-                  },
-                  minLength: {
-                    value: 1,
-                    message: translate('register.messages.validate.login.minlength'),
-                  },
-                  maxLength: {
-                    value: 50,
-                    message: translate('register.messages.validate.login.maxlength'),
-                  },
-                }}
-                inputClass={inputClass}
-                labelClass={labelClass}
-              />
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <ValidatedField type="text" name="login" label="Tên đăng nhập" disabled inputClass={inputClass} labelClass={labelClass} />
+                </div>
 
-              <ValidatedField
-                type="text"
-                name="firstName"
-                data-cy="firstName"
-                label={translate('userManagement.firstName')}
-                validate={{
-                  maxLength: {
-                    value: 50,
-                    message: translate('entity.validation.maxlength', { max: 50 }),
-                  },
-                }}
-                inputClass={inputClass}
-                labelClass={labelClass}
-              />
+                <div>
+                  <ValidatedField type="text" name="firstName" label="Tên" disabled inputClass={inputClass} labelClass={labelClass} />
+                </div>
 
-              <ValidatedField
-                type="text"
-                name="lastName"
-                data-cy="lastName"
-                label={translate('userManagement.lastName')}
-                validate={{
-                  maxLength: {
-                    value: 50,
-                    message: translate('entity.validation.maxlength', { max: 50 }),
-                  },
-                }}
-                inputClass={inputClass}
-                labelClass={labelClass}
-              />
+                <div>
+                  <ValidatedField type="text" name="lastName" label="Họ" disabled inputClass={inputClass} labelClass={labelClass} />
+                </div>
 
-              <div className="text-sm text-slate-500">This field cannot be longer than 50 characters.</div>
+                <div>
+                  <ValidatedField
+                    name="email"
+                    label="Địa chỉ Email"
+                    type="email"
+                    disabled
+                    inputClass={inputClass}
+                    labelClass={labelClass}
+                  />
+                </div>
 
-              <ValidatedField
-                name="email"
-                data-cy="email"
-                label={translate('global.form.email.label')}
-                placeholder={translate('global.form.email.placeholder')}
-                type="email"
-                validate={{
-                  required: {
-                    value: true,
-                    message: translate('global.messages.validate.email.required'),
-                  },
-                  minLength: {
-                    value: 5,
-                    message: translate('global.messages.validate.email.minlength'),
-                  },
-                  maxLength: {
-                    value: 254,
-                    message: translate('global.messages.validate.email.maxlength'),
-                  },
-                  validate: v => isEmail(v) || translate('global.messages.validate.email.invalid'),
-                }}
-                inputClass={inputClass}
-                labelClass={labelClass}
-              />
+                <div>
+                  <ValidatedField type="select" name="langKey" label="Ngôn ngữ" disabled inputClass={inputClass} labelClass={labelClass}>
+                    {locales.map(locale => (
+                      <option value={locale} key={locale}>
+                        {languages[locale].name}
+                      </option>
+                    ))}
+                  </ValidatedField>
+                </div>
 
-              <ValidatedField
-                type="checkbox"
-                name="activated"
-                data-cy="activated"
-                check
-                value={true}
-                disabled={!user.id}
-                label={translate('userManagement.activated')}
-                inputClass={checkboxClass}
-                labelClass={labelClass}
-              />
+                {/* Editable Admin controls section */}
+                <div style={{ gridColumn: '1 / -1', marginTop: 16, marginBottom: 8 }}>
+                  <h3
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      borderBottom: '1px solid #e2e8f0',
+                      paddingBottom: 8,
+                    }}
+                  >
+                    Quản lý quyền hạn
+                  </h3>
+                </div>
 
-              <ValidatedField
-                type="select"
-                name="langKey"
-                data-cy="langKey"
-                label={translate('userManagement.langKey')}
-                inputClass={inputClass}
-                labelClass={labelClass}
-              >
-                {locales.map(locale => (
-                  <option value={locale} key={locale}>
-                    {languages[locale].name}
-                  </option>
-                ))}
-              </ValidatedField>
-
-              <ValidatedField
-                type="select"
-                name="authorities"
-                data-cy="profiles"
-                multiple
-                label={translate('userManagement.profiles')}
-                inputClass={inputClass}
-                labelClass={labelClass}
-              >
-                {authorities.map(role => (
-                  <option value={role} key={role}>
-                    {role}
-                  </option>
-                ))}
-              </ValidatedField>
-
-              <div className="flex flex-col gap-3 pt-3 sm:flex-row sm:justify-end">
-                <Link
-                  to="/admin/user-management"
-                  replace
-                  className={`${buttonClass} rounded-2xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100`}
-                  data-cy="entityCreateCancelButton"
-                >
-                  <FontAwesomeIcon icon={faArrowLeft} />
-                  <span className="ml-2">
-                    <Translate contentKey="entity.action.back">Back</Translate>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <ValidatedField
+                    type="select"
+                    name="authorities"
+                    multiple
+                    label="Phân quyền (Profiles) *"
+                    inputClass={`${inputClass} min-h-[120px]`}
+                    labelClass={labelClass}
+                  >
+                    {authorities.map(role => (
+                      <option value={role} key={role} style={{ padding: '8px 12px', cursor: 'pointer' }}>
+                        {role}
+                      </option>
+                    ))}
+                  </ValidatedField>
+                  <span style={{ fontSize: 12, color: '#64748b', marginTop: 6, display: 'block' }}>
+                    * Giữ phím Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều quyền
                   </span>
-                </Link>
+                </div>
+
+                <div
+                  style={{
+                    gridColumn: '1 / -1',
+                    padding: '16px 20px',
+                    backgroundColor: '#f8fafc',
+                    borderRadius: 12,
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    marginTop: 8,
+                  }}
+                >
+                  <ValidatedField
+                    type="checkbox"
+                    name="activated"
+                    check
+                    value={true}
+                    label="Kích hoạt tài khoản này"
+                    className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    labelClass="ml-2 text-sm font-semibold text-slate-800 cursor-pointer select-none mb-0 pt-0.5"
+                    style={{ margin: 0 }}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  justifyContent: 'flex-end',
+                  marginTop: 40,
+                  paddingTop: 24,
+                  borderTop: '1px solid #e5e7eb',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: 12,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#fff',
+                    color: '#475569',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#fff')}
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: 8 }} /> Quay lại
+                </button>
                 <button
                   type="submit"
                   disabled={updating}
-                  className={`${buttonClass} rounded-2xl bg-slate-900 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}
-                  data-cy="entityCreateSaveButton"
+                  style={{
+                    padding: '12px 32px',
+                    borderRadius: 12,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    border: 'none',
+                    backgroundColor: '#2563eb',
+                    color: '#fff',
+                    transition: 'all 0.15s',
+                    cursor: updating ? 'not-allowed' : 'pointer',
+                    opacity: updating ? 0.7 : 1,
+                    boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                  }}
+                  onMouseEnter={e => {
+                    if (!updating) e.currentTarget.style.backgroundColor = '#1d4ed8';
+                  }}
+                  onMouseLeave={e => {
+                    if (!updating) e.currentTarget.style.backgroundColor = '#2563eb';
+                  }}
                 >
-                  <FontAwesomeIcon icon={faSave} />
-                  <span className="ml-2">
-                    <Translate contentKey="entity.action.save">Save</Translate>
-                  </span>
+                  <FontAwesomeIcon icon={faSave} style={{ marginRight: 8 }} /> Lưu thay đổi
                 </button>
               </div>
-            </div>
-          </ValidatedForm>
-        )}
+            </ValidatedForm>
+          )}
+        </div>
       </div>
     </div>
   );

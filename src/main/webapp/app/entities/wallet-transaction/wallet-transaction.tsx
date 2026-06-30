@@ -111,16 +111,6 @@ export const WalletTransaction = () => {
             <FontAwesomeIcon icon="sync" spin={loading} />{' '}
             <Translate contentKey="unipassWebApp.walletTransaction.home.refreshListLabel">Refresh List</Translate>
           </Button>
-          <Link
-            to="/wallet-transaction/new"
-            className="btn btn-primary jh-create-entity"
-            id="jh-create-entity"
-            data-cy="entityCreateButton"
-          >
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="unipassWebApp.walletTransaction.home.createLabel">Create new Wallet Transaction</Translate>
-          </Link>
         </div>
       </h2>
       <div className="table-responsive">
@@ -205,29 +195,6 @@ export const WalletTransaction = () => {
                           <FontAwesomeIcon icon="eye" />{' '}
                           <span className="d-none d-md-inline">
                             <Translate contentKey="entity.action.view">View</Translate>
-                          </span>
-                        </Button>
-                        <Button
-                          as={Link as any}
-                          to={`/wallet-transaction/${walletTransaction.id}/edit`}
-                          variant="primary"
-                          size="sm"
-                          data-cy="entityEditButton"
-                        >
-                          <FontAwesomeIcon icon="pencil-alt" />{' '}
-                          <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.edit">Edit</Translate>
-                          </span>
-                        </Button>
-                        <Button
-                          onClick={() => (window.location.href = `/wallet-transaction/${walletTransaction.id}/delete`)}
-                          variant="danger"
-                          size="sm"
-                          data-cy="entityDeleteButton"
-                        >
-                          <FontAwesomeIcon icon="trash" />{' '}
-                          <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.delete">Delete</Translate>
                           </span>
                         </Button>
                       </div>

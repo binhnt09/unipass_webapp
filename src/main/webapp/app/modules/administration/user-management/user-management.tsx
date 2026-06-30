@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { TextFormat, Translate, getPaginationState } from 'react-jhipster';
+import React, { useEffect, useRef, useState } from 'react';
+import { TextFormat, getPaginationState } from 'react-jhipster';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
-import { faEye, faPencilAlt, faPlus, faSort, faSortDown, faSortUp, faSync, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faSort, faSortDown, faSortUp, faSync } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
@@ -15,23 +16,61 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import { getUsersAsAdmin, updateUser } from './user-management.reducer';
 
-const pageButtonClass =
-  'inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50';
-const pageButtonActiveClass =
-  'inline-flex items-center justify-center rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-sm font-medium text-white';
-const actionButtonClass =
-  'inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-slate-300';
+// ─── Role Badge colors ─────────────────────────────────────────────────────
+const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
+  ROLE_ADMIN: { bg: '#fef3c7', text: '#92400e' },
+  ROLE_MANAGER: { bg: '#ede9fe', text: '#5b21b6' },
+  ROLE_SELLER: { bg: '#dbeafe', text: '#1e40af' },
+  ROLE_BUYER: { bg: '#dcfce7', text: '#166534' },
+  ROLE_USER: { bg: '#f3f4f6', text: '#374151' },
+};
+const getRoleColor = (role: string) => ROLE_COLORS[role] ?? { bg: '#f3f4f6', text: '#374151' };
+
+// ─── Avatar ────────────────────────────────────────────────────────────────
+const UserAvatar = ({ login, firstName }: { login?: string; firstName?: string }) => {
+  const initials = (firstName?.[0] || login?.[0] || '?').toUpperCase();
+  const hue = ((login || 'x').charCodeAt(0) * 17) % 360;
+  return (
+    <div
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: '50%',
+        background: `hsl(${hue}, 55%, 55%)`,
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 700,
+        fontSize: 14,
+        flexShrink: 0,
+        userSelect: 'none',
+      }}
+    >
+      {initials}
+    </div>
+  );
+};
 
 export const UserManagement = () => {
   const dispatch = useAppDispatch();
-
   const pageLocation = useLocation();
   const navigate = useNavigate();
 
   const [pagination, setPagination] = useState(
     overridePaginationStateWithQueryParams(getPaginationState(pageLocation, ITEMS_PER_PAGE, 'id'), pageLocation.search),
   );
+  const [growthStats, setGrowthStats] = useState<any[]>([]);
+  const [searchText, setSearchText] = useState('');
 
+  // const account = useAppSelector(state => state.authentication.account);
+  const users = useAppSelector(state => state.userManagement.users);
+  const totalItems = useAppSelector(state => state.userManagement.totalItems);
+  const loading = useAppSelector(state => state.userManagement.loading);
+  const updateSuccess = useAppSelector(state => state.userManagement.updateSuccess);
+  const prevUpdateSuccess = useRef(false);
+
+  // ─── Fetch ────────────────────────────────────────────────────────────────
   const getUsersFromProps = () => {
     dispatch(
       getUsersAsAdmin({
@@ -56,66 +95,67 @@ export const UserManagement = () => {
     const sortParam = params.get(SORT);
     if (page && sortParam) {
       const sortSplit = sortParam.split(',');
-      setPagination({
-        ...pagination,
+      setPagination(prev => ({
+        ...prev,
         activePage: +page,
         sort: sortSplit[0],
         order: sortSplit[1],
-      });
+      }));
     }
   }, [pageLocation.search]);
 
-  const sort = p => () =>
-    setPagination({
-      ...pagination,
-      order: pagination.order === ASC ? DESC : ASC,
-      sort: p,
-    });
+  // Reload list whenever a child route (create/edit/delete) resolves back to index
+  useEffect(() => {
+    if (updateSuccess && !prevUpdateSuccess.current) {
+      toast.success('User updated successfully!');
+      getUsersFromProps();
+    }
+    prevUpdateSuccess.current = updateSuccess;
+  }, [updateSuccess]);
 
-  const handlePagination = currentPage =>
-    setPagination({
-      ...pagination,
-      activePage: currentPage,
-    });
-
-  const handleSyncList = () => {
-    getUsersFromProps();
-  };
-
-  const toggleActive = user => () => {
-    dispatch(
-      updateUser({
-        ...user,
-        activated: !user.activated,
-      }),
-    );
-  };
-
-  const account = useAppSelector(state => state.authentication.account);
-  const users = useAppSelector(state => state.userManagement.users);
-  const totalItems = useAppSelector(state => state.userManagement.totalItems);
-  const loading = useAppSelector(state => state.userManagement.loading);
-
-  const [growthStats, setGrowthStats] = useState([]);
-
+  // ─── Growth chart ─────────────────────────────────────────────────────────
   useEffect(() => {
     axios
       .get('/api/admin/users/stats/growth')
-      .then(res => {
-        setGrowthStats(res.data);
-      })
+      .then(res => setGrowthStats(res.data))
       .catch(e => console.error('Error fetching user growth stats', e));
   }, []);
 
-  const getSortIconByFieldName = (fieldName: string) => {
-    const sortFieldName = pagination.sort;
-    const order = pagination.order;
-    if (sortFieldName !== fieldName) {
-      return faSort;
-    }
-    return order === ASC ? faSortUp : faSortDown;
+  // ─── Sort ─────────────────────────────────────────────────────────────────
+  const sort = (p: string) => () =>
+    setPagination(prev => ({
+      ...prev,
+      order: prev.order === ASC ? DESC : ASC,
+      sort: p,
+    }));
+
+  const getSortIcon = (fieldName: string) => {
+    if (pagination.sort !== fieldName) return faSort;
+    return pagination.order === ASC ? faSortUp : faSortDown;
   };
 
+  // ─── Toggle active ────────────────────────────────────────────────────────
+  const toggleActive = (user: any) => () => {
+    dispatch(updateUser({ ...user, activated: !user.activated }));
+  };
+
+  // ─── Open User Profile ──────────────────────────────────────────────────
+  const openUserProfile = async (userId: number) => {
+    try {
+      const res = await axios.get(`/api/user-profiles?userId.equals=${userId}`);
+      if (res.data && res.data.length > 0) {
+        navigate(`/user-profile/${res.data[0].id}`);
+      } else {
+        toast.info('Người dùng này chưa có hồ sơ');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Lỗi khi tải hồ sơ');
+    }
+  };
+
+  // ─── Pagination ───────────────────────────────────────────────────────────
+  const handlePagination = (page: number) => setPagination(prev => ({ ...prev, activePage: page }));
   const pageCount = totalItems ? Math.max(1, Math.ceil(totalItems / pagination.itemsPerPage)) : 0;
   const startIndex = totalItems ? (pagination.activePage - 1) * pagination.itemsPerPage + 1 : 0;
   const endIndex = totalItems ? Math.min(totalItems, pagination.activePage * pagination.itemsPerPage) : 0;
@@ -123,273 +163,569 @@ export const UserManagement = () => {
   const pageStart = Math.max(1, pagination.activePage - pageRange);
   const pageEnd = Math.min(pageCount, pagination.activePage + pageRange);
 
+  // ─── Filter ───────────────────────────────────────────────────────────────
+  const filteredUsers = users.filter(
+    u =>
+      !searchText ||
+      u.login?.toLowerCase().includes(searchText.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchText.toLowerCase()) ||
+      u.firstName?.toLowerCase().includes(searchText.toLowerCase()) ||
+      u.lastName?.toLowerCase().includes(searchText.toLowerCase()),
+  );
+
+  // ─── Styles ───────────────────────────────────────────────────────────────
+  const thStyle: React.CSSProperties = {
+    padding: '11px 14px',
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    color: '#6b7280',
+    whiteSpace: 'nowrap',
+    userSelect: 'none',
+    backgroundColor: '#f9fafb',
+    borderBottom: '2px solid #e5e7eb',
+  };
+  const tdStyle: React.CSSProperties = {
+    padding: '12px 14px',
+    fontSize: 13.5,
+    color: '#374151',
+    verticalAlign: 'middle',
+    borderBottom: '1px solid #f3f4f6',
+  };
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 20px' }}>
+      {/* ── Page Header ─────────────────────────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
+          marginBottom: 24,
+          background: '#fff',
+          borderRadius: 16,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          padding: '20px 24px',
+        }}
+      >
         <div>
-          <h2 id="user-management-page-heading" data-cy="UserManagementHeading" className="text-3xl font-semibold text-slate-900">
-            <Translate contentKey="userManagement.home.title">Users</Translate>
+          <h2
+            id="user-management-page-heading"
+            data-cy="UserManagementHeading"
+            style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}
+          >
+            User Management
           </h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>{totalItems} total users in the system</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Search */}
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="Search login / email…"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              style={{
+                padding: '8px 14px 8px 36px',
+                borderRadius: 8,
+                border: '1px solid #e5e7eb',
+                fontSize: 13,
+                outline: 'none',
+                width: 220,
+                color: '#111827',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                left: 11,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#9ca3af',
+                pointerEvents: 'none',
+              }}
+            >
+              🔍
+            </span>
+          </div>
+          {/* Refresh */}
           <button
             type="button"
-            onClick={handleSyncList}
+            onClick={() => getUsersFromProps()}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              border: '1px solid #e5e7eb',
+              background: '#fff',
+              color: '#374151',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.5 : 1,
+            }}
           >
-            <FontAwesomeIcon icon={faSync} spin={loading} />
-            <Translate contentKey="userManagement.home.refreshListLabel">Refresh List</Translate>
+            <FontAwesomeIcon icon={faSync} spin={loading} /> Refresh
           </button>
-          <Link
-            to="new"
-            className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-            data-cy="entityCreateButton"
+        </div>
+      </div>
+
+      {/* ── Stats Cards ─────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
+        {[
+          { label: 'Total Users', value: totalItems, color: '#2563eb', icon: '👥' },
+          {
+            label: 'Active Today',
+            value: growthStats.length > 0 ? growthStats[growthStats.length - 1].total : 0,
+            color: '#059669',
+            icon: '📈',
+          },
+          { label: 'Days with Signups', value: growthStats.length, color: '#7c3aed', icon: '📅' },
+        ].map(card => (
+          <div
+            key={card.label}
+            style={{
+              background: '#fff',
+              borderRadius: 14,
+              border: '1px solid #e5e7eb',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              padding: '18px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+            }}
           >
-            <FontAwesomeIcon icon={faPlus} />
-            <Translate contentKey="userManagement.home.createLabel">Create a new user</Translate>
-          </Link>
-        </div>
+            <div style={{ fontSize: 28, flexShrink: 0 }}>{card.icon}</div>
+            <div>
+              <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {card.label}
+              </div>
+              <div style={{ fontSize: 26, fontWeight: 700, color: card.color, lineHeight: 1.2 }}>{card.value}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <span className="text-sm font-medium text-slate-500">Tổng số người dùng</span>
-          <span className="text-3xl font-bold text-slate-900">{totalItems}</span>
-        </div>
-        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <span className="text-sm font-medium text-slate-500">Đăng ký mới nhất (Ngày)</span>
-          <span className="text-3xl font-bold text-emerald-600">
-            {growthStats.length > 0 ? growthStats[growthStats.length - 1].total : 0}
-          </span>
-        </div>
-        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <span className="text-sm font-medium text-slate-500">Số ngày có user mới</span>
-          <span className="text-3xl font-bold text-indigo-600">{growthStats.length}</span>
-        </div>
-      </div>
-
-      <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h4 className="mb-4 text-center text-lg font-semibold text-slate-700">Biểu đồ Tăng trưởng User Đăng ký mới</h4>
-        {growthStats && growthStats.length > 0 ? (
-          <div style={{ height: '350px' }}>
+      {/* ── Growth Chart ────────────────────────────────────────────── */}
+      {growthStats.length > 0 && (
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 16,
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            padding: '20px 24px',
+            marginBottom: 20,
+          }}
+        >
+          <h4 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 600, color: '#374151' }}>📊 New User Registrations</h4>
+          <div style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={growthStats} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <AreaChart data={growthStats} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} allowDecimals={false} />
                 <Tooltip
-                  formatter={value => [value + ' Users', 'Đăng ký mới']}
-                  cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
-                  contentStyle={{ borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  formatter={(v: any) => [v + ' users', 'Registrations']}
+                  contentStyle={{ borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13 }}
                 />
-                <Area type="monotone" dataKey="total" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorGrowth)" />
+                <Area type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2.5} fill="url(#colorUsers)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        ) : (
-          <div className="mt-5 text-center text-slate-500">No user growth data available for chart</div>
-        )}
-      </div>
-
-      <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-700">
-            <tr>
-              <th className="px-4 py-3 cursor-pointer" onClick={sort('id')}>
-                <div className="inline-flex items-center gap-2">
-                  <Translate contentKey="global.field.id">ID</Translate>
-                  <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
-                </div>
-              </th>
-              <th className="px-4 py-3 cursor-pointer" onClick={sort('login')}>
-                <div className="inline-flex items-center gap-2">
-                  <Translate contentKey="userManagement.login">Login</Translate>
-                  <FontAwesomeIcon icon={getSortIconByFieldName('login')} />
-                </div>
-              </th>
-              <th className="px-4 py-3 cursor-pointer" onClick={sort('email')}>
-                <div className="inline-flex items-center gap-2">
-                  <Translate contentKey="userManagement.email">Email</Translate>
-                  <FontAwesomeIcon icon={getSortIconByFieldName('email')} />
-                </div>
-              </th>
-              <th className="px-4 py-3" />
-              <th className="px-4 py-3 cursor-pointer" onClick={sort('langKey')}>
-                <div className="inline-flex items-center gap-2">
-                  <Translate contentKey="userManagement.langKey">Lang Key</Translate>
-                  <FontAwesomeIcon icon={getSortIconByFieldName('langKey')} />
-                </div>
-              </th>
-              <th className="px-4 py-3">
-                <Translate contentKey="userManagement.profiles">Profiles</Translate>
-              </th>
-              <th className="px-4 py-3 cursor-pointer" onClick={sort('createdDate')}>
-                <div className="inline-flex items-center gap-2">
-                  <Translate contentKey="userManagement.createdDate">Created Date</Translate>
-                  <FontAwesomeIcon icon={getSortIconByFieldName('createdDate')} />
-                </div>
-              </th>
-              <th className="px-4 py-3 cursor-pointer" onClick={sort('lastModifiedBy')}>
-                <div className="inline-flex items-center gap-2">
-                  <Translate contentKey="userManagement.lastModifiedBy">Last Modified By</Translate>
-                  <FontAwesomeIcon icon={getSortIconByFieldName('lastModifiedBy')} />
-                </div>
-              </th>
-              <th className="px-4 py-3 cursor-pointer" onClick={sort('lastModifiedDate')}>
-                <div className="inline-flex items-center gap-2">
-                  <Translate contentKey="userManagement.lastModifiedDate">Last Modified Date</Translate>
-                  <FontAwesomeIcon icon={getSortIconByFieldName('lastModifiedDate')} />
-                </div>
-              </th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 bg-white">
-            {users.map((user, i) => (
-              <tr key={`user-${i}`} className="odd:bg-slate-50">
-                <td className="px-4 py-4 text-slate-700">
-                  <Link to={user.login} className="text-slate-900 hover:text-slate-700">
-                    {user.id}
-                  </Link>
-                </td>
-                <td className="px-4 py-4 text-slate-700">{user.login}</td>
-                <td className="px-4 py-4 text-slate-700">{user.email}</td>
-                <td className="px-4 py-4">
-                  <button
-                    type="button"
-                    onClick={toggleActive(user)}
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                      user.activated ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                    }`}
-                  >
-                    <Translate contentKey={user.activated ? 'userManagement.activated' : 'userManagement.deactivated'}>
-                      {user.activated ? 'Activated' : 'Deactivated'}
-                    </Translate>
-                  </button>
-                </td>
-                <td className="px-4 py-4 text-slate-700">{user.langKey}</td>
-                <td className="px-4 py-4">
-                  <div className="flex flex-wrap gap-2">
-                    {user.authorities?.map((authority, j) => (
-                      <span key={`user-auth-${i}-${j}`} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                        {authority}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-4 py-4 text-slate-700">
-                  {user.createdDate && <TextFormat value={user.createdDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid />}
-                </td>
-                <td className="px-4 py-4 text-slate-700">{user.lastModifiedBy}</td>
-                <td className="px-4 py-4 text-slate-700">
-                  {user.lastModifiedDate && (
-                    <TextFormat value={user.lastModifiedDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid />
-                  )}
-                </td>
-                <td className="px-4 py-4 text-right">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                    <Link
-                      to={user.login}
-                      className={`${actionButtonClass} rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                      data-cy="entityDetailsButton"
-                    >
-                      <FontAwesomeIcon icon={faEye} />
-                      <span className="hidden sm:inline">
-                        <Translate contentKey="entity.action.view">View</Translate>
-                      </span>
-                    </Link>
-                    <Link
-                      to={`${user.login}/edit`}
-                      className={`${actionButtonClass} rounded-full bg-slate-900 text-white hover:bg-slate-800`}
-                      data-cy="entityEditButton"
-                    >
-                      <FontAwesomeIcon icon={faPencilAlt} />
-                      <span className="hidden sm:inline">
-                        <Translate contentKey="entity.action.edit">Edit</Translate>
-                      </span>
-                    </Link>
-                    <Link
-                      to={`${user.login}/delete`}
-                      className={`${actionButtonClass} rounded-full bg-rose-600 text-white hover:bg-rose-700 ${
-                        account.login === user.login ? 'pointer-events-none opacity-50' : ''
-                      }`}
-                      data-cy="entityDeleteButton"
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                      <span className="hidden sm:inline">
-                        <Translate contentKey="entity.action.delete">Delete</Translate>
-                      </span>
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {totalItems && users?.length > 0 && (
-        <div className="mt-6 space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:flex sm:items-center sm:justify-between sm:space-y-0">
-          <div className="text-sm text-slate-600">
-            <Translate contentKey="entity.action.viewing">
-              Showing {startIndex} - {endIndex} of {totalItems}
-            </Translate>
-          </div>
-          <nav className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handlePagination(Math.max(1, pagination.activePage - 1))}
-              disabled={pagination.activePage === 1}
-              className={`${pageButtonClass} ${pagination.activePage === 1 ? 'cursor-not-allowed opacity-50' : ''}`}
-            >
-              <Translate contentKey="entity.action.previous">Previous</Translate>
-            </button>
-            {pageStart > 1 && (
-              <>
-                <button type="button" onClick={() => handlePagination(1)} className={pageButtonClass}>
-                  1
-                </button>
-                {pageStart > 2 && <span className="px-2 text-sm text-slate-500">…</span>}
-              </>
-            )}
-            {Array.from({ length: pageEnd - pageStart + 1 }, (_, idx) => pageStart + idx).map(page => (
-              <button
-                key={page}
-                type="button"
-                onClick={() => handlePagination(page)}
-                className={page === pagination.activePage ? pageButtonActiveClass : pageButtonClass}
-              >
-                {page}
-              </button>
-            ))}
-            {pageEnd < pageCount && (
-              <>
-                {pageEnd < pageCount - 1 && <span className="px-2 text-sm text-slate-500">…</span>}
-                <button type="button" onClick={() => handlePagination(pageCount)} className={pageButtonClass}>
-                  {pageCount}
-                </button>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => handlePagination(Math.min(pageCount, pagination.activePage + 1))}
-              disabled={pagination.activePage === pageCount}
-              className={`${pageButtonClass} ${pagination.activePage === pageCount ? 'cursor-not-allowed opacity-50' : ''}`}
-            >
-              <Translate contentKey="entity.action.next">Next</Translate>
-            </button>
-          </nav>
         </div>
       )}
+
+      {/* ── Table ───────────────────────────────────────────────────── */}
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+            <thead>
+              <tr>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('id')}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    ID <FontAwesomeIcon icon={getSortIcon('id')} size="xs" />
+                  </span>
+                </th>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('login')}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    User <FontAwesomeIcon icon={getSortIcon('login')} size="xs" />
+                  </span>
+                </th>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('email')}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    Email <FontAwesomeIcon icon={getSortIcon('email')} size="xs" />
+                  </span>
+                </th>
+                <th style={thStyle}>Status</th>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('langKey')}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    Lang <FontAwesomeIcon icon={getSortIcon('langKey')} size="xs" />
+                  </span>
+                </th>
+                <th style={thStyle}>Roles</th>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('createdDate')}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    Created <FontAwesomeIcon icon={getSortIcon('createdDate')} size="xs" />
+                  </span>
+                </th>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('lastModifiedDate')}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    Modified <FontAwesomeIcon icon={getSortIcon('lastModifiedDate')} size="xs" />
+                  </span>
+                </th>
+                <th style={{ ...thStyle, textAlign: 'right', cursor: 'default' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map(user => (
+                  <tr
+                    key={user.id}
+                    style={{ transition: 'background 0.12s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#f8faff')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '')}
+                  >
+                    {/* ID */}
+                    <td style={{ ...tdStyle, fontWeight: 600, color: '#9ca3af', fontSize: 12 }}>#{user.id}</td>
+
+                    {/* User avatar + name */}
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <UserAvatar login={user.login} firstName={user.firstName} />
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#111827', fontSize: 13 }}>
+                            {user.firstName || user.lastName ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : user.login}
+                          </div>
+                          <div style={{ fontSize: 11, color: '#6b7280' }}>@{user.login}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Email */}
+                    <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13 }}>{user.email}</td>
+
+                    {/* Activated badge - clickable to toggle */}
+                    <td style={tdStyle}>
+                      <button
+                        type="button"
+                        onClick={toggleActive(user)}
+                        title="Click to toggle activation"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          padding: '3px 10px',
+                          borderRadius: 9999,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'opacity 0.15s',
+                          ...(user.activated ? { background: '#dcfce7', color: '#166534' } : { background: '#fee2e2', color: '#991b1b' }),
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            flexShrink: 0,
+                            background: user.activated ? '#16a34a' : '#dc2626',
+                          }}
+                        />
+                        {user.activated ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+
+                    {/* Lang */}
+                    <td style={{ ...tdStyle, fontSize: 12, color: '#6b7280', textTransform: 'uppercase' }}>{user.langKey || '—'}</td>
+
+                    {/* Roles */}
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {user.authorities?.map((role: string, j: number) => {
+                          const color = getRoleColor(role);
+                          const shortName = role.replace('ROLE_', '');
+                          return (
+                            <span
+                              key={`auth-${user.id}-${j}`}
+                              title={role}
+                              style={{
+                                padding: '2px 8px',
+                                borderRadius: 9999,
+                                fontSize: 10,
+                                fontWeight: 700,
+                                letterSpacing: '0.04em',
+                                backgroundColor: color.bg,
+                                color: color.text,
+                                textTransform: 'uppercase',
+                              }}
+                            >
+                              {shortName}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </td>
+
+                    {/* Created */}
+                    <td style={{ ...tdStyle, fontSize: 12, color: '#6b7280', whiteSpace: 'nowrap' }}>
+                      {user.createdDate ? <TextFormat value={user.createdDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid /> : '—'}
+                    </td>
+
+                    {/* Modified */}
+                    <td style={{ ...tdStyle, fontSize: 12, color: '#6b7280', whiteSpace: 'nowrap' }}>
+                      {user.lastModifiedDate ? (
+                        <TextFormat value={user.lastModifiedDate} type="date" format={APP_DATE_FORMAT} blankOnInvalid />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ ...tdStyle, textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        {/* View */}
+                        <Link
+                          to={user.login}
+                          title="View details"
+                          data-cy="entityDetailsButton"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 7,
+                            border: '1px solid #e5e7eb',
+                            background: '#fff',
+                            color: '#374151',
+                            textDecoration: 'none',
+                            fontSize: 14,
+                            transition: 'all 0.12s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#f3f4f6';
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#fff';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faEye} />
+                        </Link>
+                        {/* Profile */}
+                        <button
+                          onClick={() => openUserProfile(user.id)}
+                          title="Hồ sơ người dùng"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 7,
+                            border: '1px solid #d1fae5',
+                            background: '#ecfdf5',
+                            color: '#059669',
+                            cursor: 'pointer',
+                            fontSize: 14,
+                            transition: 'all 0.12s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#d1fae5';
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#ecfdf5';
+                          }}
+                        >
+                          <FontAwesomeIcon icon="id-card" />
+                          Profile
+                        </button>
+                        {/* Edit */}
+                        {/* <Link
+                          to={`${user.login}/edit`}
+                          title="Edit user"
+                          data-cy="entityEditButton"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 7,
+                            border: '1px solid #dbeafe',
+                            background: '#eff6ff',
+                            color: '#2563eb',
+                            textDecoration: 'none',
+                            fontSize: 14,
+                            transition: 'all 0.12s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#dbeafe';
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#eff6ff';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faPencilAlt} />
+                        </Link> */}
+                        {/* Delete */}
+                        {/* <Link
+                          to={`${user.login}/delete`}
+                          title="Delete user"
+                          data-cy="entityDeleteButton"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 7,
+                            border: account.login === user.login ? '1px solid #e5e7eb' : '1px solid #fee2e2',
+                            background: account.login === user.login ? '#f9fafb' : '#fff5f5',
+                            color: account.login === user.login ? '#9ca3af' : '#dc2626',
+                            textDecoration: 'none',
+                            fontSize: 14,
+                            pointerEvents: account.login === user.login ? 'none' : 'auto',
+                            opacity: account.login === user.login ? 0.4 : 1,
+                            transition: 'all 0.12s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={e => {
+                            if (account.login !== user.login) (e.currentTarget as HTMLElement).style.background = '#fee2e2';
+                          }}
+                          onMouseLeave={e => {
+                            if (account.login !== user.login) (e.currentTarget as HTMLElement).style.background = '#fff5f5';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Link> */}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+                    {loading ? (
+                      <span style={{ fontSize: 14 }}>Loading users…</span>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: 36, marginBottom: 10 }}>👤</div>
+                        <div style={{ fontSize: 14 }}>{searchText ? 'No users match your search' : 'No users found'}</div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ── Pagination ──────────────────────────────────────────── */}
+        {totalItems > 0 && users.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+              padding: '14px 20px',
+              borderTop: '1px solid #f3f4f6',
+              background: '#fafafa',
+            }}
+          >
+            <span style={{ fontSize: 13, color: '#6b7280' }}>
+              Showing <strong>{startIndex}</strong>–<strong>{endIndex}</strong> of <strong>{totalItems}</strong> users
+            </span>
+            <nav style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              <PaginationButton
+                label="← Prev"
+                onClick={() => handlePagination(Math.max(1, pagination.activePage - 1))}
+                disabled={pagination.activePage === 1}
+                active={false}
+              />
+              {pageStart > 1 && (
+                <>
+                  <PaginationButton label="1" onClick={() => handlePagination(1)} active={false} />
+                  {pageStart > 2 && <span style={{ padding: '0 4px', color: '#9ca3af' }}>…</span>}
+                </>
+              )}
+              {Array.from({ length: pageEnd - pageStart + 1 }, (_, i) => pageStart + i).map(page => (
+                <PaginationButton
+                  key={page}
+                  label={String(page)}
+                  onClick={() => handlePagination(page)}
+                  active={page === pagination.activePage}
+                />
+              ))}
+              {pageEnd < pageCount && (
+                <>
+                  {pageEnd < pageCount - 1 && <span style={{ padding: '0 4px', color: '#9ca3af' }}>…</span>}
+                  <PaginationButton label={String(pageCount)} onClick={() => handlePagination(pageCount)} active={false} />
+                </>
+              )}
+              <PaginationButton
+                label="Next →"
+                onClick={() => handlePagination(Math.min(pageCount, pagination.activePage + 1))}
+                disabled={pagination.activePage === pageCount}
+                active={false}
+              />
+            </nav>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+// ─── Pagination Button helper ─────────────────────────────────────────────
+const PaginationButton = ({
+  label,
+  onClick,
+  active,
+  disabled,
+}: {
+  label: string;
+  onClick: () => void;
+  active: boolean;
+  disabled?: boolean;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    style={{
+      padding: '5px 11px',
+      borderRadius: 7,
+      border: active ? '1.5px solid #2563eb' : '1px solid #e5e7eb',
+      background: active ? '#2563eb' : '#fff',
+      color: active ? '#fff' : '#374151',
+      fontSize: 13,
+      fontWeight: active ? 700 : 500,
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.4 : 1,
+      transition: 'all 0.12s',
+      minWidth: 34,
+    }}
+  >
+    {label}
+  </button>
+);
 
 export default UserManagement;

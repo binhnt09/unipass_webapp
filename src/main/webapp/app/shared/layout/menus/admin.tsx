@@ -1,5 +1,6 @@
 import React from 'react';
 import { Translate, translate } from 'react-jhipster';
+import { useLocation } from 'react-router';
 
 import MenuItem from 'app/shared/layout/menus/menu-item';
 
@@ -35,9 +36,14 @@ const openAPIItem = () => (
   </MenuItem>
 );
 
-export const AdminMenu = ({ showOpenAPI }) => (
-  <NavDropdown icon="users-cog" name={translate('global.menu.admin.main')} id="admin-menu" data-cy="adminMenu">
-    {adminMenuItems()}
-    {showOpenAPI && openAPIItem()}
-  </NavDropdown>
-);
+export const AdminMenu = ({ showOpenAPI }) => {
+  const location = useLocation();
+  const isActive = location.pathname.startsWith('/admin') && !location.pathname.startsWith('/admin/seller-requests');
+
+  return (
+    <NavDropdown icon="users-cog" name={translate('global.menu.admin.main')} id="admin-menu" data-cy="adminMenu" isActive={isActive}>
+      {adminMenuItems()}
+      {showOpenAPI && openAPIItem()}
+    </NavDropdown>
+  );
+};

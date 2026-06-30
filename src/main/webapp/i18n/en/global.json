@@ -43,7 +43,13 @@
         "sellerRequest": "Seller Request",
         "statusHistory": "Status History",
         "tradeRequest": "Trade Request",
-        "tradeOfferedItem": "Trade Offered Item"
+        "tradeOfferedItem": "Trade Offered Item",
+        "userAddress": "User Address",
+        "postCategory": "Post Category",
+        "communityPost": "Community Post",
+        "postComment": "Post Comment",
+        "postReaction": "Post Reaction",
+        "commentReaction": "Comment Reaction"
       },
       "account": {
         "main": "Account",

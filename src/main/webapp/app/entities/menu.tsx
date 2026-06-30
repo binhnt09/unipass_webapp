@@ -10,115 +10,101 @@ const EntitiesMenu = () => {
       <MenuItem icon="users" to="/user-management">
         <Translate contentKey="global.menu.admin.userManagement">User management</Translate>
       </MenuItem>
-      <MenuItem icon="asterisk" to="/university">
+      <MenuItem icon="graduation-cap" to="/university">
         <Translate contentKey="global.menu.entities.university" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/campus">
-        <Translate contentKey="global.menu.entities.campus" />
-      </MenuItem>
-      <MenuItem icon="asterisk" to="/user-profile">
+
+      <MenuItem icon="user" to="/user-profile">
         <Translate contentKey="global.menu.entities.userProfile" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/category">
+      <MenuItem icon="th-list" to="/category">
         <Translate contentKey="global.menu.entities.category" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/product">
+      <MenuItem icon="box" to="/product">
         <Translate contentKey="global.menu.entities.product" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/product-image">
-        <Translate contentKey="global.menu.entities.productImage" />
-      </MenuItem>
-      <MenuItem icon="asterisk" to="/cart-item">
+
+      <MenuItem icon="shopping-cart" to="/cart-item">
         <Translate contentKey="global.menu.entities.cartItem" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/item-request">
+      <MenuItem icon="file-alt" to="/item-request">
         <Translate contentKey="global.menu.entities.itemRequest" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/request-offer">
+      <MenuItem icon="handshake" to="/request-offer">
         <Translate contentKey="global.menu.entities.requestOffer" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/admin-orders">
+      <MenuItem icon="receipt" to="/admin-orders">
         <Translate contentKey="global.menu.entities.orders" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/order-item">
-        <Translate contentKey="global.menu.entities.orderItem" />
-      </MenuItem>
-      <MenuItem icon="asterisk" to="/review">
+
+      <MenuItem icon="star" to="/review">
         <Translate contentKey="global.menu.entities.review" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/report">
+      <MenuItem icon="flag" to="/report-admin">
         <Translate contentKey="global.menu.entities.report" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/user-wallet">
+      <MenuItem icon="wallet" to="/user-wallet">
         <Translate contentKey="global.menu.entities.userWallet" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/wallet-transaction">
+      <MenuItem icon="exchange-alt" to="/wallet-transaction">
         <Translate contentKey="global.menu.entities.walletTransaction" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/user-bank-account">
+      <MenuItem icon="credit-card" to="/user-bank-account">
         <Translate contentKey="global.menu.entities.userBankAccount" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/premium-package">
+      <MenuItem icon="crown" to="/premium-package">
         <Translate contentKey="global.menu.entities.premiumPackage" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/user-premium">
+      <MenuItem icon="award" to="/user-premium">
         <Translate contentKey="global.menu.entities.userPremium" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/system-payment-transaction">
+      <MenuItem icon="coins" to="/system-payment-transaction">
         <Translate contentKey="global.menu.entities.systemPaymentTransaction" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/premium-history">
+      <MenuItem icon="history" to="/premium-history">
         <Translate contentKey="global.menu.entities.premiumHistory" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/invoice">
+      <MenuItem icon="file-invoice-dollar" to="/invoice">
         <Translate contentKey="global.menu.entities.invoice" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/chat-room">
+      <MenuItem icon="comments" to="/chat-room">
         <Translate contentKey="global.menu.entities.chatRoom" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/chat-message">
-        <Translate contentKey="global.menu.entities.chatMessage" />
-      </MenuItem>
-      <MenuItem icon="asterisk" to="/ai-chat-session">
+
+      <MenuItem icon="robot" to="/ai-chat-session">
         <Translate contentKey="global.menu.entities.aiChatSession" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/ai-chat-message">
-        <Translate contentKey="global.menu.entities.aiChatMessage" />
-      </MenuItem>
-      <MenuItem icon="asterisk" to="/user-search-history">
+
+      <MenuItem icon="search" to="/user-search-history">
         <Translate contentKey="global.menu.entities.userSearchHistory" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/notification">
+      <MenuItem icon="bell" to="/notification">
         <Translate contentKey="global.menu.entities.notification" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/seller-request">
+      <MenuItem icon="store" to="/seller-request">
         <Translate contentKey="global.menu.entities.sellerRequest" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/status-history">
+      <MenuItem icon="history" to="/status-history">
         <Translate contentKey="global.menu.entities.statusHistory" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/trade-request">
+      <MenuItem icon="exchange-alt" to="/trade-request">
         <Translate contentKey="global.menu.entities.tradeRequest" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/trade-offered-item">
-        <Translate contentKey="global.menu.entities.tradeOfferedItem" />
-      </MenuItem>
-      <MenuItem icon="asterisk" to="/user-address">
+
+      <MenuItem icon="map-marked-alt" to="/user-address">
         <Translate contentKey="global.menu.entities.userAddress" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/post-category">
+      <MenuItem icon="folder-open" to="/post-category">
         <Translate contentKey="global.menu.entities.postCategory" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/community-post">
+      <MenuItem icon="newspaper" to="/community-post">
         <Translate contentKey="global.menu.entities.communityPost" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/post-comment">
-        <Translate contentKey="global.menu.entities.postComment" />
-      </MenuItem>
-      <MenuItem icon="asterisk" to="/post-reaction">
+
+      <MenuItem icon="thumbs-up" to="/post-reaction">
         <Translate contentKey="global.menu.entities.postReaction" />
       </MenuItem>
-      <MenuItem icon="asterisk" to="/comment-reaction">
+      <MenuItem icon="heart" to="/comment-reaction">
         <Translate contentKey="global.menu.entities.commentReaction" />
       </MenuItem>
       {/* jhipster-needle-add-entity-to-menu - JHipster will add entities to the menu here */}

@@ -548,6 +548,13 @@ export function CreateTradeRequestModal({
           {/* Meeting location */}
           <div>
             <label className="block text-sm font-bold text-gray-900 dark:text-white mb-3">Địa điểm gặp mặt đề xuất *</label>
+            <textarea
+              value={buyerAddress}
+              onChange={e => setBuyerAddress(e.target.value)}
+              placeholder="Nhập địa chỉ chi tiết"
+              rows={2}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent resize-none mb-4 text-sm text-gray-900"
+            />
             <div className="space-y-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">

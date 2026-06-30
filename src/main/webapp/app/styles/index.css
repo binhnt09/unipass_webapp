@@ -25,3 +25,49 @@ textarea,
 select {
   color: #1f2937; /* Tailwind gray-800 */
 }
+
+/* Giữ màu chữ #075071 cho các nút trên header khi click, focus, active */
+#app-header nav .nav-link,
+#app-header nav .dropdown-toggle,
+#app-header nav .nav-link svg,
+#app-header nav .dropdown-toggle svg,
+#app-header nav .nav-link:focus,
+#app-header nav .nav-link:active,
+#app-header nav .dropdown-toggle:focus,
+#app-header nav .dropdown-toggle:active {
+  color: #075071 !important;
+}
+
+#app-header nav .nav-link:hover,
+#app-header nav .nav-link:hover svg,
+#app-header nav .dropdown-toggle:hover,
+#app-header nav .dropdown-toggle:hover svg {
+  color: #022434 !important;
+}
+
+/* ==========================================================================
+   Entity CRUD page - Delete modal animation
+   ========================================================================== */
+@keyframes entityModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Entity table row hover */
+.entity-table-row:hover {
+  background-color: #f8faff !important;
+}
+
+/* Entity action button hover */
+.entity-action-btn:hover {
+  background-color: #f3f4f6 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+

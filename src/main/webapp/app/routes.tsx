@@ -49,35 +49,35 @@ import { ProductDetailPage } from './modules/listing/components/productDetailPag
 import SettingsPage from './modules/account/settings/settings';
 import PasswordPage from './modules/account/password/password';
 import { ProfilePage } from './modules/account/profile/ProfilePage';
-import University from './entities/university/university';
-import Campus from './entities/campus/campus';
+import University from './entities/university';
+
 import EntitiesLayout from './entities/layout/entities-layout';
-import UserProfile from './entities/user-profile/user-profile';
-import Category from './entities/category/category';
-import Product from './entities/product/product';
-import ProductImage from './entities/product-image/product-image';
-import CartItem from './entities/cart-item/cart-item';
-import ItemRequest from './entities/item-request/item-request';
-import RequestOffer from './entities/request-offer/request-offer';
-import Orders from './entities/orders/orders';
-import OrderItem from './entities/order-item/order-item';
-import Review from './entities/review/review';
-import Report from './entities/report/report';
-import UserWallet from './entities/user-wallet/user-wallet';
-import WalletTransaction from './entities/wallet-transaction/wallet-transaction';
-import UserBankAccount from './entities/user-bank-account/user-bank-account';
-import PremiumPackage from './entities/premium-package/premium-package';
-import SystemPaymentTransaction from './entities/system-payment-transaction/system-payment-transaction';
-import UserPremium from './entities/user-premium/user-premium';
-import PremiumHistory from './entities/premium-history/premium-history';
-import Invoice from './entities/invoice/invoice';
-import ChatRoom from './entities/chat-room/chat-room';
-import ChatMessage from './entities/chat-message/chat-message';
-import AiChatSession from './entities/ai-chat-session/ai-chat-session';
-import AiChatMessage from './entities/ai-chat-message/ai-chat-message';
-import UserSearchHistory from './entities/user-search-history/user-search-history';
-import Notification from './entities/notification/notification';
-import UserManagement from './modules/administration/user-management/user-management';
+import UserProfile from './entities/user-profile';
+import Category from './entities/category';
+import Product from './entities/product';
+
+import CartItem from './entities/cart-item';
+import ItemRequest from './entities/item-request';
+import RequestOffer from './entities/request-offer';
+import Orders from './entities/orders';
+
+import Review from './entities/review';
+import Report from './entities/report';
+import UserWallet from './entities/user-wallet';
+import WalletTransaction from './entities/wallet-transaction';
+import UserBankAccount from './entities/user-bank-account';
+import PremiumPackage from './entities/premium-package';
+import SystemPaymentTransaction from './entities/system-payment-transaction';
+import UserPremium from './entities/user-premium';
+import PremiumHistory from './entities/premium-history';
+import Invoice from './entities/invoice';
+import ChatRoom from './entities/chat-room';
+
+import AiChatSession from './entities/ai-chat-session';
+
+import UserSearchHistory from './entities/user-search-history';
+import Notification from './entities/notification';
+import UserManagementRoutes from './modules/administration/user-management';
 import { ProductOrderManagementPage } from './modules/seller/dashboard/components/productOrderManagement';
 import { SellerOrderDetailPage } from './modules/seller/dashboard/components/sellerOrderDetail';
 import { SellerOrderManagementPage } from './modules/seller/dashboard/components/sellerOrderManagementPage';
@@ -89,7 +89,16 @@ import { ReportViolationPage } from './modules/support/report-violation';
 import { GuidePage } from './modules/support/guide';
 import { TradeDetailPage } from './modules/trade/components/tradeDetail';
 import { TradeRequestsPage } from './modules/trade/tradeRequests';
-import StatusHistory from './entities/status-history/status-history';
+import StatusHistory from './entities/status-history';
+import SellerRequest from './entities/seller-request';
+import TradeRequest from './entities/trade-request';
+
+import UserAddress from './entities/user-address';
+import PostCategory from './entities/post-category';
+import CommunityPost from './entities/community-post';
+
+import PostReaction from './entities/post-reaction';
+import CommentReaction from './entities/comment-reaction';
 
 const loading = <div>loading ...</div>;
 
@@ -263,20 +272,20 @@ export const router = createBrowserRouter([
           </PrivateRoute>
         ),
         children: [
-          { path: 'user-management/*', element: <UserManagement /> },
+          { path: 'user-management/*', element: <UserManagementRoutes /> },
           { path: 'university/*', element: <University /> },
-          { path: 'campus/*', element: <Campus /> },
+
           { path: 'user-profile/*', element: <UserProfile /> },
           { path: 'category/*', element: <Category /> },
           { path: 'product/*', element: <Product /> },
-          { path: 'product-image/*', element: <ProductImage /> },
+
           { path: 'cart-item/*', element: <CartItem /> },
           { path: 'item-request/*', element: <ItemRequest /> },
           { path: 'request-offer/*', element: <RequestOffer /> },
           { path: 'admin-orders/*', element: <Orders /> },
-          { path: 'order-item/*', element: <OrderItem /> },
+
           { path: 'review/*', element: <Review /> },
-          { path: 'report/*', element: <Report /> },
+          { path: 'report-admin/*', element: <Report /> },
           { path: 'user-wallet/*', element: <UserWallet /> },
           { path: 'wallet-transaction/*', element: <WalletTransaction /> },
           { path: 'user-bank-account/*', element: <UserBankAccount /> },
@@ -286,13 +295,20 @@ export const router = createBrowserRouter([
           { path: 'premium-history/*', element: <PremiumHistory /> },
           { path: 'invoice/*', element: <Invoice /> },
           { path: 'chat-room/*', element: <ChatRoom /> },
-          { path: 'chat-message/*', element: <ChatMessage /> },
+
           { path: 'ai-chat-session/*', element: <AiChatSession /> },
-          { path: 'ai-chat-message/*', element: <AiChatMessage /> },
           { path: 'user-search-history/*', element: <UserSearchHistory /> },
           { path: 'notification/*', element: <Notification /> },
-          { path: 'trade-request/*', element: <TradeRequestsPage /> },
           { path: 'status-history/*', element: <StatusHistory /> },
+          { path: 'seller-request/*', element: <SellerRequest /> },
+          { path: 'trade-request/*', element: <TradeRequest /> },
+
+          { path: 'user-address/*', element: <UserAddress /> },
+          { path: 'post-category/*', element: <PostCategory /> },
+          { path: 'community-post/*', element: <CommunityPost /> },
+
+          { path: 'post-reaction/*', element: <PostReaction /> },
+          { path: 'comment-reaction/*', element: <CommentReaction /> },
         ],
       },
       {

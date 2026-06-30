@@ -57,7 +57,7 @@ export const AccountMenu = ({
   isAuthenticated?: boolean;
 }) => {
   // 1. Lấy trạng thái từ Context (Demo)
-  const { user: demoUser, logout: logoutDemo, isAuthenticated: isDemoAuth, isSeller: isDemoSeller } = useAuth();
+  const { user: demoUser, logout: logoutDemo, isAuthenticated: isDemoAuth, isSeller: isDemoSeller, isAdmin: isDemoAdmin } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   // 2. Lấy trạng thái từ Redux (Thật)
@@ -76,8 +76,8 @@ export const AccountMenu = ({
   const isSeller = isDemoAuth ? !!isDemoSeller : authorities.includes('ROLE_SELLER');
   // const isUser = authorities.includes('ROLE_USER');
   const isBuyer = isAuthenticated || isDemoAuth;
-  // const isAdmin = authorities.includes('ROLE_ADMIN');
-  // const isManager = authorities.includes('ROLE_MANAGER');
+  const isAdmin = isDemoAuth ? !!isDemoAdmin : authorities.includes('ROLE_ADMIN');
+  const isManager = authorities.includes('ROLE_MANAGER');
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -156,10 +156,16 @@ export const AccountMenu = ({
                 <div className="text-xs text-[#FF6B35] font-medium mt-2">
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                      isSeller ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                      isAdmin
+                        ? 'bg-purple-100 text-purple-700'
+                        : isManager
+                          ? 'bg-indigo-100 text-indigo-700'
+                          : isSeller
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-blue-100 text-blue-700'
                     }`}
                   >
-                    {isSeller ? '🏪 Seller' : '👤 Buyer'}
+                    {isAdmin ? '🛡️ Admin' : isManager ? '💼 Manager' : isSeller ? '🏪 Seller' : '👤 Buyer'}
                   </span>
                 </div>
               </div>

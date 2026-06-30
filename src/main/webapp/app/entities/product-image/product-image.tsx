@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
 import { JhiItemCount, JhiPagination, Translate, getPaginationState } from 'react-jhipster';
 import { Link, useLocation, useNavigate } from 'react-router';
@@ -7,10 +7,12 @@ import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { ImageCell, DeleteConfirmModal } from 'app/shared/entity-ui-helpers';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
+import { toast } from 'react-toastify';
 
-import { getEntities } from './product-image.reducer';
+import { getEntities, deleteEntity } from './product-image.reducer';
 
 export const ProductImage = () => {
   const dispatch = useAppDispatch();
@@ -22,9 +24,15 @@ export const ProductImage = () => {
     overridePaginationStateWithQueryParams(getPaginationState(pageLocation, ITEMS_PER_PAGE, 'id'), pageLocation.search),
   );
 
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   const productImageList = useAppSelector(state => state.productImage.entities);
   const loading = useAppSelector(state => state.productImage.loading);
   const totalItems = useAppSelector(state => state.productImage.totalItems);
+  const updateSuccess = useAppSelector(state => state.productImage.updateSuccess);
+
+  const prevUpdateSuccess = useRef(false);
 
   const getAllEntities = () => {
     dispatch(
@@ -63,6 +71,14 @@ export const ProductImage = () => {
     }
   }, [pageLocation.search]);
 
+  useEffect(() => {
+    if (updateSuccess && prevUpdateSuccess.current === false) {
+      toast.success('Product image deleted successfully!');
+      sortEntities();
+    }
+    prevUpdateSuccess.current = updateSuccess;
+  }, [updateSuccess]);
+
   const sort = p => () => {
     setPaginationState({
       ...paginationState,
@@ -92,93 +108,220 @@ export const ProductImage = () => {
 
   return (
     <div>
-      <h2 id="product-image-heading" data-cy="ProductImageHeading">
-        <Translate contentKey="unipassWebApp.productImage.home.title">Product Images</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" variant="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="unipassWebApp.productImage.home.refreshListLabel">Refresh List</Translate>
+      {/* Page Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>Product Images</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>{totalItems} total records</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 14 }}
+            variant="outline-secondary"
+            onClick={handleSyncList}
+            disabled={loading}
+          >
+            <FontAwesomeIcon icon="sync" spin={loading} /> Refresh
           </Button>
-          <Link to="/product-image/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="unipassWebApp.productImage.home.createLabel">Create new Product Image</Translate>
+          <Link
+            to="/product-image/new"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              backgroundColor: '#2563eb',
+              color: '#fff',
+              textDecoration: 'none',
+            }}
+          >
+            <FontAwesomeIcon icon="plus" /> Add New
           </Link>
         </div>
-      </h2>
-      <div className="table-responsive">
+      </div>
+
+      {/* Table */}
+      <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid #e5e7eb' }}>
         {productImageList?.length > 0 ? (
-          <Table responsive>
-            <thead>
+          <Table responsive style={{ margin: 0 }}>
+            <thead style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
               <tr>
-                <th className="hand" onClick={sort('id')}>
+                <th
+                  className="hand"
+                  onClick={sort('id')}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#6b7280',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   <Translate contentKey="unipassWebApp.productImage.id">ID</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
                 </th>
-                <th className="hand" onClick={sort('imageUrl')}>
-                  <Translate contentKey="unipassWebApp.productImage.imageUrl">Image Url</Translate>{' '}
+                <th
+                  className="hand"
+                  onClick={sort('imageUrl')}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#6b7280',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Translate contentKey="unipassWebApp.productImage.imageUrl">Image</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('imageUrl')} />
                 </th>
-                <th className="hand" onClick={sort('isPrimary')}>
+                <th
+                  className="hand"
+                  onClick={sort('isPrimary')}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#6b7280',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   <Translate contentKey="unipassWebApp.productImage.isPrimary">Is Primary</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('isPrimary')} />
                 </th>
-                <th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#6b7280',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   <Translate contentKey="unipassWebApp.productImage.product">Product</Translate> <FontAwesomeIcon icon="sort" />
                 </th>
-                <th />
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#6b7280',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right',
+                  }}
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {productImageList.map(productImage => (
-                <tr key={`entity-${productImage.id}`} data-cy="entityTable">
-                  <td>
-                    <Button as={Link as any} to={`/product-image/${productImage.id}`} variant="link" size="sm">
-                      {productImage.id}
-                    </Button>
+                <tr key={`entity-${productImage.id}`} data-cy="entityTable" style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: '#374151' }}>#{productImage.id}</td>
+                  <td style={{ padding: '12px 16px', fontSize: 14 }}>
+                    <ImageCell src={productImage.imageUrl} alt="Product image" />
                   </td>
-                  <td>{productImage.imageUrl}</td>
-                  <td>{productImage.isPrimary ? 'true' : 'false'}</td>
-                  <td>{productImage.product ? <Link to={`/product/${productImage.product.id}`}>{productImage.product.name}</Link> : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button
-                        as={Link as any}
-                        to={`/product-image/${productImage.id}`}
-                        variant="info"
-                        size="sm"
-                        data-cy="entityDetailsButton"
+                  <td style={{ padding: '12px 16px', fontSize: 14 }}>
+                    {productImage.isPrimary ? (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '2px 10px',
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background: '#d1fae5',
+                          color: '#065f46',
+                        }}
                       >
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        as={Link as any}
-                        to={`/product-image/${productImage.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        variant="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
+                        ✓ Primary
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '2px 10px',
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background: '#f3f4f6',
+                          color: '#6b7280',
+                        }}
                       >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
+                        Secondary
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 14 }}>
+                    {productImage.product ? <Link to={`/product/${productImage.product.id}`}>{productImage.product.name}</Link> : ''}
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 14 }}>
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => navigate(`/product-image/${productImage.id}`)}
+                        title="View details"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #e5e7eb',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#374151',
+                        }}
+                      >
+                        👁
+                      </button>
+                      <button
                         onClick={() =>
-                          (window.location.href = `/product-image/${productImage.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          navigate(
+                            `/product-image/${productImage.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`,
+                          )
                         }
-                        variant="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
+                        title="Edit"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #e5e7eb',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#2563eb',
+                        }}
                       >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteId(productImage.id);
+                          setDeleteModalOpen(true);
+                        }}
+                        title="Delete"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #fee2e2',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#dc2626',
+                        }}
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -187,15 +330,17 @@ export const ProductImage = () => {
           </Table>
         ) : (
           !loading && (
-            <div className="alert alert-warning">
+            <div className="alert alert-warning" style={{ margin: 16 }}>
               <Translate contentKey="unipassWebApp.productImage.home.notFound">No Product Images found</Translate>
             </div>
           )
         )}
       </div>
+
+      {/* Pagination */}
       {totalItems ? (
         <div className={productImageList && productImageList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
+          <div className="justify-content-center d-flex" style={{ marginTop: 16 }}>
             <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
           </div>
           <div className="justify-content-center d-flex">
@@ -211,6 +356,21 @@ export const ProductImage = () => {
       ) : (
         ''
       )}
+
+      {/* Delete Modal */}
+      <DeleteConfirmModal
+        show={deleteModalOpen}
+        entityName="Product Image"
+        entityId={deleteId}
+        onConfirm={() => {
+          if (deleteId) dispatch(deleteEntity(deleteId));
+          setDeleteModalOpen(false);
+        }}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setDeleteId(null);
+        }}
+      />
     </div>
   );
 };

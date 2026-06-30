@@ -37,6 +37,7 @@ import { useAuth } from 'app/contexts/AuthContext';
 import { getSession } from 'app/shared/reducers/authentication';
 import { toast } from 'react-toastify';
 import { SellerRegistrationModal } from '../../seller/registration/SellerRegistrationModal';
+import { LocationPickerMap } from '../../../shared/map/LocationPickerMap';
 
 export function ProfilePage() {
   const dispatch = useAppDispatch();
@@ -77,7 +78,9 @@ export function ProfilePage() {
   // Edit Profile Form states
   const [formFullName, setFormFullName] = useState('');
   const [formPhone, setFormPhone] = useState('');
-  const [formLocation, setFormLocation] = useState('KTX Dom A');
+  const [formLocation, setFormLocation] = useState('');
+  const [formLat, setFormLat] = useState<number | undefined>(undefined);
+  const [formLng, setFormLng] = useState<number | undefined>(undefined);
   const [formAvatarUrl, setFormAvatarUrl] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,13 +113,52 @@ export function ProfilePage() {
 
   const fullName = studentName;
 
-  const displayLogin = isOwner
-    ? accountData?.login || account?.login || 'N/A'
-    : publicUserProfile?.studentIdNumber || activeStudentId || 'N/A';
-
   const displayEmail = isOwner ? accountData?.email || account?.email || 'Chưa cập nhật email' : '';
 
   const campusName = userProfile?.campus?.name || 'KTX Hòa Lạc / Phòng trọ';
+
+  const [currentLocation, setCurrentLocation] = useState<string>('Đang tải vị trí...');
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFallback = () => {
+      axios
+        .get('/api/user-addresses')
+        .then(res => {
+          if (isMounted && res.data?.length > 0) {
+            const def = res.data.find((a: any) => a.isDefault) || res.data[0];
+            setCurrentLocation(def.address || 'Khu vực chưa xác định');
+          } else {
+            setCurrentLocation(campusName);
+          }
+        })
+        .catch(() => {
+          if (isMounted) setCurrentLocation(campusName);
+        });
+    };
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          if (!isMounted) return;
+          const { latitude, longitude } = pos.coords;
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=vi`)
+            .then(res => res.json())
+            .then(data => {
+              if (isMounted) setCurrentLocation(data.display_name || 'Khu vực chưa xác định');
+            })
+            .catch(fetchFallback);
+        },
+        fetchFallback,
+        { timeout: 5000 },
+      );
+    } else {
+      fetchFallback();
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [campusName]);
 
   const imageUrl = isOwner ? accountData?.imageUrl || account?.imageUrl : publicUserProfile?.imageUrl;
 
@@ -320,6 +362,29 @@ export function ProfilePage() {
       };
       await axios.post('/api/account', accountPayload);
 
+      // Save to UserAddress as Default Address
+      if (formLocation && formLat !== undefined && formLng !== undefined) {
+        try {
+          const res = await axios.get('/api/user-addresses');
+          const addresses = res.data || [];
+          const defAddr = addresses.find((a: any) => a.isDefault) || addresses[0];
+          const payload = {
+            name: `${formFullName}|${finalPhone}`,
+            address: formLocation,
+            latitude: formLat,
+            longitude: formLng,
+            isDefault: true,
+          };
+          if (defAddr) {
+            await axios.put(`/api/user-addresses/${defAddr.id}`, { ...payload, id: defAddr.id });
+          } else {
+            await axios.post('/api/user-addresses', payload);
+          }
+        } catch (addrErr) {
+          console.error('Lỗi cập nhật UserAddress:', addrErr);
+        }
+      }
+
       // Find or Create Campus based on chosen location name
       let campusObj = null;
       if (formLocation) {
@@ -390,8 +455,28 @@ export function ProfilePage() {
     if (showEditModal) {
       setFormFullName(fullName);
       setFormPhone(userPhone);
-      setFormLocation(userProfile?.campus?.name || 'KTX Dom A');
       setFormAvatarUrl(accountData?.imageUrl || account?.imageUrl || '');
+
+      // Fetch default address to populate map
+      axios
+        .get('/api/user-addresses')
+        .then(res => {
+          if (res.data?.length > 0) {
+            const def = res.data.find((a: any) => a.isDefault) || res.data[0];
+            setFormLocation(def.address || userProfile?.campus?.name || '');
+            setFormLat(def.latitude);
+            setFormLng(def.longitude);
+          } else {
+            setFormLocation(userProfile?.campus?.name || 'KTX Dom A');
+            setFormLat(undefined);
+            setFormLng(undefined);
+          }
+        })
+        .catch(() => {
+          setFormLocation(userProfile?.campus?.name || 'KTX Dom A');
+          setFormLat(undefined);
+          setFormLng(undefined);
+        });
     }
   }, [showEditModal, fullName, userProfile, accountData, account, userPhone]);
 
@@ -432,7 +517,10 @@ export function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
+    <div
+      className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8"
+      style={{ backgroundImage: 'linear-gradient(160deg, #F8FAFC 0%, #F0F9FF 35%, #EDE9FE 70%, #FDF2F8 100%)' }}
+    >
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header Title */}
         <div>
@@ -471,7 +559,7 @@ export function ProfilePage() {
                 <div className="pt-12 space-y-4">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">{fullName}</h2>
-                    <span className="text-xs text-gray-500 font-mono">ID: {displayLogin}</span>
+                    <span className="text-xs text-gray-500 font-mono">ID: {userProfile?.studentIdNumber}</span>
                   </div>
 
                   {/* Badges list */}
@@ -508,7 +596,7 @@ export function ProfilePage() {
                     </div>
                     <div className="flex items-center gap-2.5 text-sm text-gray-600">
                       <span className="flex-shrink-0 text-gray-400">📍</span>
-                      <span>Khu vực: {campusName}</span>
+                      <span>Khu vực: {currentLocation}</span>
                     </div>
                   </div>
 
@@ -924,7 +1012,7 @@ export function ProfilePage() {
       {/* Edit Profile Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] flex flex-col border border-gray-150 animate-slideUp">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden max-h-[90vh] flex flex-col border border-gray-150 animate-slideUp">
             {/* Modal Header */}
             <div className="bg-[#0A2647] text-white p-6 relative flex-shrink-0">
               <button
@@ -1003,35 +1091,13 @@ export function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Khu vực Hòa Lạc (Location) - LOCALIZATION DROPDOWN */}
-                <div className="space-y-1.5">
-                  <label htmlFor="location" className="text-xs font-semibold text-gray-700 block">
-                    Khu vực Hòa Lạc
-                  </label>
-                  <select
-                    id="location"
-                    value={formLocation}
-                    onChange={e => setFormLocation(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]/20 focus:border-[#FF6B35] text-sm text-gray-900 transition-all font-medium bg-white"
-                  >
-                    <option value="KTX Dom A">Kí túc xá Dom A</option>
-                    <option value="KTX Dom B">Kí túc xá Dom B</option>
-                    <option value="KTX Dom C">Kí túc xá Dom C</option>
-                    <option value="KTX Dom D">Kí túc xá Dom D</option>
-                    <option value="KTX Dom E">Kí túc xá Dom E</option>
-                    <option value="Tân Xã">Khu vực Tân Xã</option>
-                    <option value="Thạch Hòa">Khu vực Thạch Hòa</option>
-                    <option value="Phùng Xá">Khu vực Phùng Xá</option>
-                  </select>
-                </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Mã số sinh viên (Login) - READ-ONLY */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500 block">Mã số sinh viên (Username)</label>
+                    <label className="text-xs font-semibold text-gray-500 block">Mã số sinh viên</label>
                     <input
                       type="text"
-                      value={account?.login || ''}
+                      value={userProfile?.studentIdNumber || ''}
                       disabled
                       className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 text-sm font-semibold cursor-not-allowed"
                     />
@@ -1047,6 +1113,28 @@ export function ProfilePage() {
                       className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 text-sm font-semibold cursor-not-allowed"
                     />
                   </div>
+                </div>
+
+                {/* Khu vực (Location) - MAP & TEXTAREA */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-700 block mb-2">Địa chỉ</label>
+                  <textarea
+                    value={formLocation}
+                    onChange={e => setFormLocation(e.target.value)}
+                    placeholder="Nhập địa chỉ chi tiết"
+                    rows={2}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent resize-none mb-4 text-sm text-gray-900"
+                  />
+                  <label className="text-xs font-semibold text-gray-700 block mb-2">Vị trí trên bản đồ</label>
+                  <LocationPickerMap
+                    initialLat={formLat}
+                    initialLng={formLng}
+                    onLocationSelect={(lat, lng, addrText) => {
+                      setFormLat(lat);
+                      setFormLng(lng);
+                      setFormLocation(addrText);
+                    }}
+                  />
                 </div>
               </div>
 

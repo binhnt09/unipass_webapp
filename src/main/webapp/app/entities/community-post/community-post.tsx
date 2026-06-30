@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
 import { TextFormat, Translate, getPaginationState } from 'react-jhipster';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,25 +9,32 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { StatusBadge, TruncatedText, DeleteConfirmModal } from 'app/shared/entity-ui-helpers';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE } from 'app/shared/util/pagination.constants';
+import { toast } from 'react-toastify';
 
-import { getEntities, reset } from './community-post.reducer';
+import { getEntities, reset, deleteEntity } from './community-post.reducer';
 
 export const CommunityPost = () => {
   const dispatch = useAppDispatch();
 
   const pageLocation = useLocation();
+  const navigate = useNavigate();
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getPaginationState(pageLocation, ITEMS_PER_PAGE, 'id'), pageLocation.search),
   );
   const [sorting, setSorting] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const communityPostList = useAppSelector(state => state.communityPost.entities);
   const loading = useAppSelector(state => state.communityPost.loading);
   const links = useAppSelector(state => state.communityPost.links);
   const updateSuccess = useAppSelector(state => state.communityPost.updateSuccess);
+
+  const prevUpdateSuccess = useRef(false);
 
   const getAllEntities = () => {
     dispatch(
@@ -53,9 +60,11 @@ export const CommunityPost = () => {
   }, []);
 
   useEffect(() => {
-    if (updateSuccess) {
+    if (updateSuccess && prevUpdateSuccess.current === false) {
+      toast.success('Community post deleted successfully!');
       resetAll();
     }
+    prevUpdateSuccess.current = updateSuccess;
   }, [updateSuccess]);
 
   useEffect(() => {
@@ -104,126 +113,250 @@ export const CommunityPost = () => {
 
   return (
     <div>
-      <h2 id="community-post-heading" data-cy="CommunityPostHeading">
-        <Translate contentKey="unipassWebApp.communityPost.home.title">Community Posts</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" variant="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="unipassWebApp.communityPost.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/community-post/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="unipassWebApp.communityPost.home.createLabel">Create new Community Post</Translate>
-          </Link>
+      {/* Page Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>Community Posts</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>Manage all community posts</p>
         </div>
-      </h2>
-      <div className="table-responsive">
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 14 }}
+            variant="outline-secondary"
+            onClick={handleSyncList}
+            disabled={loading}
+          >
+            <FontAwesomeIcon icon="sync" spin={loading} /> Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid #e5e7eb' }}>
         <InfiniteScroll
           dataLength={communityPostList ? communityPostList.length : 0}
           next={handleLoadMore}
           hasMore={paginationState.activePage - 1 < links.next}
-          loader={<div className="loader">Loading ...</div>}
+          loader={
+            <div className="loader" style={{ padding: '12px 16px', color: '#6b7280' }}>
+              Loading ...
+            </div>
+          }
         >
           {communityPostList?.length > 0 ? (
-            <Table responsive>
-              <thead>
+            <Table responsive style={{ margin: 0 }}>
+              <thead style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                 <tr>
-                  <th className="hand" onClick={sort('id')}>
+                  <th
+                    className="hand"
+                    onClick={sort('id')}
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.id">ID</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
                   </th>
-                  <th className="hand" onClick={sort('title')}>
+                  <th
+                    className="hand"
+                    onClick={sort('title')}
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.title">Title</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('title')} />
                   </th>
-                  <th className="hand" onClick={sort('content')}>
+                  <th
+                    className="hand"
+                    onClick={sort('content')}
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.content">Content</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('content')} />
                   </th>
-                  <th className="hand" onClick={sort('status')}>
+                  <th
+                    className="hand"
+                    onClick={sort('status')}
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.status">Status</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('status')} />
                   </th>
-                  <th className="hand" onClick={sort('createdAt')}>
+                  <th
+                    className="hand"
+                    onClick={sort('createdAt')}
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.createdAt">Created At</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
                   </th>
-                  <th className="hand" onClick={sort('updatedAt')}>
+                  <th
+                    className="hand"
+                    onClick={sort('updatedAt')}
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.updatedAt">Updated At</Translate>{' '}
                     <FontAwesomeIcon icon={getSortIconByFieldName('updatedAt')} />
                   </th>
-                  <th>
+                  <th
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.category">Category</Translate> <FontAwesomeIcon icon="sort" />
                   </th>
-                  <th>
+                  <th
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     <Translate contentKey="unipassWebApp.communityPost.author">Author</Translate> <FontAwesomeIcon icon="sort" />
                   </th>
-                  <th />
+                  <th
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#6b7280',
+                      whiteSpace: 'nowrap',
+                      textAlign: 'right',
+                    }}
+                  >
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {communityPostList.map(communityPost => (
-                  <tr key={`entity-${communityPost.id}`} data-cy="entityTable">
-                    <td>
-                      <Button as={Link as any} to={`/community-post/${communityPost.id}`} variant="link" size="sm">
-                        {communityPost.id}
-                      </Button>
+                  <tr key={`entity-${communityPost.id}`} data-cy="entityTable" style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: '#374151' }}>#{communityPost.id}</td>
+                    <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 500, color: '#111827' }}>{communityPost.title}</td>
+                    <td style={{ padding: '12px 16px', fontSize: 14, maxWidth: 260 }}>
+                      <TruncatedText text={communityPost.content} />
                     </td>
-                    <td>{communityPost.title}</td>
-                    <td>{communityPost.content}</td>
-                    <td>{communityPost.status}</td>
-                    <td>
+                    <td style={{ padding: '12px 16px', fontSize: 14 }}>
+                      <StatusBadge status={communityPost.status} />
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#6b7280' }}>
                       {communityPost.createdAt ? <TextFormat type="date" value={communityPost.createdAt} format={APP_DATE_FORMAT} /> : null}
                     </td>
-                    <td>
+                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#6b7280' }}>
                       {communityPost.updatedAt ? <TextFormat type="date" value={communityPost.updatedAt} format={APP_DATE_FORMAT} /> : null}
                     </td>
-                    <td>
+                    <td style={{ padding: '12px 16px', fontSize: 14 }}>
                       {communityPost.category ? (
                         <Link to={`/post-category/${communityPost.category.id}`}>{communityPost.category.name}</Link>
                       ) : (
                         ''
                       )}
                     </td>
-                    <td>{communityPost.author ? communityPost.author.login : ''}</td>
-                    <td className="text-end">
-                      <div className="btn-group flex-btn-group-container">
-                        <Button
-                          as={Link as any}
-                          to={`/community-post/${communityPost.id}`}
-                          variant="info"
-                          size="sm"
-                          data-cy="entityDetailsButton"
+                    <td style={{ padding: '12px 16px', fontSize: 14 }}>{communityPost.author ? communityPost.author.login : ''}</td>
+                    <td style={{ padding: '12px 16px', fontSize: 14 }}>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => navigate(`/community-post/${communityPost.id}`)}
+                          title="View details"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 6,
+                            border: '1px solid #e5e7eb',
+                            background: '#fff',
+                            cursor: 'pointer',
+                            color: '#374151',
+                          }}
                         >
-                          <FontAwesomeIcon icon="eye" />{' '}
-                          <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.view">View</Translate>
-                          </span>
-                        </Button>
-                        <Button
-                          as={Link as any}
-                          to={`/community-post/${communityPost.id}/edit`}
-                          variant="primary"
-                          size="sm"
-                          data-cy="entityEditButton"
+                          👁
+                        </button>
+                        <button
+                          onClick={() => navigate(`/community-post/${communityPost.id}/edit`)}
+                          title="Edit"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 6,
+                            border: '1px solid #e5e7eb',
+                            background: '#fff',
+                            cursor: 'pointer',
+                            color: '#2563eb',
+                          }}
                         >
-                          <FontAwesomeIcon icon="pencil-alt" />{' '}
-                          <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.edit">Edit</Translate>
-                          </span>
-                        </Button>
-                        <Button
-                          onClick={() => (window.location.href = `/community-post/${communityPost.id}/delete`)}
-                          variant="danger"
-                          size="sm"
-                          data-cy="entityDeleteButton"
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeleteId(communityPost.id);
+                            setDeleteModalOpen(true);
+                          }}
+                          title="Delete"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 6,
+                            border: '1px solid #fee2e2',
+                            background: '#fff',
+                            cursor: 'pointer',
+                            color: '#dc2626',
+                          }}
                         >
-                          <FontAwesomeIcon icon="trash" />{' '}
-                          <span className="d-none d-md-inline">
-                            <Translate contentKey="entity.action.delete">Delete</Translate>
-                          </span>
-                        </Button>
+                          🗑️
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -232,13 +365,28 @@ export const CommunityPost = () => {
             </Table>
           ) : (
             !loading && (
-              <div className="alert alert-warning">
+              <div className="alert alert-warning" style={{ margin: 16 }}>
                 <Translate contentKey="unipassWebApp.communityPost.home.notFound">No Community Posts found</Translate>
               </div>
             )
           )}
         </InfiniteScroll>
       </div>
+
+      {/* Delete Modal */}
+      <DeleteConfirmModal
+        show={deleteModalOpen}
+        entityName="Community Post"
+        entityId={deleteId}
+        onConfirm={() => {
+          if (deleteId) dispatch(deleteEntity(deleteId));
+          setDeleteModalOpen(false);
+        }}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setDeleteId(null);
+        }}
+      />
     </div>
   );
 };

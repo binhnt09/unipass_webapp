@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
-import { JhiItemCount, JhiPagination, TextFormat, Translate, getPaginationState } from 'react-jhipster';
+import { JhiItemCount, JhiPagination, TextFormat, getPaginationState } from 'react-jhipster';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { StatusBadge, TruncatedText, DeleteConfirmModal } from 'app/shared/entity-ui-helpers';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 
-import { getEntities } from './product.reducer';
+import { getEntities, deleteEntity } from './product.reducer';
 
 export const Product = () => {
   const dispatch = useAppDispatch();
@@ -22,10 +24,14 @@ export const Product = () => {
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getPaginationState(pageLocation, ITEMS_PER_PAGE, 'id'), pageLocation.search),
   );
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const productList = useAppSelector(state => state.product.entities);
   const loading = useAppSelector(state => state.product.loading);
   const totalItems = useAppSelector(state => state.product.totalItems);
+  const updateSuccess = useAppSelector(state => state.product.updateSuccess);
+  const prevUpdateSuccess = useRef(false);
 
   const getAllEntities = () => {
     dispatch(
@@ -64,6 +70,14 @@ export const Product = () => {
     }
   }, [pageLocation.search]);
 
+  useEffect(() => {
+    if (updateSuccess && prevUpdateSuccess.current === false) {
+      toast.success('Product deleted successfully!');
+      sortEntities();
+    }
+    prevUpdateSuccess.current = updateSuccess;
+  }, [updateSuccess]);
+
   const sort = p => () => {
     setPaginationState({
       ...paginationState,
@@ -91,132 +105,220 @@ export const Product = () => {
     return order === ASC ? faSortUp : faSortDown;
   };
 
+  const thStyle: React.CSSProperties = {
+    padding: '12px 16px',
+    fontSize: 12,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: '#6b7280',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+    userSelect: 'none',
+  };
+
+  const tdStyle: React.CSSProperties = {
+    padding: '12px 16px',
+    fontSize: 14,
+    color: '#374151',
+    verticalAlign: 'middle',
+  };
+
   return (
     <div>
-      <h2 id="product-heading" data-cy="ProductHeading">
-        <Translate contentKey="unipassWebApp.product.home.title">Products</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" variant="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="unipassWebApp.product.home.refreshListLabel">Refresh List</Translate>
+      {/* Page Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 id="product-heading" data-cy="ProductHeading" style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
+            Products
+          </h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>{totalItems} total records</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 14 }}
+            variant="outline-secondary"
+            onClick={handleSyncList}
+            disabled={loading}
+          >
+            <FontAwesomeIcon icon="sync" spin={loading} /> Refresh
           </Button>
-          <Link to="/product/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="unipassWebApp.product.home.createLabel">Create new Product</Translate>
+          <Link
+            to="/product/new"
+            id="jh-create-entity"
+            data-cy="entityCreateButton"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              backgroundColor: '#2563eb',
+              color: '#fff',
+              textDecoration: 'none',
+            }}
+          >
+            <FontAwesomeIcon icon="plus" /> Add Product
           </Link>
         </div>
-      </h2>
-      <div className="table-responsive">
+      </div>
+
+      {/* Table */}
+      <div
+        style={{
+          borderRadius: 12,
+          overflow: 'hidden',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+          border: '1px solid #e5e7eb',
+        }}
+      >
         {productList?.length > 0 ? (
-          <Table responsive>
-            <thead>
+          <Table responsive style={{ margin: 0 }}>
+            <thead style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="unipassWebApp.product.id">ID</Translate> <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
+                <th style={thStyle} onClick={sort('id')}>
+                  ID <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
                 </th>
-                <th className="hand" onClick={sort('name')}>
-                  <Translate contentKey="unipassWebApp.product.name">Name</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('name')} />
+                <th style={thStyle} onClick={sort('name')}>
+                  Name <FontAwesomeIcon icon={getSortIconByFieldName('name')} />
                 </th>
-                <th className="hand" onClick={sort('description')}>
-                  <Translate contentKey="unipassWebApp.product.description">Description</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('description')} />
+                <th style={thStyle} onClick={sort('description')}>
+                  Description <FontAwesomeIcon icon={getSortIconByFieldName('description')} />
                 </th>
-                <th className="hand" onClick={sort('price')}>
-                  <Translate contentKey="unipassWebApp.product.price">Price</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('price')} />
+                <th style={thStyle} onClick={sort('price')}>
+                  Price <FontAwesomeIcon icon={getSortIconByFieldName('price')} />
                 </th>
-                <th className="hand" onClick={sort('status')}>
-                  <Translate contentKey="unipassWebApp.product.status">Status</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('status')} />
+                <th style={thStyle} onClick={sort('status')}>
+                  Status <FontAwesomeIcon icon={getSortIconByFieldName('status')} />
                 </th>
-                <th className="hand" onClick={sort('condition')}>
-                  <Translate contentKey="unipassWebApp.product.condition">Condition</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('condition')} />
+                <th style={thStyle} onClick={sort('condition')}>
+                  Condition <FontAwesomeIcon icon={getSortIconByFieldName('condition')} />
                 </th>
-                <th className="hand" onClick={sort('stock')}>
-                  <Translate contentKey="unipassWebApp.product.stock">Stock</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('stock')} />
+                <th style={thStyle} onClick={sort('stock')}>
+                  Stock <FontAwesomeIcon icon={getSortIconByFieldName('stock')} />
                 </th>
-                <th className="hand" onClick={sort('latitude')}>
-                  <Translate contentKey="unipassWebApp.product.latitude">Latitude</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('latitude')} />
+                <th style={thStyle} onClick={sort('createdAt')}>
+                  Created At <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
                 </th>
-                <th className="hand" onClick={sort('longitude')}>
-                  <Translate contentKey="unipassWebApp.product.longitude">Longitude</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('longitude')} />
+                <th style={thStyle} onClick={sort('updatedAt')}>
+                  Updated At <FontAwesomeIcon icon={getSortIconByFieldName('updatedAt')} />
                 </th>
-                <th className="hand" onClick={sort('createdAt')}>
-                  <Translate contentKey="unipassWebApp.product.createdAt">Created At</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
-                </th>
-                <th className="hand" onClick={sort('updatedAt')}>
-                  <Translate contentKey="unipassWebApp.product.updatedAt">Updated At</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('updatedAt')} />
-                </th>
-                <th>
-                  <Translate contentKey="unipassWebApp.product.category">Category</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="unipassWebApp.product.seller">Seller</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th />
+                <th style={thStyle}>Category</th>
+                <th style={thStyle}>Seller</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {productList.map(product => (
-                <tr key={`entity-${product.id}`} data-cy="entityTable">
-                  <td>
-                    <Button as={Link as any} to={`/product/${product.id}`} variant="link" size="sm">
-                      {product.id}
-                    </Button>
+                <tr
+                  key={`entity-${product.id}`}
+                  data-cy="entityTable"
+                  className="entity-table-row"
+                  style={{ borderBottom: '1px solid #f3f4f6' }}
+                >
+                  <td style={{ ...tdStyle, fontWeight: 600, color: '#2563eb' }}>
+                    <button
+                      onClick={() => navigate(`/product/${product.id}`)}
+                      style={{ background: 'none', border: 'none', padding: 0, color: '#2563eb', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      #{product.id}
+                    </button>
                   </td>
-                  <td>{product.name}</td>
-                  <td>{product.description}</td>
-                  <td>{product.price}</td>
-                  <td>{product.status}</td>
-                  <td>{product.condition}</td>
-                  <td>{product.stock}</td>
-                  <td>{product.latitude}</td>
-                  <td>{product.longitude}</td>
-                  <td>{product.createdAt ? <TextFormat type="date" value={product.createdAt} format={APP_DATE_FORMAT} /> : null}</td>
-                  <td>{product.updatedAt ? <TextFormat type="date" value={product.updatedAt} format={APP_DATE_FORMAT} /> : null}</td>
-                  <td>{product.category ? <Link to={`/category/${product.category.id}`}>{product.category.name}</Link> : ''}</td>
-                  <td>{product.seller ? product.seller.login : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button as={Link as any} to={`/product/${product.id}`} variant="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        as={Link as any}
-                        to={`/product/${product.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        variant="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
+                  <td style={{ ...tdStyle, fontWeight: 500, maxWidth: 160 }}>
+                    <TruncatedText text={product.name} maxLength={30} />
+                  </td>
+                  <td style={{ ...tdStyle, maxWidth: 200 }}>
+                    <TruncatedText text={product.description} maxLength={50} />
+                  </td>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>
+                    {product.price != null ? (
+                      <span style={{ color: '#059669' }}>{Number(product.price).toLocaleString('vi-VN')} ₫</span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td style={tdStyle}>
+                    <StatusBadge status={product.status} />
+                  </td>
+                  <td style={tdStyle}>
+                    <StatusBadge status={product.condition} />
+                  </td>
+                  <td style={tdStyle}>{product.stock ?? '—'}</td>
+                  <td style={tdStyle}>
+                    {product.createdAt ? <TextFormat type="date" value={product.createdAt} format={APP_DATE_FORMAT} /> : '—'}
+                  </td>
+                  <td style={tdStyle}>
+                    {product.updatedAt ? <TextFormat type="date" value={product.updatedAt} format={APP_DATE_FORMAT} /> : '—'}
+                  </td>
+                  <td style={tdStyle}>
+                    {product.category ? (
+                      <Link to={`/category/${product.category.id}`} style={{ color: '#2563eb', textDecoration: 'none' }}>
+                        {product.category.name}
+                      </Link>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td style={tdStyle}>{product.seller ? product.seller.login : '—'}</td>
+                  <td style={{ ...tdStyle, textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => navigate(`/product/${product.id}`)}
+                        title="View details"
+                        className="entity-action-btn"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #e5e7eb',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#374151',
+                          transition: 'all 0.15s',
+                        }}
                       >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
+                        👁
+                      </button>
+                      <button
                         onClick={() =>
-                          (window.location.href = `/product/${product.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          navigate(
+                            `/product/${product.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`,
+                          )
                         }
-                        variant="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
+                        title="Edit"
+                        className="entity-action-btn"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #e5e7eb',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#2563eb',
+                          transition: 'all 0.15s',
+                        }}
                       >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteId(product.id);
+                          setDeleteModalOpen(true);
+                        }}
+                        title="Delete"
+                        className="entity-action-btn"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #fee2e2',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#dc2626',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -225,14 +327,17 @@ export const Product = () => {
           </Table>
         ) : (
           !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="unipassWebApp.product.home.notFound">No Products found</Translate>
+            <div style={{ padding: '48px', textAlign: 'center', color: '#9ca3af' }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>📦</div>
+              <p style={{ fontSize: 15, margin: 0 }}>No products found</p>
             </div>
           )
         )}
       </div>
+
+      {/* Pagination */}
       {totalItems ? (
-        <div className={productList && productList.length > 0 ? '' : 'd-none'}>
+        <div className={productList && productList.length > 0 ? '' : 'd-none'} style={{ marginTop: 16 }}>
           <div className="justify-content-center d-flex">
             <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
           </div>
@@ -249,6 +354,22 @@ export const Product = () => {
       ) : (
         ''
       )}
+
+      {/* Delete Confirm Modal */}
+      <DeleteConfirmModal
+        show={deleteModalOpen}
+        entityName="Product"
+        entityId={deleteId}
+        onConfirm={() => {
+          if (deleteId) dispatch(deleteEntity(deleteId));
+          setDeleteModalOpen(false);
+          setDeleteId(null);
+        }}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setDeleteId(null);
+        }}
+      />
     </div>
   );
 };

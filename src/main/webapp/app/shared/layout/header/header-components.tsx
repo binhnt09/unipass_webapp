@@ -33,7 +33,14 @@ export const Home = () => {
       <NavLink
         as={Link as any}
         to="/market"
-        className="flex items-center gap-2 px-3 py-2 font-bold rounded-2xl text-[#075071] hover:bg-white/10 hover:text-[#022434] hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5"
+        className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-bold hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5 nav-link"
+        // style={{
+        //   background: location.pathname === '/market' ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
+        //   color: '#075071',
+        //   border: location.pathname === '/market' ? '1px solid rgba(0, 245, 255, 0.3)' : '1px solid transparent',
+        //   textDecoration: 'none',
+        // }}
+        // className="flex items-center gap-2 px-3 py-2 font-bold rounded-2xl text-[#075071] hover:bg-white/10 hover:text-[#022434] hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5"
         style={{
           border: isActive ? '1px solid rgba(0, 245, 255, 0.3)' : '1px solid transparent',
           background: isActive ? 'rgba(0, 245, 255, 0.1)' : 'transparent',

@@ -405,12 +405,13 @@ const Header = (props: IHeaderProps) => {
                   <span>Tải App</span>
                 </button>
               )}
+              {/* Home Link */}
               <Home />
 
               {/* Policy Link */}
               <Link
                 to="/policy"
-                className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5"
+                className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5 nav-link"
                 style={{
                   background: location.pathname.startsWith('/policy') ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
                   color: '#075071',
@@ -427,7 +428,7 @@ const Header = (props: IHeaderProps) => {
               {isUserLoggedIn && (
                 <Link
                   to="/forum"
-                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5 nav-link"
                   style={{
                     background: location.pathname.startsWith('/forum') ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
                     color: '#075071',
@@ -445,7 +446,7 @@ const Header = (props: IHeaderProps) => {
               {isUserLoggedIn && isUserSeller && (
                 <Link
                   to="/create-listing"
-                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5 nav-link"
                   style={{
                     background: location.pathname.startsWith('/create-listing') ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
                     color: '#075071',
@@ -488,11 +489,13 @@ const Header = (props: IHeaderProps) => {
               {isUserLoggedIn && isAdmin && (
                 <Link
                   to="/admin/seller-requests"
-                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl transition-all text-sm font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] hover:-translate-y-0.5 nav-link"
                   style={{
-                    background: 'rgba(155,77,255,0.18)',
-                    color: '#c49bff',
-                    border: '1px solid rgba(155,77,255,0.35)',
+                    background: location.pathname.startsWith('/admin/seller-requests') ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
+                    color: '#075071',
+                    border: location.pathname.startsWith('/admin/seller-requests')
+                      ? '1px solid rgba(0, 245, 255, 0.3)'
+                      : '1px solid transparent',
                     textDecoration: 'none',
                   }}
                 >
@@ -560,7 +563,7 @@ const Header = (props: IHeaderProps) => {
               {/* Messages */}
               {isUserLoggedIn && (
                 <IconLink to="/messages" title="Tin nhắn" badge={unreadCount}>
-                  <MessageCircle className="w-5 h-5" />
+                  <MessageCircle className="w-5 h-5 nav-link" />
                 </IconLink>
               )}
 
@@ -568,7 +571,7 @@ const Header = (props: IHeaderProps) => {
               {isUserLoggedIn && !isAdmin && (
                 <Link
                   to="/cart"
-                  className="relative p-2 rounded-2xl transition-all flex items-center justify-center"
+                  className="relative p-2 rounded-2xl transition-all flex items-center justify-center nav-link"
                   title="Giỏ hàng"
                   style={{
                     color: '#075071',
@@ -591,7 +594,7 @@ const Header = (props: IHeaderProps) => {
               {/* Notifications */}
               {isUserLoggedIn && (
                 <IconLink to="/notifications" title="Thông báo" badge={unreadNotificationCount}>
-                  <Bell className="w-5 h-5" />
+                  <Bell className="w-5 h-5 nav-link" />
                 </IconLink>
               )}
 

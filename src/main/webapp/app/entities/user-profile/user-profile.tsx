@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Table } from 'react-bootstrap';
 import { JhiItemCount, JhiPagination, TextFormat, Translate, getPaginationState } from 'react-jhipster';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
+import { StatusBadge, DeleteConfirmModal } from 'app/shared/entity-ui-helpers';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 
-import { getEntities } from './user-profile.reducer';
+import { getEntities, deleteEntity } from './user-profile.reducer';
 
 export const UserProfile = () => {
   const dispatch = useAppDispatch();
@@ -23,9 +25,15 @@ export const UserProfile = () => {
     overridePaginationStateWithQueryParams(getPaginationState(pageLocation, ITEMS_PER_PAGE, 'id'), pageLocation.search),
   );
 
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   const userProfileList = useAppSelector(state => state.userProfile.entities);
   const loading = useAppSelector(state => state.userProfile.loading);
   const totalItems = useAppSelector(state => state.userProfile.totalItems);
+  const updateSuccess = useAppSelector(state => state.userProfile.updateSuccess);
+
+  const prevUpdateSuccess = useRef(false);
 
   const getAllEntities = () => {
     dispatch(
@@ -64,6 +72,14 @@ export const UserProfile = () => {
     }
   }, [pageLocation.search]);
 
+  useEffect(() => {
+    if (updateSuccess && prevUpdateSuccess.current === false) {
+      toast.success('Record deleted successfully!');
+      sortEntities();
+    }
+    prevUpdateSuccess.current = updateSuccess;
+  }, [updateSuccess]);
+
   const sort = p => () => {
     setPaginationState({
       ...paginationState,
@@ -91,147 +107,172 @@ export const UserProfile = () => {
     return order === ASC ? faSortUp : faSortDown;
   };
 
+  const thStyle: React.CSSProperties = {
+    padding: '12px 16px',
+    fontSize: 12,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: '#6b7280',
+    whiteSpace: 'nowrap',
+  };
+
+  const tdStyle: React.CSSProperties = { padding: '12px 16px', fontSize: 14 };
+
   return (
     <div>
-      <h2 id="user-profile-heading" data-cy="UserProfileHeading">
-        <Translate contentKey="unipassWebApp.userProfile.home.title">User Profiles</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" variant="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
-            <Translate contentKey="unipassWebApp.userProfile.home.refreshListLabel">Refresh List</Translate>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>User Profiles</h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>{totalItems} total records</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 14 }}
+            variant="outline-secondary"
+            onClick={handleSyncList}
+            disabled={loading}
+          >
+            <FontAwesomeIcon icon="sync" spin={loading} /> Refresh
           </Button>
-          <Link to="/user-profile/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
-            <Translate contentKey="unipassWebApp.userProfile.home.createLabel">Create new User Profile</Translate>
+          <Link
+            to="/user-profile/new"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              backgroundColor: '#2563eb',
+              color: '#fff',
+              textDecoration: 'none',
+            }}
+          >
+            <FontAwesomeIcon icon="plus" /> Add New
           </Link>
         </div>
-      </h2>
-      <div className="table-responsive">
+      </div>
+      <div
+        className="table-responsive"
+        style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid #e5e7eb' }}
+      >
         {userProfileList?.length > 0 ? (
-          <Table responsive>
-            <thead>
+          <Table responsive style={{ margin: 0 }}>
+            <thead style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
               <tr>
-                <th className="hand" onClick={sort('id')}>
-                  <Translate contentKey="unipassWebApp.userProfile.id">ID</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
+                <th className="hand" onClick={sort('id')} style={thStyle}>
+                  ID <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
                 </th>
-                <th className="hand" onClick={sort('phoneNumber')}>
-                  <Translate contentKey="unipassWebApp.userProfile.phoneNumber">Phone Number</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('phoneNumber')} />
+                <th className="hand" onClick={sort('phoneNumber')} style={thStyle}>
+                  Phone Number <FontAwesomeIcon icon={getSortIconByFieldName('phoneNumber')} />
                 </th>
-                <th className="hand" onClick={sort('studentIdNumber')}>
-                  <Translate contentKey="unipassWebApp.userProfile.studentIdNumber">Student Id Number</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('studentIdNumber')} />
+                <th className="hand" onClick={sort('studentIdNumber')} style={thStyle}>
+                  Student ID <FontAwesomeIcon icon={getSortIconByFieldName('studentIdNumber')} />
                 </th>
-                <th className="hand" onClick={sort('reputationScore')}>
-                  <Translate contentKey="unipassWebApp.userProfile.reputationScore">Reputation Score</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('reputationScore')} />
+                <th className="hand" onClick={sort('reputationScore')} style={thStyle}>
+                  Reputation <FontAwesomeIcon icon={getSortIconByFieldName('reputationScore')} />
                 </th>
-                <th className="hand" onClick={sort('referralCode')}>
-                  <Translate contentKey="unipassWebApp.userProfile.referralCode">Referral Code</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('referralCode')} />
+                <th className="hand" onClick={sort('referralCode')} style={thStyle}>
+                  Referral Code <FontAwesomeIcon icon={getSortIconByFieldName('referralCode')} />
                 </th>
-                <th className="hand" onClick={sort('fingerprintId')}>
-                  <Translate contentKey="unipassWebApp.userProfile.fingerprintId">Fingerprint Id</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('fingerprintId')} />
+                <th className="hand" onClick={sort('currentPremiumLevel')} style={thStyle}>
+                  Premium Level <FontAwesomeIcon icon={getSortIconByFieldName('currentPremiumLevel')} />
                 </th>
-                <th className="hand" onClick={sort('currentPremiumLevel')}>
-                  <Translate contentKey="unipassWebApp.userProfile.currentPremiumLevel">Current Premium Level</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('currentPremiumLevel')} />
+                <th className="hand" onClick={sort('isStudentVerified')} style={thStyle}>
+                  Verified <FontAwesomeIcon icon={getSortIconByFieldName('isStudentVerified')} />
                 </th>
-                <th className="hand" onClick={sort('isStudentVerified')}>
-                  <Translate contentKey="unipassWebApp.userProfile.isStudentVerified">Is Student Verified</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('isStudentVerified')} />
+                <th className="hand" onClick={sort('isDeleted')} style={thStyle}>
+                  Status <FontAwesomeIcon icon={getSortIconByFieldName('isDeleted')} />
                 </th>
-                <th className="hand" onClick={sort('isDeleted')}>
-                  <Translate contentKey="unipassWebApp.userProfile.isDeleted">Is Deleted</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('isDeleted')} />
+                <th className="hand" onClick={sort('createdAt')} style={thStyle}>
+                  Created At <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
                 </th>
-                <th className="hand" onClick={sort('createdAt')}>
-                  <Translate contentKey="unipassWebApp.userProfile.createdAt">Created At</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('createdAt')} />
-                </th>
-                <th className="hand" onClick={sort('updatedAt')}>
-                  <Translate contentKey="unipassWebApp.userProfile.updatedAt">Updated At</Translate>{' '}
-                  <FontAwesomeIcon icon={getSortIconByFieldName('updatedAt')} />
-                </th>
-                <th>
-                  <Translate contentKey="unipassWebApp.userProfile.user">User</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="unipassWebApp.userProfile.campus">Campus</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th>
-                  <Translate contentKey="unipassWebApp.userProfile.referredBy">Referred By</Translate> <FontAwesomeIcon icon="sort" />
-                </th>
-                <th />
+                <th style={thStyle}>User</th>
+                <th style={thStyle}>Campus</th>
+                <th style={thStyle}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {userProfileList.map(userProfile => (
-                <tr key={`entity-${userProfile.id}`} data-cy="entityTable">
-                  <td>
-                    <Button as={Link as any} to={`/user-profile/${userProfile.id}`} variant="link" size="sm">
-                      {userProfile.id}
-                    </Button>
+                <tr key={`entity-${userProfile.id}`} data-cy="entityTable" style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={tdStyle}>
+                    <span style={{ fontWeight: 600, color: '#374151' }}>#{userProfile.id}</span>
                   </td>
-                  <td>{userProfile.phoneNumber}</td>
-                  <td>{userProfile.studentIdNumber}</td>
-                  <td>{userProfile.reputationScore}</td>
-                  <td>{userProfile.referralCode}</td>
-                  <td>{userProfile.fingerprintId}</td>
-                  <td>{userProfile.currentPremiumLevel}</td>
-                  <td>{userProfile.isStudentVerified ? 'true' : 'false'}</td>
-                  <td>{userProfile.isDeleted ? 'true' : 'false'}</td>
-                  <td>
+                  <td style={tdStyle}>{userProfile.phoneNumber}</td>
+                  <td style={tdStyle}>{userProfile.studentIdNumber}</td>
+                  <td style={tdStyle}>
+                    <span style={{ fontWeight: 600, color: '#2563eb' }}>{userProfile.reputationScore}</span>
+                  </td>
+                  <td style={tdStyle}>{userProfile.referralCode}</td>
+                  <td style={tdStyle}>
+                    <StatusBadge status={userProfile.currentPremiumLevel} />
+                  </td>
+                  <td style={tdStyle}>
+                    <StatusBadge status={userProfile.isStudentVerified ? 'VERIFIED' : 'UNVERIFIED'} />
+                  </td>
+                  <td style={tdStyle}>
+                    <StatusBadge status={userProfile.isDeleted ? 'DELETED' : 'ACTIVE'} />
+                  </td>
+                  <td style={tdStyle}>
                     {userProfile.createdAt ? <TextFormat type="date" value={userProfile.createdAt} format={APP_DATE_FORMAT} /> : null}
                   </td>
-                  <td>
-                    {userProfile.updatedAt ? <TextFormat type="date" value={userProfile.updatedAt} format={APP_DATE_FORMAT} /> : null}
+                  <td style={tdStyle}>{userProfile.user ? userProfile.user.login : ''}</td>
+                  <td style={tdStyle}>
+                    {userProfile.campus ? <Link to={`/campus/${userProfile.campus.id}`}>{userProfile.campus.name}</Link> : ''}
                   </td>
-                  <td>{userProfile.user ? userProfile.user.login : ''}</td>
-                  <td>{userProfile.campus ? <Link to={`/campus/${userProfile.campus.id}`}>{userProfile.campus.name}</Link> : ''}</td>
-                  <td>{userProfile.referredBy ? userProfile.referredBy.login : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button
-                        as={Link as any}
-                        to={`/user-profile/${userProfile.id}`}
-                        variant="info"
-                        size="sm"
-                        data-cy="entityDetailsButton"
+                  <td style={tdStyle}>
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => navigate(`/user-profile/${userProfile.id}`)}
+                        title="View details"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #e5e7eb',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#374151',
+                        }}
                       >
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        as={Link as any}
-                        to={`/user-profile/${userProfile.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        variant="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
+                        👁
+                      </button>
+                      <button
                         onClick={() =>
-                          (window.location.href = `/user-profile/${userProfile.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                          navigate(
+                            `/user-profile/${userProfile.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`,
+                          )
                         }
-                        variant="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
+                        title="Edit"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #e5e7eb',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#2563eb',
+                        }}
                       >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteId(userProfile.id);
+                          setDeleteModalOpen(true);
+                        }}
+                        title="Delete"
+                        style={{
+                          padding: '5px 9px',
+                          borderRadius: 6,
+                          border: '1px solid #fee2e2',
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#dc2626',
+                        }}
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -264,6 +305,19 @@ export const UserProfile = () => {
       ) : (
         ''
       )}
+      <DeleteConfirmModal
+        show={deleteModalOpen}
+        entityName="User Profile"
+        entityId={deleteId}
+        onConfirm={() => {
+          if (deleteId) dispatch(deleteEntity(deleteId));
+          setDeleteModalOpen(false);
+        }}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setDeleteId(null);
+        }}
+      />
     </div>
   );
 };

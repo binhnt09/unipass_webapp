@@ -11,7 +11,7 @@ import UserManagementUpdate from './user-management-update';
 const UserManagementRoutes = () => (
   <ErrorBoundaryRoutes>
     <Route index element={<UserManagement />} />
-    <Route path="new" element={<UserManagementUpdate />} />
+
     <Route path=":login">
       <Route index element={<UserManagementDetail />} />
       <Route path="edit" element={<UserManagementUpdate />} />

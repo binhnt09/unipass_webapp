@@ -22,7 +22,7 @@
     "importHelpers": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "ignoreDeprecations": "6.0"
+    "skipLibCheck": true
   },
   "include": ["src/main/webapp/app"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.spec.tsx"]

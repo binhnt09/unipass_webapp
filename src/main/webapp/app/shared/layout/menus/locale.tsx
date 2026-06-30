@@ -8,12 +8,7 @@ import { Dropdown } from 'react-bootstrap';
 
 export const LocaleMenu = ({ currentLocale, onClick }: { currentLocale: string; onClick: (locale: string) => void }) =>
   Object.keys(languages).length > 1 && (
-    <NavDropdown
-      icon="globe"
-      name={currentLocale ? languages[currentLocale].name : undefined}
-      toggleClassName="text-[#075071] hover:bg-[#075071]/10"
-      menuClassName="min-w-[180px]"
-    >
+    <NavDropdown icon="globe" name={currentLocale ? languages[currentLocale].name : undefined} menuClassName="min-w-[180px]">
       {locales.map(locale => (
         <Dropdown.Item
           key={locale}
