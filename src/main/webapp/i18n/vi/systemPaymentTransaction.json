@@ -2,34 +2,72 @@
   "unipassWebApp": {
     "systemPaymentTransaction": {
       "home": {
-        "title": "System Payment Transactions",
-        "refreshListLabel": "Refresh list",
-        "createLabel": "Thêm mới một System Payment Transaction",
-        "createOrEditLabel": "Thêm mới hoặc cập nhật System Payment Transaction",
-        "notFound": "No System Payment Transactions found"
+        "title": "Giao dịch thanh toán",
+        "refreshListLabel": "Làm mới danh sách",
+        "createLabel": "Thêm mới một Giao dịch thanh toán",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Giao dịch thanh toán",
+        "notFound": "Không tìm thấy Giao dịch thanh toán nào"
       },
-      "created": "Một System Payment Transaction mới được tạo với định danh {{ param }}",
-      "updated": "Một System Payment Transaction cập nhật với định danh {{ param }}",
-      "deleted": "Một System Payment Transaction đã xóa với định danh {{ param }}",
+      "created": "Một Giao dịch thanh toán mới được tạo với định danh {{ param }}",
+      "updated": "Một Giao dịch thanh toán đã được cập nhật với định danh {{ param }}",
+      "deleted": "Một Giao dịch thanh toán đã bị xóa với định danh {{ param }}",
       "delete": {
-        "question": "Bạn có chắc là muốn xóa System Payment Transaction {{ id }}?"
+        "question": "Bạn có chắc là muốn xóa Giao dịch thanh toán {{ id }}?"
       },
       "detail": {
-        "title": "System Payment Transaction"
+        "title": "Giao dịch thanh toán"
       },
       "id": "ID",
-      "paymentMethod": "Payment Method",
-      "paymentChannel": "Payment Channel",
-      "amountVnd": "Amount Vnd",
-      "coinReceived": "Coin Received",
-      "gatewayReference": "Gateway Reference",
-      "appOrderId": "App Order Id",
-      "bankCode": "Bank Code",
-      "status": "Status",
-      "rawResponse": "Raw Response",
-      "createdAt": "Created At",
-      "updatedAt": "Updated At",
-      "user": "User"
+      "paymentMethod": "Phương thức",
+      "paymentChannel": "Kênh thanh toán",
+      "amountVnd": "Số tiền (VNĐ)",
+      "coinReceived": "Số xu nhận được",
+      "gatewayReference": "Mã tham chiếu cổng thanh toán",
+      "appOrderId": "Mã đơn hàng ứng dụng",
+      "bankCode": "Mã ngân hàng",
+      "status": "Trạng thái",
+      "rawResponse": "Phản hồi gốc",
+      "createdAt": "Ngày tạo",
+      "updatedAt": "Ngày cập nhật",
+      "user": "Người dùng",
+      "exportExcel": "Xuất Excel",
+      "filter": {
+        "keyword": "Từ khóa",
+        "keywordPlaceholder": "Mã đơn, invoice, mô tả...",
+        "fromDate": "Từ ngày",
+        "toDate": "Đến ngày",
+        "minAmount": "Số tiền tối thiểu",
+        "maxAmount": "Số tiền tối đa",
+        "status": "Trạng thái",
+        "statusSelect": "Chọn trạng thái",
+        "statusSuccess": "Đã thanh toán (SUCCESS)",
+        "statusPending": "Đang chờ (PENDING)",
+        "statusFailed": "Thất bại (FAILED)",
+        "customerId": "ID Khách hàng",
+        "customerIdPlaceholder": "Ví dụ: admin",
+        "paymentMethod": "Phương thức thanh toán",
+        "paymentMethodAll": "Tất cả",
+        "paymentMethodBank": "Chuyển khoản ngân hàng",
+        "paymentMethodMomo": "Momo",
+        "paymentMethodVNPay": "VNPay",
+        "apply": "Áp dụng",
+        "clear": "Xóa bộ lọc"
+      },
+      "stats": {
+        "totalRevenue": "Tổng Doanh thu",
+        "avgRevenue": "Trung bình / Ngày",
+        "daysWithTransactions": "Số ngày có giao dịch"
+      },
+      "chart": {
+        "title": "📈 Biến động Doanh thu theo thời gian",
+        "noData": "Không có dữ liệu doanh thu cho biểu đồ"
+      },
+      "loading": "Đang tải giao dịch...",
+      "pagination": {
+        "showing": "Hiển thị",
+        "of": "trong tổng số",
+        "transactions": "giao dịch"
+      }
     }
   }
 }

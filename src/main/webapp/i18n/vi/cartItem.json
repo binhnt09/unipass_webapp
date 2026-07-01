@@ -2,26 +2,26 @@
   "unipassWebApp": {
     "cartItem": {
       "home": {
-        "title": "Cart Items",
-        "refreshListLabel": "Refresh list",
-        "createLabel": "Thêm mới một Cart Item",
-        "createOrEditLabel": "Thêm mới hoặc cập nhật Cart Item",
-        "notFound": "No Cart Items found"
+        "title": "Giỏ hàng",
+        "refreshListLabel": "Làm mới",
+        "createLabel": "Thêm mới một Giỏ hàng",
+        "createOrEditLabel": "Thêm mới hoặc cập nhật Giỏ hàng",
+        "notFound": "Không tìm thấy giỏ hàng nào"
       },
-      "created": "Một Cart Item mới được tạo với định danh {{ param }}",
-      "updated": "Một Cart Item cập nhật với định danh {{ param }}",
-      "deleted": "Một Cart Item đã xóa với định danh {{ param }}",
+      "created": "Một Giỏ hàng mới được tạo với định danh {{ param }}",
+      "updated": "Một Giỏ hàng cập nhật với định danh {{ param }}",
+      "deleted": "Một Giỏ hàng đã xóa với định danh {{ param }}",
       "delete": {
-        "question": "Bạn có chắc là muốn xóa Cart Item {{ id }}?"
+        "question": "Bạn có chắc là muốn xóa Giỏ hàng {{ id }}?"
       },
       "detail": {
-        "title": "Cart Item"
+        "title": "Giỏ hàng"
       },
       "id": "ID",
-      "quantity": "Quantity",
-      "createdAt": "Created At",
-      "product": "Product",
-      "user": "User"
+      "quantity": "Số lượng",
+      "createdAt": "Thời gian tạo",
+      "product": "Sản phẩm",
+      "user": "Người dùng"
     }
   }
 }

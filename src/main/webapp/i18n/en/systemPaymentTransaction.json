@@ -29,7 +29,45 @@
       "rawResponse": "Raw Response",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
-      "user": "User"
+      "user": "User",
+      "exportExcel": "Export Excel",
+      "filter": {
+        "keyword": "Keyword",
+        "keywordPlaceholder": "Order code, invoice, description...",
+        "fromDate": "From Date",
+        "toDate": "To Date",
+        "minAmount": "Min Amount",
+        "maxAmount": "Max Amount",
+        "status": "Status",
+        "statusSelect": "Select status",
+        "statusSuccess": "Paid (SUCCESS)",
+        "statusPending": "Pending (PENDING)",
+        "statusFailed": "Failed (FAILED)",
+        "customerId": "Customer ID",
+        "customerIdPlaceholder": "Example: admin",
+        "paymentMethod": "Payment Method",
+        "paymentMethodAll": "All",
+        "paymentMethodBank": "Bank Transfer",
+        "paymentMethodMomo": "Momo",
+        "paymentMethodVNPay": "VNPay",
+        "apply": "Apply",
+        "clear": "Clear Filter"
+      },
+      "stats": {
+        "totalRevenue": "Total Revenue",
+        "avgRevenue": "Average / Day",
+        "daysWithTransactions": "Days with Transactions"
+      },
+      "chart": {
+        "title": "📈 Revenue Fluctuation Over Time",
+        "noData": "No revenue data available for chart"
+      },
+      "loading": "Loading transactions...",
+      "pagination": {
+        "showing": "Showing",
+        "of": "of",
+        "transactions": "transactions"
+      }
     }
   }
 }
