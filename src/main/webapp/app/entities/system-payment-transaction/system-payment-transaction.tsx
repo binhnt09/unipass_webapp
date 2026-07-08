@@ -216,7 +216,7 @@ export const SystemPaymentTransaction = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, paginationState.itemsPerPage]);
 
   useEffect(() => {
     const params = new URLSearchParams(pageLocation.search);
@@ -254,6 +254,14 @@ export const SystemPaymentTransaction = () => {
       return faSort;
     }
     return order === ASC ? faSortUp : faSortDown;
+  };
+
+  const handleItemsPerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPaginationState({
+      ...paginationState,
+      itemsPerPage: parseInt(event.target.value, 10),
+      activePage: 1,
+    });
   };
 
   // ─── Pagination logic ───────────────────────────────────────────────────
@@ -922,12 +930,35 @@ export const SystemPaymentTransaction = () => {
               background: '#fafafa',
             }}
           >
-            <span style={{ fontSize: 13, color: '#6b7280' }}>
-              <Translate contentKey="unipassWebApp.systemPaymentTransaction.pagination.showing">Showing</Translate>{' '}
-              <strong>{startIndex}</strong>–<strong>{endIndex}</strong>{' '}
-              <Translate contentKey="unipassWebApp.systemPaymentTransaction.pagination.of">of</Translate> <strong>{totalItems}</strong>{' '}
-              <Translate contentKey="unipassWebApp.systemPaymentTransaction.pagination.transactions">transactions</Translate>
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>
+                <Translate contentKey="unipassWebApp.systemPaymentTransaction.pagination.showing">Showing</Translate>{' '}
+                <strong>{startIndex}</strong>–<strong>{endIndex}</strong>{' '}
+                <Translate contentKey="unipassWebApp.systemPaymentTransaction.pagination.of">of</Translate> <strong>{totalItems}</strong>{' '}
+                <Translate contentKey="unipassWebApp.systemPaymentTransaction.pagination.transactions">transactions</Translate>{' '}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 13, color: '#6b7280' }}>Hiển thị:</span>
+                <select
+                  value={paginationState.itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: 13,
+                    background: '#fff',
+                    color: '#374151',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
             <nav style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
               <PaginationButton
                 label="← Prev"

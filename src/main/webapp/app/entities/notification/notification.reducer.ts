@@ -139,7 +139,7 @@ export const NotificationSlice = createEntitySlice({
           ...state,
           loading: false,
           links,
-          entities: loadMoreDataWhenScrolled(state.entities, data, links),
+          entities: loadMoreDataWhenScrolled(state.entities || [], data || [], links),
           totalItems: parseInt(headers['x-total-count'], 10),
         };
       })

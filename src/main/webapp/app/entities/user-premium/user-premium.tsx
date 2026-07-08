@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Table } from 'react-bootstrap';
-import { JhiItemCount, JhiPagination, TextFormat, Translate, getPaginationState } from 'react-jhipster';
+import { TextFormat, Translate, getPaginationState } from 'react-jhipster';
 import { Link, useLocation, useNavigate } from 'react-router';
 
-import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
+import { faSort, faSortDown, faSortUp, faEye, faPencilAlt, faTrash, faSync, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { APP_DATE_FORMAT } from 'app/config/constants';
@@ -27,6 +26,25 @@ export const UserPremium = () => {
   const loading = useAppSelector(state => state.userPremium.loading);
   const totalItems = useAppSelector(state => state.userPremium.totalItems);
 
+  const [filterKeyword, setFilterKeyword] = useState('');
+  const [appliedFilters, setAppliedFilters] = useState({ keyword: '' });
+
+  const handleApplyFilter = () => setAppliedFilters({ keyword: filterKeyword });
+  const handleClearFilter = () => {
+    setFilterKeyword('');
+    setAppliedFilters({ keyword: '' });
+  };
+
+  const filteredList = userPremiumList?.filter(item => {
+    if (appliedFilters.keyword) {
+      const kw = appliedFilters.keyword.toLowerCase();
+      if (!String(item.id).includes(kw) && !item.user?.login?.toLowerCase().includes(kw)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   const getAllEntities = () => {
     dispatch(
       getEntities({
@@ -47,7 +65,7 @@ export const UserPremium = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, paginationState.itemsPerPage]);
 
   useEffect(() => {
     const params = new URLSearchParams(pageLocation.search);
@@ -78,6 +96,14 @@ export const UserPremium = () => {
       activePage: currentPage,
     });
 
+  const handleItemsPerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPaginationState({
+      ...paginationState,
+      itemsPerPage: parseInt(event.target.value, 10),
+      activePage: 1,
+    });
+  };
+
   const handleSyncList = () => {
     sortEntities();
   };
@@ -91,154 +117,501 @@ export const UserPremium = () => {
     return order === ASC ? faSortUp : faSortDown;
   };
 
+  // ─── Pagination logic ───────────────────────────────────────────────────
+  const pageCount = totalItems ? Math.max(1, Math.ceil(totalItems / paginationState.itemsPerPage)) : 0;
+  const startIndex = totalItems ? (paginationState.activePage - 1) * paginationState.itemsPerPage + 1 : 0;
+  const endIndex = totalItems ? Math.min(totalItems, paginationState.activePage * paginationState.itemsPerPage) : 0;
+
+  const pageRange = 2;
+  const pageStart = Math.max(1, paginationState.activePage - pageRange);
+  const pageEnd = Math.min(pageCount, paginationState.activePage + pageRange);
+
+  // ─── Styles ───────────────────────────────────────────────────────────────
+  const thStyle: React.CSSProperties = {
+    padding: '11px 14px',
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    color: '#6b7280',
+    whiteSpace: 'nowrap',
+    userSelect: 'none',
+    backgroundColor: '#f9fafb',
+    borderBottom: '2px solid #e5e7eb',
+  };
+  const tdStyle: React.CSSProperties = {
+    padding: '12px 14px',
+    fontSize: 13.5,
+    color: '#374151',
+    verticalAlign: 'middle',
+    borderBottom: '1px solid #f3f4f6',
+  };
+
+  const getStatusBadge = (status: string) => {
+    let bg = '#f3f4f6';
+    let color = '#374151';
+    let dot = '#9ca3af';
+
+    if (status === 'ACTIVE' || status === 'SUCCESS') {
+      bg = '#dcfce7';
+      color = '#166534';
+      dot = '#16a34a';
+    } else if (status === 'EXPIRED' || status === 'FAILED') {
+      bg = '#fee2e2';
+      color = '#991b1b';
+      dot = '#dc2626';
+    } else if (status === 'PENDING') {
+      bg = '#fef3c7';
+      color = '#92400e';
+      dot = '#d97706';
+    }
+
+    return (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+          padding: '3px 10px',
+          borderRadius: 9999,
+          fontSize: 11,
+          fontWeight: 700,
+          background: bg,
+          color,
+        }}
+      >
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot }} />
+        {status}
+      </span>
+    );
+  };
+
   return (
-    <div>
-      <h2 id="user-premium-heading" data-cy="UserPremiumHeading">
-        <Translate contentKey="unipassWebApp.userPremium.home.title">User Premiums</Translate>
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" variant="info" onClick={handleSyncList} disabled={loading}>
-            <FontAwesomeIcon icon="sync" spin={loading} />{' '}
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 20px' }}>
+      {/* ── Page Header ─────────────────────────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
+          marginBottom: 24,
+          background: '#fff',
+          borderRadius: 16,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          padding: '20px 24px',
+        }}
+      >
+        <div>
+          <h2 id="user-premium-heading" data-cy="UserPremiumHeading" style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
+            <Translate contentKey="unipassWebApp.userPremium.home.title">User Premiums</Translate>
+          </h2>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>{totalItems} total user premiums in the system</p>
+        </div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleSyncList}
+            disabled={loading}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              border: '1px solid #e5e7eb',
+              background: '#fff',
+              color: '#374151',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.5 : 1,
+            }}
+          >
+            <FontAwesomeIcon icon={faSync} spin={loading} />{' '}
             <Translate contentKey="unipassWebApp.userPremium.home.refreshListLabel">Refresh List</Translate>
-          </Button>
-          <Link to="/user-premium/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
-            <FontAwesomeIcon icon="plus" />
-            &nbsp;
+          </button>
+          <Link
+            to="/user-premium/new"
+            id="jh-create-entity"
+            data-cy="entityCreateButton"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              border: '1px solid #2563eb',
+              background: '#2563eb',
+              color: '#fff',
+              cursor: 'pointer',
+              textDecoration: 'none',
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} />
             <Translate contentKey="unipassWebApp.userPremium.home.createLabel">Create new User Premium</Translate>
           </Link>
         </div>
-      </h2>
-      <div className="table-responsive">
-        {userPremiumList?.length > 0 ? (
-          <Table responsive>
+      </div>
+
+      {/* ── Filter Panel ────────────────────────────────────────────── */}
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '20px 24px',
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: '1 1 200px' }}>
+            <label style={{ fontSize: 12, color: '#6b7280', marginBottom: 4, display: 'block', fontWeight: 600 }}>Tìm kiếm từ khóa</label>
+            <input
+              type="text"
+              placeholder="Tìm theo user login..."
+              value={filterKeyword}
+              onChange={e => setFilterKeyword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleApplyFilter()}
+              style={{ width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              onClick={handleApplyFilter}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Áp dụng
+            </button>
+            <button
+              onClick={handleClearFilter}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#f3f4f6',
+                color: '#374151',
+                border: '1px solid #e5e7eb',
+                cursor: 'pointer',
+              }}
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Table ───────────────────────────────────────────────────── */}
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
             <thead>
               <tr>
-                <th className="hand" onClick={sort('id')}>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('id')}>
                   <Translate contentKey="unipassWebApp.userPremium.id">ID</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
                 </th>
-                <th className="hand" onClick={sort('startDate')}>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('startDate')}>
                   <Translate contentKey="unipassWebApp.userPremium.startDate">Start Date</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('startDate')} />
                 </th>
-                <th className="hand" onClick={sort('endDate')}>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('endDate')}>
                   <Translate contentKey="unipassWebApp.userPremium.endDate">End Date</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('endDate')} />
                 </th>
-                <th className="hand" onClick={sort('status')}>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('status')}>
                   <Translate contentKey="unipassWebApp.userPremium.status">Status</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('status')} />
                 </th>
-                <th className="hand" onClick={sort('updatedAt')}>
+                <th style={{ ...thStyle, cursor: 'pointer' }} onClick={sort('updatedAt')}>
                   <Translate contentKey="unipassWebApp.userPremium.updatedAt">Updated At</Translate>{' '}
                   <FontAwesomeIcon icon={getSortIconByFieldName('updatedAt')} />
                 </th>
-                <th>
+                <th style={thStyle}>
                   <Translate contentKey="unipassWebApp.userPremium.premiumPackage">Premium Package</Translate>{' '}
-                  <FontAwesomeIcon icon="sort" />
+                  <FontAwesomeIcon icon={faSort} />
                 </th>
-                <th>
-                  <Translate contentKey="unipassWebApp.userPremium.user">User</Translate> <FontAwesomeIcon icon="sort" />
+                <th style={thStyle}>
+                  <Translate contentKey="unipassWebApp.userPremium.user">User</Translate> <FontAwesomeIcon icon={faSort} />
                 </th>
-                <th />
+                <th style={{ ...thStyle, textAlign: 'right', cursor: 'default' }} />
               </tr>
             </thead>
             <tbody>
-              {userPremiumList.map(userPremium => (
-                <tr key={`entity-${userPremium.id}`} data-cy="entityTable">
-                  <td>
-                    <Button as={Link as any} to={`/user-premium/${userPremium.id}`} variant="link" size="sm">
-                      {userPremium.id}
-                    </Button>
-                  </td>
-                  <td>
-                    {userPremium.startDate ? <TextFormat type="date" value={userPremium.startDate} format={APP_DATE_FORMAT} /> : null}
-                  </td>
-                  <td>{userPremium.endDate ? <TextFormat type="date" value={userPremium.endDate} format={APP_DATE_FORMAT} /> : null}</td>
-                  <td>{userPremium.status}</td>
-                  <td>
-                    {userPremium.updatedAt ? <TextFormat type="date" value={userPremium.updatedAt} format={APP_DATE_FORMAT} /> : null}
-                  </td>
-                  <td>
-                    {userPremium.premiumPackage ? (
-                      <Link to={`/premium-package/${userPremium.premiumPackage.id}`}>{userPremium.premiumPackage.name}</Link>
+              {filteredList && filteredList.length > 0 ? (
+                filteredList.map(userPremium => (
+                  <tr
+                    key={`entity-${userPremium.id}`}
+                    data-cy="entityTable"
+                    style={{ transition: 'background 0.12s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#f8faff')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '')}
+                  >
+                    <td style={{ ...tdStyle, fontWeight: 600, color: '#9ca3af', fontSize: 12 }}>
+                      <Link to={`/user-premium/${userPremium.id}`} style={{ textDecoration: 'none', color: '#2563eb' }}>
+                        #{userPremium.id}
+                      </Link>
+                    </td>
+                    <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13 }}>
+                      {userPremium.startDate ? <TextFormat type="date" value={userPremium.startDate} format={APP_DATE_FORMAT} /> : null}
+                    </td>
+                    <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13 }}>
+                      {userPremium.endDate ? <TextFormat type="date" value={userPremium.endDate} format={APP_DATE_FORMAT} /> : null}
+                    </td>
+                    <td style={tdStyle}>{getStatusBadge(userPremium.status || '')}</td>
+                    <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13 }}>
+                      {userPremium.updatedAt ? <TextFormat type="date" value={userPremium.updatedAt} format={APP_DATE_FORMAT} /> : null}
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 500, color: '#111827' }}>
+                      {userPremium.premiumPackage ? (
+                        <Link to={`/premium-package/${userPremium.premiumPackage.id}`} style={{ textDecoration: 'none', color: '#2563eb' }}>
+                          {userPremium.premiumPackage.name}
+                        </Link>
+                      ) : (
+                        ''
+                      )}
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 600 }}>{userPremium.user ? userPremium.user.login : ''}</td>
+                    <td style={{ ...tdStyle, textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        <Link
+                          to={`/user-premium/${userPremium.id}`}
+                          title="View"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 7,
+                            border: '1px solid #e5e7eb',
+                            background: '#fff',
+                            color: '#374151',
+                            textDecoration: 'none',
+                            fontSize: 14,
+                            transition: 'all 0.12s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#f3f4f6';
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#fff';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faEye} />
+                        </Link>
+                        <Link
+                          to={`/user-premium/${userPremium.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                          title="Edit"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 7,
+                            border: '1px solid #dbeafe',
+                            background: '#eff6ff',
+                            color: '#2563eb',
+                            textDecoration: 'none',
+                            fontSize: 14,
+                            transition: 'all 0.12s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#dbeafe';
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#eff6ff';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faPencilAlt} />
+                        </Link>
+                        <Link
+                          to={`/user-premium/${userPremium.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
+                          title="Delete"
+                          style={{
+                            padding: '5px 9px',
+                            borderRadius: 7,
+                            border: '1px solid #fee2e2',
+                            background: '#fff5f5',
+                            color: '#dc2626',
+                            textDecoration: 'none',
+                            fontSize: 14,
+                            transition: 'all 0.12s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#fee2e2';
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.background = '#fff5f5';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
+                    {loading ? (
+                      <span style={{ fontSize: 14 }}>Loading...</span>
                     ) : (
-                      ''
+                      <div>
+                        <div style={{ fontSize: 36, marginBottom: 10 }}>📭</div>
+                        <div style={{ fontSize: 14 }}>
+                          <Translate contentKey="unipassWebApp.userPremium.home.notFound">No User Premiums found</Translate>
+                        </div>
+                      </div>
                     )}
                   </td>
-                  <td>{userPremium.user ? userPremium.user.login : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button
-                        as={Link as any}
-                        to={`/user-premium/${userPremium.id}`}
-                        variant="info"
-                        size="sm"
-                        data-cy="entityDetailsButton"
-                      >
-                        <FontAwesomeIcon icon="eye" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.view">View</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        as={Link as any}
-                        to={`/user-premium/${userPremium.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        variant="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.edit">Edit</Translate>
-                        </span>
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          (window.location.href = `/user-premium/${userPremium.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
-                        }
-                        variant="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
-                      >
-                        <FontAwesomeIcon icon="trash" />{' '}
-                        <span className="d-none d-md-inline">
-                          <Translate contentKey="entity.action.delete">Delete</Translate>
-                        </span>
-                      </Button>
-                    </div>
-                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
-          </Table>
-        ) : (
-          !loading && (
-            <div className="alert alert-warning">
-              <Translate contentKey="unipassWebApp.userPremium.home.notFound">No User Premiums found</Translate>
+          </table>
+        </div>
+
+        {/* ── Pagination ──────────────────────────────────────────── */}
+        {totalItems > 0 && filteredList.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+              padding: '14px 20px',
+              borderTop: '1px solid #f3f4f6',
+              background: '#fafafa',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>
+                Showing <strong>{startIndex}</strong>–<strong>{endIndex}</strong> of <strong>{totalItems}</strong> items
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 13, color: '#6b7280' }}>Hiển thị:</span>
+                <select
+                  value={paginationState.itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: 13,
+                    background: '#fff',
+                    color: '#374151',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
             </div>
-          )
+            <nav style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              <PaginationButton
+                label="← Prev"
+                onClick={() => handlePagination(Math.max(1, paginationState.activePage - 1))}
+                disabled={paginationState.activePage === 1}
+                active={false}
+              />
+              {pageStart > 1 && (
+                <>
+                  <PaginationButton label="1" onClick={() => handlePagination(1)} active={false} />
+                  {pageStart > 2 && <span style={{ padding: '0 4px', color: '#9ca3af' }}>…</span>}
+                </>
+              )}
+              {Array.from({ length: pageEnd - pageStart + 1 }, (_, i) => pageStart + i).map(page => (
+                <PaginationButton
+                  key={page}
+                  label={String(page)}
+                  onClick={() => handlePagination(page)}
+                  active={page === paginationState.activePage}
+                />
+              ))}
+              {pageEnd < pageCount && (
+                <>
+                  {pageEnd < pageCount - 1 && <span style={{ padding: '0 4px', color: '#9ca3af' }}>…</span>}
+                  <PaginationButton label={String(pageCount)} onClick={() => handlePagination(pageCount)} active={false} />
+                </>
+              )}
+              <PaginationButton
+                label="Next →"
+                onClick={() => handlePagination(Math.min(pageCount, paginationState.activePage + 1))}
+                disabled={paginationState.activePage === pageCount}
+                active={false}
+              />
+            </nav>
+          </div>
         )}
       </div>
-      {totalItems ? (
-        <div className={userPremiumList && userPremiumList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} i18nEnabled />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalItems}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
     </div>
   );
 };
+
+// ─── Pagination Button helper ─────────────────────────────────────────────
+const PaginationButton = ({
+  label,
+  onClick,
+  active,
+  disabled,
+}: {
+  label: string;
+  onClick: () => void;
+  active: boolean;
+  disabled?: boolean;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    style={{
+      padding: '5px 11px',
+      borderRadius: 7,
+      border: active ? '1.5px solid #2563eb' : '1px solid #e5e7eb',
+      background: active ? '#2563eb' : '#fff',
+      color: active ? '#fff' : '#374151',
+      fontSize: 13,
+      fontWeight: active ? 700 : 500,
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.4 : 1,
+      transition: 'all 0.12s',
+      minWidth: 34,
+    }}
+    onMouseEnter={e => {
+      if (!active && !disabled) e.currentTarget.style.background = '#f9fafb';
+    }}
+    onMouseLeave={e => {
+      if (!active && !disabled) e.currentTarget.style.background = '#fff';
+    }}
+  >
+    {label}
+  </button>
+);
 
 export default UserPremium;

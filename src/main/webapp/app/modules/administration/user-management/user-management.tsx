@@ -67,6 +67,32 @@ export const UserManagement = () => {
   const users = useAppSelector(state => state.userManagement.users);
   const totalItems = useAppSelector(state => state.userManagement.totalItems);
   const loading = useAppSelector(state => state.userManagement.loading);
+
+  const [filterKeyword, setFilterKeyword] = useState('');
+  const [appliedFilters, setAppliedFilters] = useState({ keyword: '' });
+
+  const handleApplyFilter = () => setAppliedFilters({ keyword: filterKeyword });
+  const handleClearFilter = () => {
+    setFilterKeyword('');
+    setAppliedFilters({ keyword: '' });
+    console.warn(setSearchText);
+  };
+
+  const filteredList = users?.filter(item => {
+    if (appliedFilters.keyword) {
+      const kw = appliedFilters.keyword.toLowerCase();
+      if (
+        !item.login?.toLowerCase().includes(kw) &&
+        !item.email?.toLowerCase().includes(kw) &&
+        !item.firstName?.toLowerCase().includes(kw) &&
+        !item.lastName?.toLowerCase().includes(kw)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   const updateSuccess = useAppSelector(state => state.userManagement.updateSuccess);
   const prevUpdateSuccess = useRef(false);
 
@@ -87,7 +113,7 @@ export const UserManagement = () => {
 
   useEffect(() => {
     getUsersFromProps();
-  }, [dispatch, pagination.activePage, pagination.order, pagination.sort]);
+  }, [dispatch, pagination.activePage, pagination.order, pagination.sort, pagination.itemsPerPage]);
 
   useEffect(() => {
     const params = new URLSearchParams(pageLocation.search);
@@ -156,22 +182,19 @@ export const UserManagement = () => {
 
   // ─── Pagination ───────────────────────────────────────────────────────────
   const handlePagination = (page: number) => setPagination(prev => ({ ...prev, activePage: page }));
+  const handleItemsPerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPagination(prev => ({
+      ...prev,
+      itemsPerPage: parseInt(event.target.value, 10),
+      activePage: 1,
+    }));
+  };
   const pageCount = totalItems ? Math.max(1, Math.ceil(totalItems / pagination.itemsPerPage)) : 0;
   const startIndex = totalItems ? (pagination.activePage - 1) * pagination.itemsPerPage + 1 : 0;
   const endIndex = totalItems ? Math.min(totalItems, pagination.activePage * pagination.itemsPerPage) : 0;
   const pageRange = 2;
   const pageStart = Math.max(1, pagination.activePage - pageRange);
   const pageEnd = Math.min(pageCount, pagination.activePage + pageRange);
-
-  // ─── Filter ───────────────────────────────────────────────────────────────
-  const filteredUsers = users.filter(
-    u =>
-      !searchText ||
-      u.login?.toLowerCase().includes(searchText.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchText.toLowerCase()) ||
-      u.firstName?.toLowerCase().includes(searchText.toLowerCase()) ||
-      u.lastName?.toLowerCase().includes(searchText.toLowerCase()),
-  );
 
   // ─── Styles ───────────────────────────────────────────────────────────────
   const thStyle: React.CSSProperties = {
@@ -223,36 +246,6 @@ export const UserManagement = () => {
           <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>{totalItems} total users in the system</p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Search */}
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              placeholder="Search login / email…"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              style={{
-                padding: '8px 14px 8px 36px',
-                borderRadius: 8,
-                border: '1px solid #e5e7eb',
-                fontSize: 13,
-                outline: 'none',
-                width: 220,
-                color: '#111827',
-              }}
-            />
-            <span
-              style={{
-                position: 'absolute',
-                left: 11,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#9ca3af',
-                pointerEvents: 'none',
-              }}
-            >
-              🔍
-            </span>
-          </div>
           {/* Refresh */}
           <button
             type="button"
@@ -350,6 +343,64 @@ export const UserManagement = () => {
         </div>
       )}
 
+      {/* ── Filter Panel ────────────────────────────────────────────── */}
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '20px 24px',
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: '1 1 200px' }}>
+            <label style={{ fontSize: 12, color: '#6b7280', marginBottom: 4, display: 'block', fontWeight: 600 }}>Tìm kiếm từ khóa</label>
+            <input
+              type="text"
+              placeholder="Tìm theo username, email, tên..."
+              value={filterKeyword}
+              onChange={e => setFilterKeyword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleApplyFilter()}
+              style={{ width: '100%', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              onClick={handleApplyFilter}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Áp dụng
+            </button>
+            <button
+              onClick={handleClearFilter}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: '#f3f4f6',
+                color: '#374151',
+                border: '1px solid #e5e7eb',
+                cursor: 'pointer',
+              }}
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ── Table ───────────────────────────────────────────────────── */}
       <div
         style={{
@@ -400,8 +451,8 @@ export const UserManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map(user => (
+              {filteredList && filteredList.length > 0 ? (
+                filteredList.map(user => (
                   <tr
                     key={user.id}
                     style={{ transition: 'background 0.12s' }}
@@ -637,7 +688,7 @@ export const UserManagement = () => {
         </div>
 
         {/* ── Pagination ──────────────────────────────────────────── */}
-        {totalItems > 0 && users.length > 0 && (
+        {totalItems > 0 && filteredList.length > 0 && (
           <div
             style={{
               display: 'flex',
@@ -650,9 +701,32 @@ export const UserManagement = () => {
               background: '#fafafa',
             }}
           >
-            <span style={{ fontSize: 13, color: '#6b7280' }}>
-              Showing <strong>{startIndex}</strong>–<strong>{endIndex}</strong> of <strong>{totalItems}</strong> users
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>
+                Showing <strong>{startIndex}</strong>–<strong>{endIndex}</strong> of <strong>{totalItems}</strong> users
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 13, color: '#6b7280' }}>Hiển thị:</span>
+                <select
+                  value={pagination.itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: 13,
+                    background: '#fff',
+                    color: '#374151',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
             <nav style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
               <PaginationButton
                 label="← Prev"
